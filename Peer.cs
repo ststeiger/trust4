@@ -5,21 +5,21 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using ARSoft.Tools.Net.Dns;
+using System.Timers;
 
 namespace Trust4
 {
     class Peer
     {
-        private IPAddress p_IPAddress = IPAddress.None;
-        private int m_Port = 12000;
-        private Socket m_Connection = null;
+        private IPAddress p_Address = IPAddress.None;
+        private int p_Port = 12000;
+        private StatelessSocket p_Connection = null;
 
         public Peer(IPAddress ip, int port)
         {
-            this.p_IPAddress = ip;
-            this.m_Port = port;
-            this.m_Connection = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            this.m_Connection.Connect(this.p_IPAddress, this.m_Port);
+            this.p_Address = ip;
+            this.p_Port = port;
+            this.p_Connection = new StatelessSocket(ip, port);
         }
 
         public DnsMessage Query(DnsQuestion q)
@@ -27,53 +27,57 @@ namespace Trust4
             return this.Query(q.Name);
         }
 
-        public IPAddress IPAddress
+        public IPAddress Address
         {
             get
             {
-                return this.p_IPAddress;
+                return this.p_Address;
+            }
+        }
+
+        public int Port
+        {
+            get
+            {
+                return this.p_Port;
+            }
+        }
+
+        public StatelessSocket Connection
+        {
+            get
+            {
+                return this.p_Connection;
             }
         }
 
         internal DnsMessage Query(string domain)
         {
-            this.m_Connection.Send(Encoding.ASCII.GetBytes("LOOKUP:" + domain + "<EOF>"));
-
-            byte[] storage = new byte[256];
-            string content = string.Empty;
-            int read = this.m_Connection.Receive(storage, 256, SocketFlags.None);
-
-            if (read > 0)
+            if (!this.p_Connection.Connected)
             {
-                content = Encoding.ASCII.GetString(storage);
-                while (content.IndexOf("<EOF>") == -1)
-                {
-                    storage = new byte[256];
-                    read += this.m_Connection.Receive(storage, 256, SocketFlags.None);
-                    content += Encoding.ASCII.GetString(storage);
-                }
+                DnsMessage m = new DnsMessage();
+                m.ReturnCode = ReturnCode.ServerFailure;
+                return m;
+            }
 
-                string[] result = content.Split(new string[] { "<EOF>" }, StringSplitOptions.RemoveEmptyEntries)[0].Split(':');
-                if (result[1].ToUpperInvariant() == "FOUND")
-                {
-                    DnsMessage m = new DnsMessage();
-                    IPAddress o = IPAddress.None;
-                    IPAddress.TryParse(result[2], out o);
-                    m.ReturnCode = ReturnCode.NoError;
-                    m.AnswerRecords.Add(new ARecord(domain, 3600, o));
-                    return m;
-                }
-                else
-                {
-                    DnsMessage m = new DnsMessage();
-                    m.ReturnCode = ReturnCode.NotAuthoritive;
-                    return m;
-                }
+            // Send the lookup request.
+            this.p_Connection.Send("LOOKUP:" + domain);
+
+            // Get and handle the response.
+            string[] result = this.p_Connection.Receive().Split(':');
+            if (result[1].ToUpperInvariant() == "FOUND")
+            {
+                DnsMessage m = new DnsMessage();
+                IPAddress o = IPAddress.None;
+                IPAddress.TryParse(result[2], out o);
+                m.ReturnCode = ReturnCode.NoError;
+                m.AnswerRecords.Add(new ARecord(domain, 3600, o));
+                return m;
             }
             else
             {
                 DnsMessage m = new DnsMessage();
-                m.ReturnCode = ReturnCode.ServerFailure;
+                m.ReturnCode = ReturnCode.NotAuthoritive;
                 return m;
             }
         }
