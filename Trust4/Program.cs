@@ -136,12 +136,13 @@ namespace Trust4
                     bool found = false;
                     foreach (DomainMap d in Program.m_Mappings)
                     {
-                        if (q.Name.EndsWith(d.Domain, StringComparison.InvariantCultureIgnoreCase))
+                        if (q.Name.Equals(d.Domain, StringComparison.InvariantCultureIgnoreCase) ||
+                            q.Name.EndsWith("." + d.Domain, StringComparison.InvariantCultureIgnoreCase))
                         {
                             found = true;
                             Console.WriteLine("DNS LOOKUP - Found in cache (" + d.Target.ToString() + ")");
                             query.ReturnCode = ReturnCode.NoError;
-                            query.AnswerRecords.Add(new ARecord(d.Domain, 3600, d.Target));
+                            query.AnswerRecords.Add(new ARecord(q.Name, 3600, d.Target));
                             break;
                         }
                     }
@@ -223,7 +224,8 @@ namespace Trust4
                     bool found = false;
                     foreach (DomainMap d in Program.m_Mappings)
                     {
-                        if (request[1].EndsWith(d.Domain, StringComparison.InvariantCultureIgnoreCase))
+                        if (request[1].Equals(d.Domain, StringComparison.InvariantCultureIgnoreCase) ||
+                            request[1].EndsWith("." + d.Domain, StringComparison.InvariantCultureIgnoreCase))
                         {
                             found = true;
                             e.Client.Send("RESULT:FOUND:" + d.Target.ToString());

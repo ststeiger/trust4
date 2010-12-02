@@ -20,6 +20,12 @@ namespace Trust4
             this.p_Address = ip;
             this.p_Port = port;
             this.p_Connection = new StatelessSocket(ip, port);
+            this.p_Connection.OnConnected += new StatelessEventHandler(p_Connection_OnConnected);
+        }
+
+        void p_Connection_OnConnected(object sender, StatelessEventArgs e)
+        {
+            Console.WriteLine(e.Client.ClientEndPoint + " - PEER ONLINE");
         }
 
         public DnsMessage Query(DnsQuestion q)
