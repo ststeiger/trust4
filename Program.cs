@@ -23,7 +23,7 @@ namespace Trust4
         static void Main(string[] args)
         {
             // Start the DNS server.
-            DnsServer server = new DnsServer(IPAddress.Loopback, 10, 10, Program.ProcessQuery);
+            DnsServer server = new DnsServer(IPAddress.Any, 10, 10, Program.ProcessQuery);
             server.ExceptionThrown += new EventHandler<ExceptionEventArgs>(ExceptionThrown);
             server.Start();
 
