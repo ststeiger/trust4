@@ -22,12 +22,8 @@ namespace Trust4
 
         static void Main(string[] args)
         {
-            // Start the DNS server.
-            DnsServer server = new DnsServer(IPAddress.Any, 10, 10, Program.ProcessQuery);
-            server.ExceptionThrown += new EventHandler<ExceptionEventArgs>(ExceptionThrown);
-            server.Start();
-
             // Read our settings.
+            int dnsport = 53;
             using (StreamReader reader = new StreamReader("settings.txt"))
             {
                 while (!reader.EndOfStream)
@@ -38,12 +34,23 @@ namespace Trust4
 
                     switch (setting)
                     {
+                        case "peerport":
+                            Program.m_Port = Convert.ToInt32(value);
+                            break;
                         case "port":
                             Program.m_Port = Convert.ToInt32(value);
+                            break;
+                        case "dnsport":
+                            dnsport = Convert.ToInt32(value);
                             break;
                     }
                 }
             }
+
+            // Start the DNS server.
+            DnsServer server = new DnsServer(IPAddress.Any, dnsport, 10, 10, Program.ProcessQuery);
+            server.ExceptionThrown += new EventHandler<ExceptionEventArgs>(ExceptionThrown);
+            server.Start();
 
             // Read our mappings.
             using (StreamReader reader = new StreamReader("mappings.txt"))
@@ -129,7 +136,7 @@ namespace Trust4
                     bool found = false;
                     foreach (DomainMap d in Program.m_Mappings)
                     {
-                        if (q.Name.Equals(d.Domain, StringComparison.InvariantCultureIgnoreCase))
+                        if (q.Name.EndsWith(d.Domain, StringComparison.InvariantCultureIgnoreCase))
                         {
                             found = true;
                             Console.WriteLine("DNS LOOKUP - Found in cache (" + d.Target.ToString() + ")");
@@ -216,7 +223,7 @@ namespace Trust4
                     bool found = false;
                     foreach (DomainMap d in Program.m_Mappings)
                     {
-                        if (request[1].Equals(d.Domain, StringComparison.InvariantCultureIgnoreCase))
+                        if (request[1].EndsWith(d.Domain, StringComparison.InvariantCultureIgnoreCase))
                         {
                             found = true;
                             e.Client.Send("RESULT:FOUND:" + d.Target.ToString());
