@@ -130,8 +130,20 @@ namespace Trust4
             Console.WriteLine(this.m_Socket.RemoteEndPoint + " < " + data);
 
             // Begin sending the data to the remote device.
-            this.m_Socket.BeginSend(byteData, 0, byteData.Length, 0,
-                new AsyncCallback(this.SendCallback), this.m_Socket);
+            try
+            {
+                this.m_Socket.BeginSend(byteData, 0, byteData.Length, 0,
+                    new AsyncCallback(this.SendCallback), this.m_Socket);
+            }
+            catch (SocketException e)
+            {
+                if (e.SocketErrorCode == SocketError.ConnectionAborted)
+                {
+                    this.m_Timer_Elapsed(this, null);
+                    this.m_Socket.BeginSend(byteData, 0, byteData.Length, 0,
+                        new AsyncCallback(this.SendCallback), this.m_Socket);
+                }
+            }
         }
 
         /// <summary>
@@ -156,7 +168,19 @@ namespace Trust4
             StringBuilder storage = new StringBuilder();
 
             byte[] buffer = new byte[1024];
-            int read = this.m_Socket.Receive(buffer);
+            int read = 0;
+            try
+            {
+                read = this.m_Socket.Receive(buffer);
+            }
+            catch (SocketException e)
+            {
+                if (e.SocketErrorCode == SocketError.ConnectionAborted)
+                {
+                    this.m_Timer_Elapsed(this, null);
+                    read = this.m_Socket.Receive(buffer);
+                }
+            }
 
             if (read > 0)
             {

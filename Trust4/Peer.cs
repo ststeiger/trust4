@@ -71,6 +71,12 @@ namespace Trust4
 
             // Get and handle the response.
             string[] result = this.p_Connection.Receive().Split(':');
+            if (result.Length < 2)
+            {
+                // Invalid response; let's try this again.
+                return this.Query(domain);
+            }
+
             if (result[1].ToUpperInvariant() == "FOUND")
             {
                 DnsMessage m = new DnsMessage();

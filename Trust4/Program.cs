@@ -198,6 +198,7 @@ namespace Trust4
 
         static void ExceptionThrown(object sender, ExceptionEventArgs e)
         {
+            Console.WriteLine(e.Exception.ToString());
         }
 
         static void PeerListen()
