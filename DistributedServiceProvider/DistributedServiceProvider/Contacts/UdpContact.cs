@@ -8,20 +8,46 @@ using System.IO;
 using DistributedServiceProvider.MessageConsumers;
 using System.Net.Sockets;
 using System.Threading;
+using ProtoBuf;
 
 namespace DistributedServiceProvider.Contacts
 {
+    [ProtoContract]
     public class UdpContact
         :Contact
     {
-        public readonly IPAddress Ip;
-        public readonly int Port;
+        [ProtoMember(3)]
+        private byte[] addressBytes;
+
+        public IPAddress Ip
+        {
+            get
+            {
+                return new IPAddress(addressBytes);
+            }
+            private set
+            {
+                addressBytes = value.GetAddressBytes();
+            }
+        }
+
+        [ProtoMember(4)]
+        public int Port
+        {
+            get;
+            private set;
+        }
 
         public UdpContact(Identifier512 id, Guid networkId, IPAddress ip, int port)
             :base(id, networkId)
         {
             Ip = ip;
             Port = port;
+        }
+
+        private UdpContact()
+        {
+
         }
 
         public override TimeSpan Ping(Contact source, TimeSpan timeout)
