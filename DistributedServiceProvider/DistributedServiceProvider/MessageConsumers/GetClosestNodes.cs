@@ -62,7 +62,7 @@ namespace DistributedServiceProvider.MessageConsumers
         /// </summary>
         /// <param name="target">The target.</param>
         /// <returns>an IEnumerable&lt;contact&gt; in order of distance from the target. Can be cast into a GetClosestNodes.ClosestResults</contact></returns>
-        public IEnumerable<Contact> GetClosestContacts(Identifier512 target, Func<Contact, bool> terminate = null)
+        public IEnumerable<Contact> GetClosestContacts(Identifier512 target, Func<Contact, bool> terminate)
         {
             MinMaxHeap<Contact> heap = new MinMaxHeap<Contact>(new ContactComparer(target), contacts.ClosestNodes(target).Take(RoutingTable.Configuration.LookupConcurrency));
 
