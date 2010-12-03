@@ -81,9 +81,7 @@ namespace Trust4
                         foreach (DataResult r in results)
                         {
                             Contact source = r.Source;
-                            IPAddress ip = IPAddress.None;
-                            if (!IPAddress.TryParse(Encoding.ASCII.GetString(r.Data), out ip))
-                                continue;
+                            IPAddress ip = new IPAddress(r.Data);
 
                             // TODO: Implement trust level checking on each source contact.
                             highest = ip;
