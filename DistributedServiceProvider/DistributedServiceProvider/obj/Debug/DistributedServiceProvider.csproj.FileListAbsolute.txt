@@ -72,4 +72,3 @@ C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceP
 C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\bin\Debug\protobuf-net.pdb
 C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\bin\Debug\protobuf-net.xml
 C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\bin\Debug\DistributedServiceProvider.Base.pdb
-C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\bin\Debug\DistributedServiceProvider.XML
