@@ -30,18 +30,34 @@ namespace Trust4
             }
         }
 
-        public void Add(string domain, IPAddress addr)
+        public void Add(string type, string domain, IPAddress addr)
         {
             this.p_Domains.Add(new DomainMap(domain, addr));
 
             // Add to DHT.
-            Identifier512 domainid = Identifier512.CreateKey("dns-a-" + domain);
+            Identifier512 domainid = Identifier512.CreateKey("dns-" + type.ToUpperInvariant() + "-" + domain);
             this.m_Manager.DataStore.Put(domainid, addr.GetAddressBytes());
         }
 
-        public void AddCached(string domain, IPAddress addr)
+        public void Add(string type, string domain, string target)
+        {
+            this.p_Domains.Add(new DomainMap(domain, target));
+
+            // Add to DHT.
+            Identifier512 domainid = Identifier512.CreateKey("dns-" + type.ToUpperInvariant() + "-" + domain);
+            this.m_Manager.DataStore.Put(domainid, Encoding.ASCII.GetBytes(target));
+        }
+
+        public void AddCached(string type, string domain, IPAddress addr)
         {
             this.p_Domains.Add(new DomainMap(domain, addr));
+
+            // It's a cached mapping, so don't add to the DHT.
+        }
+
+        public void AddCached(string type, string domain, string target)
+        {
+            this.p_Domains.Add(new DomainMap(domain, target));
 
             // It's a cached mapping, so don't add to the DHT.
         }
@@ -52,17 +68,30 @@ namespace Trust4
             {
                 while (!reader.EndOfStream)
                 {
-                    string[] s = reader.ReadLine().Split('=');
-                    string domain = s[0].Trim();
-                    string ip = s[1].Trim();
+                    string[] s = reader.ReadLine().Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    string type = s[0].Trim();
+                    string domain = s[1].Trim();
+                    string target = s[2].Trim();
 
-                    Console.Write("Mapping " + domain + " to " + ip + "... ");
+                    Console.Write("Mapping (" + type.ToUpperInvariant() + ") " + domain + " to " + target + "... ");
                     try
                     {
-                        IPAddress o = IPAddress.None;
-                        IPAddress.TryParse(ip, out o);
-                        this.Add(domain, o);
-                        Console.WriteLine("done.");
+                        switch (type.ToUpperInvariant())
+                        {
+                            case "A":
+                                IPAddress o = IPAddress.None;
+                                IPAddress.TryParse(target, out o);
+                                this.Add(type, domain, o);
+                                Console.WriteLine("done.");
+                                break;
+                            case "CNAME":
+                                this.Add(type, domain, target);
+                                Console.WriteLine("done.");
+                                break;
+                            default:
+                                Console.WriteLine("failed.");
+                                break;
+                        }
                     }
                     catch (Exception e)
                     {
