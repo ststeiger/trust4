@@ -16,6 +16,8 @@ namespace Trust4
         private IPAddress p_LocalIP = IPAddress.None;
         private Guid p_NetworkID = Guid.Empty;
         private Identifier512 p_RoutingIdentifier = null;
+		private uint p_UnixUID = 1000;
+		private uint p_UnixGID = 1000;
 
         public Settings(string path)
         {
@@ -62,8 +64,26 @@ namespace Trust4
             }
         }
 
+        public uint UnixUID
+        {
+            get
+            {
+                return this.p_UnixUID;
+            }
+        }
+
+        public uint UnixGID
+        {
+            get
+            {
+                return this.p_UnixGID;
+            }
+        }
+
         public void Load()
         {
+			bool setuid = false;
+			bool setgid = false;
             foreach (var line in File.ReadAllLines(this.m_Path).OmitComments("#", "//").Select(a => a.ToLowerInvariant().Replace(" ", "").Replace("\t", "").Split('=')))
             {
                 string setting = line[0].Trim();
@@ -90,11 +110,24 @@ namespace Trust4
                         var s = line[1].Split(',');
                         this.p_RoutingIdentifier = new Identifier512(new Guid(s[0]), new Guid(s[1]), new Guid(s[2]), new Guid(s[3]));
                         break;
+                    case "uid":
+                        this.p_UnixUID = Convert.ToUInt32(value);
+						setuid = true;
+                        break;
+                    case "gid":
+                        this.p_UnixGID = Convert.ToUInt32(value);
+						setgid = true;
+                        break;
                     default:
                         Console.WriteLine("Unknown setting " + line[0]);
                         break;
                 }
             }
+			
+			if (Environment.OSVersion.Platform == PlatformID.Unix && (!setuid || !setgid))
+			{
+				Console.WriteLine("Warning!  You didn't set the 'uid' and 'gid' options in settings.txt.  This probably is going to work as you expect!");
+			}
         }
     }
 }

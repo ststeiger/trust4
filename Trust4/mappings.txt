@@ -1,1 +1,1 @@
-﻿hellequin.p2p = 78.105.97.103
+﻿A		opensuse.p2p		130.57.5.70

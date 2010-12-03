@@ -9,6 +9,7 @@ using DistributedServiceProvider.Contacts;
 using DistributedServiceProvider.Base;
 using System.IO;
 using Trust4.DataStorage;
+using System.Threading;
 
 namespace Trust4
 {
@@ -35,7 +36,8 @@ namespace Trust4
             this.p_Settings.Load();
 
             // Initalize the DNS service.
-            this.InitalizeDNS();
+            if (!this.InitalizeDNS())
+				return; // Couldn't lower permissions from root; exit immediately.
 
             // Initalize the DHT service.
             this.InitalizeDHT();
@@ -45,8 +47,9 @@ namespace Trust4
             this.p_Mappings.Load();
 
             // .. the Trust4 server is now running ..
-            Console.WriteLine("Press any key to stop server.");
-            Console.ReadLine();
+			Thread.Sleep(Timeout.Infinite);
+            //Console.WriteLine("Press any key to stop server.");
+            //Console.ReadLine();
 
             // Stop the server
             this.m_DNSServer.Stop();
@@ -99,16 +102,51 @@ namespace Trust4
         /// <summary>
         /// Initalizes the DNS server component.
         /// </summary>
-        public void InitalizeDNS()
+        public bool InitalizeDNS()
         {
             // Create the DNS processing instance.
             this.m_DNSProcess = new DnsProcess(this);
 
             // Start the DNS server.
-            this.m_DNSServer = new DnsServer(IPAddress.Any, this.p_Settings.DNSPort, 10, 10, this.m_DNSProcess.ProcessQuery);
+            this.m_DNSServer = new DnsServer(IPAddress.Any, this.p_Settings.DNSPort, 0, 10, this.m_DNSProcess.ProcessQuery);
             this.m_DNSServer.ExceptionThrown += new EventHandler<ExceptionEventArgs>(this.m_DNSProcess.ExceptionThrown);
             this.m_DNSServer.Start();
+			
+			int p = (int) Environment.OSVersion.Platform;
+            if ((p == 4) || (p == 6) || (p == 128))
+			{
+				if (!this.UpdateUnixUIDGID(this.Settings.UnixUID, this.Settings.UnixGID))
+				{
+					Console.WriteLine("Error!  I couldn't not lower the permissions of the current process.  I'm not going to continue for security reasons!");
+					return false;
+				}
+			}
+			
+			return true;
         }
+	
+		public bool UpdateUnixUIDGID(uint uid, uint gid)
+		{
+			if (Mono.Unix.Native.Syscall.getuid() != 0)
+			{
+				// We don't need to lower / change permissions since we aren't root.
+				return true;
+			}
+			
+			int res = Mono.Unix.Native.Syscall.setregid(uid, gid);
+			if (res != 0)
+			{
+				Console.WriteLine("Error! Unable to lower effective and real group IDs to " + gid + ".  Result from syscall was: " + res);
+				return false;
+			}
+			res = Mono.Unix.Native.Syscall.setreuid(uid, gid);
+			if (res != 0)
+			{
+				Console.WriteLine("Error! Unable to lower effective and real user IDs to " + uid + ".  Result from syscall was: " + res);
+				return false;
+			}
+			return true;
+		}
 
         /// <summary>
         /// Initalizes the Distributed Hash Table component.
