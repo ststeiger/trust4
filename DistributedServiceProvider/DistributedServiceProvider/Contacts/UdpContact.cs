@@ -74,8 +74,10 @@ namespace DistributedServiceProvider.Contacts
                         DateTime start = DateTime.Now;
                         if (token.Wait((int)timeout.TotalMilliseconds))
                         {
+                            Console.WriteLine("Reply from " + this);
                             return DateTime.Now - start;
                         }
+                        Console.WriteLine("No reply from " + this);
                         return TimeSpan.MaxValue;
                     }
                     finally
