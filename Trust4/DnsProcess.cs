@@ -74,7 +74,7 @@ namespace Trust4
                         // We haven't found it in our local cache.  Query our
                         // peers to see if they've got any idea where this site is.
                         Identifier512 domainid = Identifier512.CreateKey("dns-a-" + q.Name.ToLowerInvariant());
-                        IEnumerable<DataResult> results = this.m_Manager.DataStore.Get(domainid, 1000);
+                        IEnumerable<DataResult> results = this.m_Manager.DataStore.Get(domainid);
 
                         IPAddress highest = IPAddress.None;
                         Contact highcontact = null;
