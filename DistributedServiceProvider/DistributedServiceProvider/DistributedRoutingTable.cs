@@ -9,6 +9,7 @@ using HandyCollections.Heap;
 using DistributedServiceProvider.MessageConsumers;
 using DistributedServiceProvider.Contacts;
 using System.Reflection;
+using DistributedServiceProvider.Stores;
 
 namespace DistributedServiceProvider
 {

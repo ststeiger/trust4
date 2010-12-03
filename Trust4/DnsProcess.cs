@@ -5,6 +5,8 @@ using System.Text;
 using ARSoft.Tools.Net.Dns;
 using System.Net;
 using System.Net.Sockets;
+using DistributedServiceProvider.Contacts;
+using DistributedServiceProvider.Base;
 
 namespace Trust4
 {
@@ -60,39 +62,51 @@ namespace Trust4
                         }
                     }
 
-                    if (!found)
+                    if (!found && !this.m_Manager.Mappings.Waiting(q.Name.ToLowerInvariant()))
                     {
                         // Since we're about to query peers, add this domain to our
                         // "waiting on" list which means that any requests for this
                         // domain from other peers will result in not found.
-                        //Program.m_WaitingOn.Add(q.Name.ToLowerInvariant());
+                        this.m_Manager.Mappings.BeginWait(q.Name.ToLowerInvariant());
 
                         // We haven't found it in our local cache.  Query our
                         // peers to see if they've got any idea where this site is.
-                        //foreach (Peer p in Program.m_Peers)
-                        //{
-                        //    if (!p.Connection.Connected)
-                        //        continue;
+                        Identifier512 domainid = Identifier512.CreateKey("dns-a-" + q.Name.ToLowerInvariant());
+                        IEnumerable<KeyValuePair<Contact, byte[]>> results = this.m_Manager.DataStore.Get(domainid, 1000);
 
-                        //    DnsMessage m = p.Query(q);
-                        //    if (m.ReturnCode == ReturnCode.NoError)
-                        //    {
-                        //        found = true;
+                        IPAddress highest = IPAddress.None;
+                        Contact highcontact = null;
+                        foreach (KeyValuePair<Contact, byte[]> r in results)
+                        {
+                            Contact source = r.Key;
+                            IPAddress ip = IPAddress.None;
+                            if (!IPAddress.TryParse(Encoding.ASCII.GetString(r.Value), out ip))
+                                continue;
 
-                        //        // Cache the result.
-                        //        ARecord a = (m.AnswerRecords[0] as ARecord);
-                        //        Program.m_Mappings.Add(new DomainMap(a.Name, a.Address));
+                            // TODO: Implement trust level checking on each source contact.
+                            highest = ip;
+                            highcontact = source;
+                        }
 
-                        //        Console.WriteLine("DNS LOOKUP - Found via peer " + p.Address.ToString() + " (" + a.Address.ToString() + ")");
+                        if (highest != IPAddress.None)
+                        {
+                            // We found a match.
+                            found = true;
 
-                        //        // Add the result.
-                        //        query.ReturnCode = ReturnCode.NoError;
-                        //        query.AnswerRecords.Add(new ARecord(a.Name, 3600, a.Address));
+                            // Cache the result.
+                            this.m_Manager.Mappings.AddCached(q.Name.ToLowerInvariant(), highest);
 
-                        //        break;
-                        //    }
-                        //}
-                        throw new NotImplementedException("Not found in local cache, need to go out to DHT");
+                            string sip = "<unknown>";
+                            if (highcontact is UdpContact)
+                                sip = (highcontact as UdpContact).Ip.ToString();
+                            Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + highest.ToString() + ")");
+
+                            // Add the result.
+                            query.ReturnCode = ReturnCode.NoError;
+                            query.AnswerRecords.Add(new ARecord(q.Name.ToLowerInvariant(), 3600, highest));
+                        }
+
+                        this.m_Manager.Mappings.EndWait(q.Name.ToLowerInvariant());
                     }
 
                     if (!found)

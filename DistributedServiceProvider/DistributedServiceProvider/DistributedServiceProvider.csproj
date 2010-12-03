@@ -65,11 +65,13 @@
     <Compile Include="Contacts\LocalContact.cs" />
     <Compile Include="Contacts\UdpContact.cs" />
     <Compile Include="DistributedRoutingTable.cs" />
+    <Compile Include="IDataStore.cs" />
     <Compile Include="MessageConsumers\Callback.cs" />
     <Compile Include="MessageConsumers\GetClosestNodes.cs" />
     <Compile Include="MessageConsumers\LinkedConsumerAttribute.cs" />
     <Compile Include="MessageConsumers\MessageConsumer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Stores\NullDataStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Notes\Design.txt" />

@@ -8,17 +8,21 @@ using System.Net;
 using DistributedServiceProvider.Contacts;
 using DistributedServiceProvider.Base;
 using System.IO;
+using DistributedServiceProvider.Stores;
 
 namespace Trust4
 {
     public class Manager
     {
-        private Settings p_Settings = new Settings("settings.txt");
-        private Mappings p_Mappings = new Mappings("mappings.txt");
+        private Settings p_Settings = null;
+        private Mappings p_Mappings = null;
 
         private DnsServer m_DNSServer = null;
         private DnsProcess m_DNSProcess = null;
-        private DistributedRoutingTable m_RoutingTable = null;
+        private DistributedRoutingTable p_RoutingTable = null;
+
+        private static readonly Guid m_P2PRootStore = new Guid("94e9bd40-2547-4232-9266-4f93310bf906");
+        private static readonly Guid m_KeyRootStore = new Guid("09a2cbb4-ef12-431c-9419-5a655075039e");
 
         /// <summary>
         /// Creates a new Manager instance, which handles execution of the Trust4
@@ -27,16 +31,25 @@ namespace Trust4
         public Manager()
         {
             // Load the settings.
+            this.p_Settings = new Settings("settings.txt");
             this.p_Settings.Load();
-
-            // Load the mappings.
-            this.p_Mappings.Load();
 
             // Initalize the DNS service.
             this.InitalizeDNS();
 
             // Initalize the DHT service.
             this.InitalizeDHT();
+
+            // Load the mappings.
+            this.p_Mappings = new Mappings(this, "mappings.txt");
+            this.p_Mappings.Load();
+
+            // .. the Trust4 server is now running ..
+            Console.WriteLine("Press any key to stop server.");
+            Console.ReadLine();
+
+            // Stop the server
+            this.m_DNSServer.Stop();
         }
 
         /// <summary>
@@ -62,6 +75,28 @@ namespace Trust4
         }
 
         /// <summary>
+        /// Returns the distributed routing table.
+        /// </summary>
+        public DistributedRoutingTable RoutingTable
+        {
+            get
+            {
+                return this.p_RoutingTable;
+            }
+        }
+
+        /// <summary>
+        /// The data store for the distributed routing table.
+        /// </summary>
+        public IDataStore DataStore
+        {
+            get
+            {
+                return this.p_RoutingTable.GetConsumer<NullDataStore>(Manager.m_P2PRootStore, () => new NullDataStore(Manager.m_P2PRootStore));
+            }
+        }
+
+        /// <summary>
         /// Initalizes the DNS server component.
         /// </summary>
         public void InitalizeDNS()
@@ -81,7 +116,7 @@ namespace Trust4
         public void InitalizeDHT()
         {
             // Start the Distributed Hash Table.
-            this.m_RoutingTable = new DistributedRoutingTable(
+            this.p_RoutingTable = new DistributedRoutingTable(
                 this.p_Settings.RoutingIdentifier,
                 (a) => new UdpContact(a.LocalIdentifier, this.p_Settings.NetworkID, this.p_Settings.LocalIP, this.p_Settings.P2PPort),
                 this.p_Settings.NetworkID,
@@ -96,18 +131,13 @@ namespace Trust4
                     }
                 );
 
-            UdpContact.InitialiseUdp(this.m_RoutingTable, this.p_Settings.P2PPort);
+            UdpContact.InitialiseUdp(this.p_RoutingTable, this.p_Settings.P2PPort);
 
             Console.WriteLine("Bootstrapping DHT");
-            this.m_RoutingTable.Bootstrap(this.BootstrapPeers());
+            this.p_RoutingTable.Bootstrap(this.BootstrapPeers());
 
             Console.WriteLine("Bootstrap finished");
-            Console.WriteLine("There are " + this.m_RoutingTable.ContactCount + " Contacts");
-
-            Console.WriteLine("Press any key to stop server.");
-            Console.ReadLine();
-
-            UdpContact.Stop();
+            Console.WriteLine("There are " + this.p_RoutingTable.ContactCount + " Contacts");
         }
 
         /// <summary>
