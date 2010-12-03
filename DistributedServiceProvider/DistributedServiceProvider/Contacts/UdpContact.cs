@@ -218,6 +218,8 @@ namespace DistributedServiceProvider.Contacts
             {
                 using (BinaryWriter w = new BinaryWriter(m))
                 {
+                    w.Write((byte)PacketFlag.WhoAreYou);
+
                     byte[] addrBytes = address.GetAddressBytes();
                     w.Write(IPAddress.HostToNetworkOrder(addrBytes.Length));
                     w.Write(addrBytes);
@@ -271,6 +273,8 @@ namespace DistributedServiceProvider.Contacts
             {
                 using (BinaryWriter w = new BinaryWriter(m))
                 {
+                    w.Write((byte)PacketFlag.WhoAreYouReply);
+
                     w.Write(IPAddress.HostToNetworkOrder(uniqueNumber));
 
                     var b = localTable.LocalIdentifier.GetBytes().ToArray();
