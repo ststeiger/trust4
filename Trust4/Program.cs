@@ -15,13 +15,9 @@ namespace Trust4
 {
     class Program
     {
-        static List<Peer> m_Peers = new List<Peer>();
         static List<DomainMap> m_Mappings = new List<DomainMap>();
         static List<string> m_WaitingOn = new List<string>();
-        static StatelessSocket m_PeerServer = null;
-        static Thread m_PeerThread = null;
         static int m_Port = 12000;
-        public static ManualResetEvent AllDone = new ManualResetEvent(false);
 
         static IPAddress localIp;
         static Guid networkId;
@@ -49,46 +45,8 @@ namespace Trust4
             Console.WriteLine("Bootstrap finished");
             Console.WriteLine("There are " + routingTable.ContactCount + " Contacts");
 
-            //ConnectToPeers();
-
-            // Show information and start socket listener.
-            //Program.m_PeerThread = new Thread(Program.PeerListen);
-            //Program.m_PeerThread.IsBackground = true;
-            //Program.m_PeerThread.Start();
-
             Console.WriteLine("Press any key to stop server.");
             Console.ReadLine();
-        }
-
-        private static void ConnectToPeers()
-        {
-            using (StreamReader reader = new StreamReader("peers.txt"))
-            {
-                while (!reader.EndOfStream)
-                {
-                    string[] s = reader.ReadLine().Split(':');
-                    string ip = s[0].Trim();
-                    int port = Convert.ToInt32(s[1].Trim());
-
-                    Console.Write("Connecting to " + ip + ":" + port + "... ");
-                    try
-                    {
-                        IPAddress o = IPAddress.None;
-                        IPAddress.TryParse(ip, out o);
-                        Peer p = new Peer(o, port);
-                        Program.m_Peers.Add(p);
-                        if (p.Connection.Connected)
-                            Console.WriteLine("success!");
-                        else
-                            Console.WriteLine("not online.");
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("failed!");
-                        Console.WriteLine(e.ToString());
-                    }
-                }
-            }
         }
 
         private static void ReadMappings()
@@ -227,29 +185,30 @@ namespace Trust4
 
                         // We haven't found it in our local cache.  Query our
                         // peers to see if they've got any idea where this site is.
-                        foreach (Peer p in Program.m_Peers)
-                        {
-                            if (!p.Connection.Connected)
-                                continue;
+                        //foreach (Peer p in Program.m_Peers)
+                        //{
+                        //    if (!p.Connection.Connected)
+                        //        continue;
 
-                            DnsMessage m = p.Query(q);
-                            if (m.ReturnCode == ReturnCode.NoError)
-                            {
-                                found = true;
+                        //    DnsMessage m = p.Query(q);
+                        //    if (m.ReturnCode == ReturnCode.NoError)
+                        //    {
+                        //        found = true;
 
-                                // Cache the result.
-                                ARecord a = (m.AnswerRecords[0] as ARecord);
-                                Program.m_Mappings.Add(new DomainMap(a.Name, a.Address));
+                        //        // Cache the result.
+                        //        ARecord a = (m.AnswerRecords[0] as ARecord);
+                        //        Program.m_Mappings.Add(new DomainMap(a.Name, a.Address));
 
-                                Console.WriteLine("DNS LOOKUP - Found via peer " + p.Address.ToString() + " (" + a.Address.ToString() + ")");
+                        //        Console.WriteLine("DNS LOOKUP - Found via peer " + p.Address.ToString() + " (" + a.Address.ToString() + ")");
 
-                                // Add the result.
-                                query.ReturnCode = ReturnCode.NoError;
-                                query.AnswerRecords.Add(new ARecord(a.Name, 3600, a.Address));
+                        //        // Add the result.
+                        //        query.ReturnCode = ReturnCode.NoError;
+                        //        query.AnswerRecords.Add(new ARecord(a.Name, 3600, a.Address));
 
-                                break;
-                            }
-                        }
+                        //        break;
+                        //    }
+                        //}
+                        throw new NotImplementedException("Not found in local cache, need to go out to DHT");
                     }
 
                     if (!found)
@@ -270,86 +229,6 @@ namespace Trust4
         static void ExceptionThrown(object sender, ExceptionEventArgs e)
         {
             Console.WriteLine(e.Exception.ToString());
-        }
-
-        static void PeerListen()
-        {
-            Program.m_PeerServer = new StatelessSocket();
-            Program.m_PeerServer.OnConnected += new StatelessEventHandler(m_PeerServer_OnConnected);
-            Program.m_PeerServer.OnReceived += new StatelessEventHandler(m_PeerServer_OnReceived);
-            Program.m_PeerServer.Listen(new IPEndPoint(IPAddress.Any, Program.m_Port));
-        }
-
-        /// <summary>
-        /// This event is raised when a message is received from one of the
-        /// connected clients.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        static void m_PeerServer_OnReceived(object sender, StatelessEventArgs e)
-        {
-            string[] request = e.Data.Split(new string[] { "<EOF>" }, StringSplitOptions.RemoveEmptyEntries)[0].Split(':');
-            switch (request[0].ToUpperInvariant())
-            {
-                case "LOOKUP":
-                    // Search our own mappings.
-                    bool found = false;
-                    foreach (DomainMap d in Program.m_Mappings)
-                    {
-                        if (request[1].Equals(d.Domain, StringComparison.InvariantCultureIgnoreCase) ||
-                            request[1].EndsWith("." + d.Domain, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            found = true;
-                            e.Client.Send("RESULT:FOUND:" + d.Target.ToString());
-                            break;
-                        }
-                    }
-
-                    if (!found)
-                    {
-                        // Check to make sure we aren't already waiting on this domain.
-                        if (Program.m_WaitingOn.Contains(request[1].ToLowerInvariant()))
-                        {
-                            e.Client.Send("RESULT:NOTFOUND");
-                            break;
-                        }
-
-                        // We haven't found it in our local cache.  Query our
-                        // peers to see if they've got any idea where this site is.
-                        foreach (Peer p in Program.m_Peers)
-                        {
-                            if (!p.Connection.Connected)
-                                continue;
-
-                            DnsMessage m = p.Query(request[1]);
-                            if (m.ReturnCode == ReturnCode.NoError)
-                            {
-                                found = true;
-
-                                // Cache the result.
-                                ARecord a = (m.AnswerRecords[0] as ARecord);
-                                Program.m_Mappings.Add(new DomainMap(a.Name, a.Address));
-
-                                // Return the result.
-                                e.Client.Send("RESULT:FOUND:" + a.Address.ToString());
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!found)
-                        e.Client.Send("RESULT:NOTFOUND");
-                    break;
-                default:
-                    Console.WriteLine("Got Unknown - " + request[0] + ":" + request[1]);
-                    e.Client.Send("RESULT:UNKNOWN");
-                    break;
-            }
-        }
-
-        static void m_PeerServer_OnConnected(object sender, StatelessEventArgs e)
-        {
-            Console.WriteLine(e.Client.ClientEndPoint + " - PEER LISTEN");
         }
     }
 }
