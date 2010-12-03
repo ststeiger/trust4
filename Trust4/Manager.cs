@@ -106,6 +106,8 @@ namespace Trust4
 
             Console.WriteLine("Press any key to stop server.");
             Console.ReadLine();
+
+            UdpContact.Stop();
         }
 
         /// <summary>

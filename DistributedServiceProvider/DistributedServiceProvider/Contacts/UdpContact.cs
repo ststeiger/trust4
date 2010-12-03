@@ -14,7 +14,7 @@ namespace DistributedServiceProvider.Contacts
 {
     [ProtoContract]
     public class UdpContact
-        :Contact
+        :Contact, IEquatable<UdpContact>
     {
         [ProtoMember(3)]
         private byte[] addressBytes;
@@ -162,10 +162,13 @@ namespace DistributedServiceProvider.Contacts
                 {
                     var async = client.BeginReceive((a) => { }, null);
 
-                    while (!async.IsCompleted) { Thread.Sleep(10); }
+                    while (!async.IsCompleted && listen) { Thread.Sleep(10); }
 
                     IPEndPoint groupEP = new IPEndPoint(IPAddress.Any, port);
                     byte[] b = client.EndReceive(async, ref groupEP);
+
+                    if (!listen)
+                        break;
 
                     using (MemoryStream m = new MemoryStream(b))
                     {
@@ -183,6 +186,7 @@ namespace DistributedServiceProvider.Contacts
                     }
                 }
             });
+            listenThread.IsBackground = true;
             listenThread.Start();
         }
 
@@ -209,7 +213,14 @@ namespace DistributedServiceProvider.Contacts
             int msgLength = IPAddress.NetworkToHostOrder(reader.ReadInt32());
             byte[] msg = reader.ReadBytes(msgLength);
 
-            localTable.Deliver(source, consumerId, msg);
+            try
+            {
+                localTable.Deliver(source, consumerId, msg);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Delivering data caused exception " + e);
+            }
         }
 
         public static void Stop()
@@ -237,6 +248,46 @@ namespace DistributedServiceProvider.Contacts
         public override string ToString()
         {
             return "{ " + Ip + ":" + Port + " " + base.Identifier + "}";
+        }
+
+        public bool Equals(UdpContact other)
+        {
+            if (other.addressBytes == null && addressBytes != null || other.addressBytes != null && addressBytes == null)
+                return false;
+            else if (other.addressBytes != null && other.addressBytes.Length == addressBytes.Length)
+            {
+                for (int i = 0; i < addressBytes.Length; i++)
+                {
+                    if (addressBytes[i] != other.addressBytes[i])
+                        return false;
+                }
+            }
+
+            if (other.Port != Port)
+                return false;
+
+            if (other.NetworkId != NetworkId)
+                return false;
+
+            if (other.Identifier != Identifier)
+                return false;
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return Identifier.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            UdpContact c = obj as UdpContact;
+
+            if (c == null)
+                return false;
+
+            return Equals(c);
         }
     }
 }

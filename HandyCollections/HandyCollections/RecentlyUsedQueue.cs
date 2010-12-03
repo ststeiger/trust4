@@ -130,5 +130,10 @@ namespace HandyCollections
         {
             return (this as IEnumerable<T>).GetEnumerator();
         }
+
+        public override string ToString()
+        {
+            return "Count = " + Count;
+        }
     }
 }
