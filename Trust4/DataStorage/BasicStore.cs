@@ -34,11 +34,7 @@ namespace Trust4.DataStorage
         }
         #endregion
 
-        public IEnumerable<DataResult> Get(Identifier512 key, int timeout)
-        {
-            throw new NotImplementedException();
-        }
-
+        public IEnumerable<DataResult> Get(Identifier512 key)
         public override void Deliver(Contact source, byte[] message)
         {
             using (MemoryStream m = new MemoryStream(message))
@@ -50,15 +46,114 @@ namespace Trust4.DataStorage
                     case PacketFlag.PutRequest:
                         HandleRemotePut(source, m);
                         break;
+                    case PacketFlag.GetRequest:
+                        HandleRemoteGet(source, m);
+                        break;
                     default:
                         break;
                 }
             }
         }
 
+        private void HandleRemoteGet(Contact source, MemoryStream m)
+        {
+            var msg = Serializer.Deserialize<GetRequest>(m);
+
+            var response = new GetResponse();
+
+            byte[] returned = null;
+            bool authoritative = false;
+
+            if (localAuthoritativeData.TryGetValue(msg.Key, out returned))
+                authoritative = true;
+            else if (localCache.TryGetValue(msg.Key, out returned))
+                authoritative = false;
+
+            response.Authoritative = authoritative;
+            response.Data = returned;
+
+            using (MemoryStream mResponse = new MemoryStream())
+            {
+                Serializer.Serialize<GetResponse>(mResponse, response);
+
+                callback.SendResponse(RoutingTable.LocalContact, source, msg.CallbackId, mResponse.ToArray());
+            }
+        }
+
+        public IEnumerable<DataResult> Get(Identifier512 key)
+        {
+            var closest = getClosest.GetClosestContacts(key, null).GetEnumerator();
+
+            while (closest.MoveNext())
+            {
+                if (closest.Current.Identifier == RoutingTable.LocalIdentifier)
+                {
+                    byte[] returned;
+                    if (localAuthoritativeData.TryGetValue(key, out returned))
+                        yield return new DataResult() { Authoritative = true, Data = returned, Source = RoutingTable.LocalContact };
+                    else if (localCache.TryGetValue(key, out returned))
+                        yield return new DataResult() { Authoritative = false, Data = returned, Source = RoutingTable.LocalContact };
+                }
+                else
+                {
+                    var token = callback.AllocateToken();
+
+                    try
+                    {
+                        using (MemoryStream m = new MemoryStream())
+                        {
+                            m.WriteByte((byte)PacketFlag.GetRequest);
+
+                            Serializer.Serialize<GetRequest>(m, new GetRequest() { Key = key, CallbackId = token.Id });
+
+                            closest.Current.Send(RoutingTable.LocalContact, ConsumerId, m.ToArray());
+                        }
+
+                        if (!token.Wait(RoutingTable.Configuration.LookupTimeout))
+                            continue;
+
+                        using (MemoryStream m = new MemoryStream(token.Response))
+                        {
+                            var response = Serializer.Deserialize<GetResponse>(m);
+
+                            if (response.Data == null)
+                                continue;
+
+                            yield return new DataResult() { Authoritative = response.Authoritative, Data = response.Data, Source = token.Source };
+                        }
+                    }
+                    finally
+                    {
+                        callback.FreeToken(token);
+                    }
+                }
+            }
+        }
+
+        [ProtoContract]
+        private class GetRequest
+        {
+            [ProtoMember(1)]
+            public Identifier512 Key;
+
+            [ProtoMember(2)]
+            public long CallbackId;
+        }
+
+        [ProtoContract]
+        private class GetResponse
+        {
+            [ProtoMember(1)]
+            public bool Authoritative;
+
+            [ProtoMember(2)]
+            public byte[] Data;
+        }
+
         private enum PacketFlag
         {
             PutRequest,
+            GetRequest,
         }
 
         #region put
