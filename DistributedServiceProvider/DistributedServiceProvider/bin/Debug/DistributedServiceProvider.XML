@@ -4,118 +4,6 @@
         <name>DistributedServiceProvider</name>
     </assembly>
     <members>
-        <member name="M:DistributedServiceProvider.ContactBucket.Update(DistributedServiceProvider.Contacts.Contact)">
-            <summary>
-            Updates the given contact to the front of the most recently used queue
-            </summary>
-            <param name="source">The source.</param>
-        </member>
-        <member name="M:DistributedServiceProvider.ContactBucket.Trim">
-            <summary>
-            Trims the contacts set until it meets the size requirements
-            </summary>
-        </member>
-        <member name="M:DistributedServiceProvider.ContactBucket.GetEnumerator">
-            <summary>
-            Gets the enumerator.
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:DistributedServiceProvider.ContactBucket.System#Collections#IEnumerable#GetEnumerator">
-            <summary>
-            Returns an enumerator that iterates through a collection.
-            </summary>
-            <returns>
-            An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
-            </returns>
-        </member>
-        <member name="P:DistributedServiceProvider.ContactBucket.RemainingSpace">
-            <summary>
-            Gets the amount of remaining space.
-            </summary>
-            <value>The remaining space.</value>
-        </member>
-        <member name="T:DistributedServiceProvider.MessageConsumers.Callback">
-            <summary>
-            Manages collecting responses to messages
-            </summary>
-        </member>
-        <member name="T:DistributedServiceProvider.MessageConsumers.MessageConsumer">
-            <summary>
-            A place where messages from the network are consumed
-            </summary>
-        </member>
-        <member name="M:DistributedServiceProvider.MessageConsumers.MessageConsumer.Deliver(DistributedServiceProvider.Contacts.Contact,System.Byte[])">
-            <summary>
-            Deliver a message encoded into the given byte array
-            </summary>
-            <param name="message">The message.</param>
-            <param name="source">The source of the message</param>
-            <returns>The response to return</returns>
-        </member>
-        <member name="P:DistributedServiceProvider.MessageConsumers.MessageConsumer.RoutingTable">
-            <summary>
-            The table which this consumer is registered to
-            </summary>
-        </member>
-        <member name="P:DistributedServiceProvider.MessageConsumers.MessageConsumer.ConsumerId">
-            <summary>
-            The Id of this consumer
-            </summary>
-        </member>
-        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.#ctor">
-            <summary>
-            Initializes a new instance of the <see cref="T:DistributedServiceProvider.MessageConsumers.Callback"/> class.
-            </summary>
-            <param name="networkId">The network id.</param>
-        </member>
-        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.Deliver(DistributedServiceProvider.Contacts.Contact,System.Byte[])">
-            <summary>
-            Deliver a message encoded into the given byte array
-            </summary>
-            <param name="source">The source of the message</param>
-            <param name="message">The message.</param>
-        </member>
-        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.SendResponse(DistributedServiceProvider.Contacts.Contact,DistributedServiceProvider.Contacts.Contact,System.Int64,System.Byte[])">
-            <summary>
-            Sends the response back to the remote end
-            </summary>
-            <param name="local">The local contact</param>
-            <param name="target">The target.</param>
-            <param name="callbackId">The callback id.</param>
-            <param name="responseBytes">The response bytes.</param>
-        </member>
-        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.AllocateToken">
-            <summary>
-            Allocates a new wait token
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.FreeToken(DistributedServiceProvider.MessageConsumers.Callback.WaitToken)">
-            <summary>
-            Frees the given token
-            </summary>
-            <param name="token">The token.</param>
-        </member>
-        <member name="T:DistributedServiceProvider.MessageConsumers.Callback.WaitToken">
-            <summary>
-            A token which enables waiting for a response
-            </summary>
-        </member>
-        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.WaitToken.Wait(System.Int32)">
-            <summary>
-            Waits for a response to arrive
-            </summary>
-            <param name="millisecondsTimeout">The milliseconds timeout.</param>
-            <returns>true, if a response arrived, or false if it timed out</returns>
-        </member>
-        <member name="P:DistributedServiceProvider.MessageConsumers.Callback.WaitToken.Response">
-            <summary>
-            Gets or sets the response.
-            </summary>
-            <value>The response.</value>
-            <exception cref="T:System.InvalidOperationException">Thrown if the response has not arrived yet (ie, you should have called Wait() first)</exception>
-        </member>
         <member name="T:DistributedServiceProvider.DistributedRoutingTable">
             <summary>
             Provides services to route around a distributed system
@@ -246,6 +134,79 @@
             <param name="y">The y.</param>
             <returns></returns>
         </member>
+        <member name="T:DistributedServiceProvider.MessageConsumers.MessageConsumer">
+            <summary>
+            A place where messages from the network are consumed
+            </summary>
+        </member>
+        <member name="M:DistributedServiceProvider.MessageConsumers.MessageConsumer.Deliver(DistributedServiceProvider.Contacts.Contact,System.Byte[])">
+            <summary>
+            Deliver a message encoded into the given byte array
+            </summary>
+            <param name="message">The message.</param>
+            <param name="source">The source of the message</param>
+            <returns>The response to return</returns>
+        </member>
+        <member name="P:DistributedServiceProvider.MessageConsumers.MessageConsumer.RoutingTable">
+            <summary>
+            The table which this consumer is registered to
+            </summary>
+        </member>
+        <member name="P:DistributedServiceProvider.MessageConsumers.MessageConsumer.ConsumerId">
+            <summary>
+            The Id of this consumer
+            </summary>
+        </member>
+        <member name="M:DistributedServiceProvider.ContactBucket.Update(DistributedServiceProvider.Contacts.Contact)">
+            <summary>
+            Updates the given contact to the front of the most recently used queue
+            </summary>
+            <param name="source">The source.</param>
+        </member>
+        <member name="M:DistributedServiceProvider.ContactBucket.Trim">
+            <summary>
+            Trims the contacts set until it meets the size requirements
+            </summary>
+        </member>
+        <member name="M:DistributedServiceProvider.ContactBucket.GetEnumerator">
+            <summary>
+            Gets the enumerator.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DistributedServiceProvider.ContactBucket.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+            Returns an enumerator that iterates through a collection.
+            </summary>
+            <returns>
+            An <see cref="T:System.Collections.IEnumerator"/> object that can be used to iterate through the collection.
+            </returns>
+        </member>
+        <member name="P:DistributedServiceProvider.ContactBucket.RemainingSpace">
+            <summary>
+            Gets the amount of remaining space.
+            </summary>
+            <value>The remaining space.</value>
+        </member>
+        <member name="M:DistributedServiceProvider.MessageConsumers.GetClosestNodes.RemoteGetClosest(DistributedServiceProvider.Contacts.Contact,DistributedServiceProvider.Contacts.Contact,DistributedServiceProvider.Base.Identifier512,System.Int32,System.Int32)">
+            <summary>
+            Gets the closest nodes the remote contact has to a given contact
+            </summary>
+            <param name="local">The local contact</param>
+            <param name="remote">The remote node to ask</param>
+            <param name="target">The target to search for</param>
+            <param name="limit">The limit of items to return</param>
+            <param name="timeout">The maximum time to wait</param>
+            <returns>a collection of contacts in order of distance from the target, or null if timed out</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:DistributedServiceProvider.MessageConsumers.GetClosestNodes.GetClosestContacts(DistributedServiceProvider.Base.Identifier512,System.Func{DistributedServiceProvider.Contacts.Contact,System.Boolean})" -->
+        <member name="M:DistributedServiceProvider.MessageConsumers.GetClosestNodes.DecodeResponse(System.Byte[])">
+            <summary>
+            Decodes a response from a remote GetClosestNodes operation
+            </summary>
+            <param name="response">The response.</param>
+            <returns></returns>
+        </member>
         <member name="F:DistributedServiceProvider.ContactCollection.NetworkId">
             <summary>
             The Id of the network this collection operates upon
@@ -281,24 +242,63 @@
             The root identifier to build this collection around
             </summary>
         </member>
-        <member name="M:DistributedServiceProvider.MessageConsumers.GetClosestNodes.RemoteGetClosest(DistributedServiceProvider.Contacts.Contact,DistributedServiceProvider.Contacts.Contact,DistributedServiceProvider.Base.Identifier512,System.Int32,System.Int32)">
+        <member name="T:DistributedServiceProvider.MessageConsumers.Callback">
             <summary>
-            Gets the closest nodes the remote contact has to a given contact
+            Manages collecting responses to messages
+            </summary>
+        </member>
+        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:DistributedServiceProvider.MessageConsumers.Callback"/> class.
+            </summary>
+            <param name="networkId">The network id.</param>
+        </member>
+        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.Deliver(DistributedServiceProvider.Contacts.Contact,System.Byte[])">
+            <summary>
+            Deliver a message encoded into the given byte array
+            </summary>
+            <param name="source">The source of the message</param>
+            <param name="message">The message.</param>
+        </member>
+        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.SendResponse(DistributedServiceProvider.Contacts.Contact,DistributedServiceProvider.Contacts.Contact,System.Int64,System.Byte[])">
+            <summary>
+            Sends the response back to the remote end
             </summary>
             <param name="local">The local contact</param>
-            <param name="remote">The remote node to ask</param>
-            <param name="target">The target to search for</param>
-            <param name="limit">The limit of items to return</param>
-            <param name="timeout">The maximum time to wait</param>
-            <returns>a collection of contacts in order of distance from the target, or null if timed out</returns>
+            <param name="target">The target.</param>
+            <param name="callbackId">The callback id.</param>
+            <param name="responseBytes">The response bytes.</param>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:DistributedServiceProvider.MessageConsumers.GetClosestNodes.GetClosestContacts(DistributedServiceProvider.Base.Identifier512,System.Func{DistributedServiceProvider.Contacts.Contact,System.Boolean})" -->
-        <member name="M:DistributedServiceProvider.MessageConsumers.GetClosestNodes.DecodeResponse(System.Byte[])">
+        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.AllocateToken">
             <summary>
-            Decodes a response from a remote GetClosestNodes operation
+            Allocates a new wait token
             </summary>
-            <param name="response">The response.</param>
             <returns></returns>
+        </member>
+        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.FreeToken(DistributedServiceProvider.MessageConsumers.Callback.WaitToken)">
+            <summary>
+            Frees the given token
+            </summary>
+            <param name="token">The token.</param>
+        </member>
+        <member name="T:DistributedServiceProvider.MessageConsumers.Callback.WaitToken">
+            <summary>
+            A token which enables waiting for a response
+            </summary>
+        </member>
+        <member name="M:DistributedServiceProvider.MessageConsumers.Callback.WaitToken.Wait(System.Int32)">
+            <summary>
+            Waits for a response to arrive
+            </summary>
+            <param name="millisecondsTimeout">The milliseconds timeout.</param>
+            <returns>true, if a response arrived, or false if it timed out</returns>
+        </member>
+        <member name="P:DistributedServiceProvider.MessageConsumers.Callback.WaitToken.Response">
+            <summary>
+            Gets or sets the response.
+            </summary>
+            <value>The response.</value>
+            <exception cref="T:System.InvalidOperationException">Thrown if the response has not arrived yet (ie, you should have called Wait() first)</exception>
         </member>
     </members>
 </doc>

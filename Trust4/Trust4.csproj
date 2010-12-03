@@ -71,6 +71,10 @@
       <Project>{65BFA748-C640-49B0-B506-34BBB165233A}</Project>
       <Name>ARSoft.Tools.Net</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DistributedServiceProvider\DistributedServiceProvider\DistributedServiceProvider.csproj">
+      <Project>{8ED2362E-9295-4BED-B43B-2F907AD7741D}</Project>
+      <Name>DistributedServiceProvider</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
