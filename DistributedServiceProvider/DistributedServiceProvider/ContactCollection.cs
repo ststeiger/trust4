@@ -55,6 +55,8 @@ namespace DistributedServiceProvider
 
             for (int i = 0; i < buckets.Length; i++)
                 buckets[i] = new ContactBucket(drt, i);
+
+            buckets[buckets.Length - 1].Update(LocalContact);
         }
         #endregion
 
