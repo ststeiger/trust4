@@ -2,7 +2,7 @@
 dnsport = 53
 
 //change this to your public IP
-localip = 127.0.0.1
+localip = 78.105.97.103
 
 //this should be four unique, comma separated GUIDs, perhaps from http://www.guidgenerator.com/online-guid-generator.aspx
 routingidentifier = 7854998d-5f5c-42fd-92cc-529674fd62ac,617066d2-ee27-49fb-84c4-96ce5d33f81f,f632475b-85c6-444e-bfef-3383bbf77646,e9603f70-cb30-4693-aba6-238ae2b9bf83

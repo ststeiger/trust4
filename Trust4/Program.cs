@@ -52,9 +52,9 @@ namespace Trust4
             //ConnectToPeers();
 
             // Show information and start socket listener.
-            Program.m_PeerThread = new Thread(Program.PeerListen);
-            Program.m_PeerThread.IsBackground = true;
-            Program.m_PeerThread.Start();
+            //Program.m_PeerThread = new Thread(Program.PeerListen);
+            //Program.m_PeerThread.IsBackground = true;
+            //Program.m_PeerThread.Start();
 
             Console.WriteLine("Press any key to stop server.");
             Console.ReadLine();
