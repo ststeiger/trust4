@@ -68,7 +68,6 @@
     <Compile Include="DataStorage\BasicStore.cs" />
     <Compile Include="DataStorage\DataResult.cs" />
     <Compile Include="DataStorage\KeyCollisionException.cs" />
-    <Compile Include="DataStorage\NullDataStore.cs" />
     <Compile Include="DnsProcess.cs" />
     <Compile Include="DomainMap.cs" />
     <Compile Include="Extensions.cs" />

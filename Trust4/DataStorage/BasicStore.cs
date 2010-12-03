@@ -17,10 +17,10 @@ namespace Trust4.DataStorage
     {
         #region fields
         [LinkedConsumer(Callback.GUID_STRING)]
-        Callback callback;
+        public Callback callback;
 
-        [LinkedConsumer(Callback.GUID_STRING)]
-        GetClosestNodes getClosest;
+        [LinkedConsumer(GetClosestNodes.GUID_STRING)]
+        public GetClosestNodes getClosest;
 
         private ConcurrentDictionary<Identifier512, byte[]> localCache = new ConcurrentDictionary<Identifier512, byte[]>();
         private ConcurrentDictionary<Identifier512, byte[]> localAuthoritativeData = new ConcurrentDictionary<Identifier512, byte[]>();
