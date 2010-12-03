@@ -148,22 +148,23 @@ namespace Trust4
         {
             foreach (var line in File.ReadAllLines("peers.txt").OmitComments("#", "//"))
             {
-                UdpContact udp = null;
+                TrustedContact udp = null;
 
                 try
                 {
                     string[] split = line.Split(' ');
-                    Guid a = new Guid(split[0]);
-                    Guid b = new Guid(split[1]);
-                    Guid c = new Guid(split[2]);
-                    Guid d = new Guid(split[3]);
+                    Guid a = new Guid(split[1]);
+                    Guid b = new Guid(split[2]);
+                    Guid c = new Guid(split[3]);
+                    Guid d = new Guid(split[4]);
 
                     Identifier512 id = new Identifier512(a, b, c, d);
 
-                    IPAddress ip = IPAddress.Parse(split[4]);
-                    int port = Int32.Parse(split[5]);
+                    decimal trust = Decimal.Parse(split[0]);
+                    IPAddress ip = IPAddress.Parse(split[5]);
+                    int port = Int32.Parse(split[6]);
 
-                    udp = new UdpContact(id, this.p_Settings.NetworkID, ip, port);
+                    udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
 
                     Console.WriteLine("Loaded bootstrap contact " + udp);
                 }
