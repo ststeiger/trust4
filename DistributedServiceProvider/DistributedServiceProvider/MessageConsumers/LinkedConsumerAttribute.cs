@@ -10,8 +10,12 @@ namespace DistributedServiceProvider.MessageConsumers
     {
         public readonly Guid Id;
         public readonly bool Optional = false;
+        
+        public LinkedConsumerAttribute(string guid) : this(guid, false)
+        {
+        }
 
-        public LinkedConsumerAttribute(string guid, bool optional = false)
+        public LinkedConsumerAttribute(string guid, bool optional)
         {
             this.Id = new Guid(guid);
             this.Optional = optional;

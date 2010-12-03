@@ -1,7 +1,0 @@
-C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\bin\Release\Licence.txt
-C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\bin\Release\protobuf-net.xml
-C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\bin\Release\protobuf-net.dll
-C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\bin\Release\protobuf-net.pdb
-C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\obj\Release\ResolveAssemblyReference.cache
-C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\obj\Release\protobuf-net.dll
-C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\obj\Release\protobuf-net.pdb

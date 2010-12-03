@@ -96,7 +96,7 @@ namespace DistributedServiceProvider.Contacts
             return new UdpContact(id, netId, address, port);
         }
 
-        public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable = true, bool ordered = true, int channel = 1)
+        public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel)
         {
             base.Send(source, consumerId, message, reliable, ordered, channel);
 

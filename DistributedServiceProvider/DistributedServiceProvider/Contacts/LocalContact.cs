@@ -40,7 +40,7 @@ namespace DistributedServiceProvider.Contacts
         }
 
 
-        public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable = true, bool ordered = true, int channel = 1)
+        public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel)
         {
             table.Deliver(source, consumerId, message);
         }
