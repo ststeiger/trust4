@@ -9,6 +9,7 @@ using DistributedServiceProvider.Contacts;
 using DistributedServiceProvider.Base;
 using System.IO;
 using DistributedServiceProvider.Stores;
+using Trust4.DataStorage;
 
 namespace Trust4
 {

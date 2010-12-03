@@ -5,6 +5,7 @@ using System.Text;
 using DistributedServiceProvider.Contacts;
 using DistributedServiceProvider.Base;
 using DistributedServiceProvider.MessageConsumers;
+using Trust4.DataStorage;
 
 namespace DistributedServiceProvider.Stores
 {

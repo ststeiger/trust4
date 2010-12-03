@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using DistributedServiceProvider.Contacts;
 using DistributedServiceProvider.Base;
 using DistributedServiceProvider;
+using Trust4.DataStorage;
 
 namespace Trust4
 {

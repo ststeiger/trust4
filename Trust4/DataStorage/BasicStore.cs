@@ -34,7 +34,7 @@ namespace Trust4.DataStorage
         }
         #endregion
 
-        public IEnumerable<DataResult> Get(Identifier512 key)
+        public IEnumerable<DataResult> Get(Identifier512 key, int timeout)
         {
             throw new NotImplementedException();
         }
