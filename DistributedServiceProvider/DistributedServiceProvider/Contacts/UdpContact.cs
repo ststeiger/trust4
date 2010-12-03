@@ -9,6 +9,8 @@ using DistributedServiceProvider.MessageConsumers;
 using System.Net.Sockets;
 using System.Threading;
 using ProtoBuf;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace DistributedServiceProvider.Contacts
 {
@@ -182,6 +184,8 @@ namespace DistributedServiceProvider.Contacts
                             {
                                 case PacketFlag.Ping: ParsePing(r); break;
                                 case PacketFlag.Data: ParseData(r); break;
+                                case PacketFlag.WhoAreYou: ParseWhoAreYou(r); break;
+                                case PacketFlag.WhoAreYouReply: ParseWhoAreYouReply(r); break;
                                 default: Console.WriteLine("Unknown packet type " + f); break;
                             }
                         }
@@ -190,6 +194,92 @@ namespace DistributedServiceProvider.Contacts
             });
             listenThread.IsBackground = true;
             listenThread.Start();
+        }
+
+        private static void ParseWhoAreYouReply(BinaryReader r)
+        {
+            long uniqueNumber = IPAddress.HostToNetworkOrder(r.ReadInt64());
+
+            int idLength = IPAddress.HostToNetworkOrder(r.ReadInt32());
+            byte[] idBytes = r.ReadBytes(idLength);
+
+            Identifier512 id = new Identifier512(idBytes);
+
+            Action<Identifier512> reply;
+            if (discoveryWaits.TryGetValue(uniqueNumber, out reply))
+                reply(id);
+        }
+
+        static ConcurrentDictionary<long, Action<Identifier512>> discoveryWaits = new ConcurrentDictionary<long, Action<Identifier512>>();
+        public static Identifier512 DiscoverIdentifier(IPAddress address, int port, TimeSpan timeout)
+        {
+            long uniqueNumber;
+            using (MemoryStream m = new MemoryStream())
+            {
+                using (BinaryWriter w = new BinaryWriter(m))
+                {
+                    byte[] addrBytes = address.GetAddressBytes();
+                    w.Write(IPAddress.HostToNetworkOrder(addrBytes.Length));
+                    w.Write(addrBytes);
+
+                    w.Write(IPAddress.HostToNetworkOrder(port));
+
+                    Random r = new Random();
+                    List<byte> longBytes = new List<byte>();
+                    longBytes.AddRange(BitConverter.GetBytes(r.Next()));
+                    longBytes.AddRange(BitConverter.GetBytes(r.Next()));
+                    uniqueNumber = BitConverter.ToInt64(longBytes.ToArray(), 0);
+                    w.Write(IPAddress.HostToNetworkOrder(uniqueNumber));
+
+                    SendUdpMessage(m.ToArray(), address, port);
+                }
+            }
+
+            Identifier512 reply = null;
+            var reset = new ManualResetEventSlim();
+            Action<Identifier512> answer = (a) =>
+                {
+                    reply = a;
+                    reset.Set();
+                };
+
+            discoveryWaits.AddOrUpdate(uniqueNumber, answer, (a, b) =>
+            {
+                throw new InvalidOperationException("Duplicate key in discovery");
+            });
+
+            reset.Wait(timeout);
+            discoveryWaits.TryRemove(uniqueNumber, out answer);
+
+            if (reply != null)
+                return reply;
+            else
+                throw new TimeoutException("No reply");
+        }
+
+        private static void ParseWhoAreYou(BinaryReader r)
+        {
+            int addrLength = IPAddress.NetworkToHostOrder(r.ReadInt32());
+            byte[] addrBytes = r.ReadBytes(addrLength);
+            IPAddress replyTo = new IPAddress(addrBytes);
+
+            int port = IPAddress.NetworkToHostOrder(r.ReadInt32());
+
+            long uniqueNumber = IPAddress.NetworkToHostOrder(r.ReadInt64());
+
+            using (MemoryStream m = new MemoryStream())
+            {
+                using (BinaryWriter w = new BinaryWriter(m))
+                {
+                    w.Write(IPAddress.HostToNetworkOrder(uniqueNumber));
+
+                    var b = localTable.LocalIdentifier.GetBytes().ToArray();
+                    w.Write(IPAddress.HostToNetworkOrder(b.Length));
+                    w.Write(b);
+                }
+
+                SendUdpMessage(m.ToArray(), replyTo, port);
+            }
         }
 
         private static void ParsePing(BinaryReader reader)
@@ -241,10 +331,12 @@ namespace DistributedServiceProvider.Contacts
         }
 
         private enum PacketFlag
-            :byte
+            : byte
         {
             Ping = 0,
-            Data = 1
+            Data = 1,
+            WhoAreYou = 2,
+            WhoAreYouReply = 3,
         }
 
         public override string ToString()
