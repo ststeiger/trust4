@@ -55,6 +55,7 @@ namespace DistributedServiceProvider.MessageConsumers
                 if (tokens.TryRemove(r.CallbackId, out token))
                 {
                     token.Response = r.ResponseBytes;
+                    token.Source = source;
                 }
                 else
                 {
@@ -133,8 +134,40 @@ namespace DistributedServiceProvider.MessageConsumers
             private ReaderWriterLockSlim responseLock = new ReaderWriterLockSlim();
             private bool responseSet = false;
             private byte[] response = null;
+            private Contact source;
 
+            public Contact Source
+            {
+                get
+                {
+                    try
+                    {
+                        responseLock.EnterReadLock();
 
+                        if (responseSet)
+                            return source;
+                        else
+                            throw new InvalidOperationException("Cannot get response before it has arrived");
+                    }
+                    finally
+                    {
+                        responseLock.ExitReadLock();
+                    }
+                }
+                set
+                {
+                    try
+                    {
+                        responseLock.EnterWriteLock();
+
+                        source = value;
+                    }
+                    finally
+                    {
+                        responseLock.ExitWriteLock();
+                    }
+                }
+            }
 
             /// <summary>
             /// Gets or sets the response.
