@@ -1,0 +1,11 @@
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\bin\Debug\Licence.txt
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\bin\Debug\protobuf-net.dll
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\bin\Debug\protobuf-net.pdb
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\obj\Debug\protobuf-net.dll
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\Protobuf.net\protobuf-net\obj\Debug\protobuf-net.pdb
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\p2p-DNS\p2p-DNS\protobuf-net\bin\Debug\protobuf-net.dll
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\p2p-DNS\p2p-DNS\protobuf-net\bin\Debug\protobuf-net.pdb
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\p2p-DNS\p2p-DNS\protobuf-net\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\p2p-DNS\p2p-DNS\protobuf-net\obj\Debug\protobuf-net.dll
+C:\Users\Martin\Documents\Visual Studio 2010\Projects\p2p-DNS\p2p-DNS\protobuf-net\obj\Debug\protobuf-net.pdb
