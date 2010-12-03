@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using DistributedServiceProvider.Contacts;
 using DistributedServiceProvider.Base;
+using DistributedServiceProvider;
 
 namespace Trust4
 {
@@ -72,15 +73,15 @@ namespace Trust4
                         // We haven't found it in our local cache.  Query our
                         // peers to see if they've got any idea where this site is.
                         Identifier512 domainid = Identifier512.CreateKey("dns-a-" + q.Name.ToLowerInvariant());
-                        IEnumerable<KeyValuePair<Contact, byte[]>> results = this.m_Manager.DataStore.Get(domainid, 1000);
+                        IEnumerable<DataResult> results = this.m_Manager.DataStore.Get(domainid, 1000);
 
                         IPAddress highest = IPAddress.None;
                         Contact highcontact = null;
-                        foreach (KeyValuePair<Contact, byte[]> r in results)
+                        foreach (DataResult r in results)
                         {
-                            Contact source = r.Key;
+                            Contact source = r.Source;
                             IPAddress ip = IPAddress.None;
-                            if (!IPAddress.TryParse(Encoding.ASCII.GetString(r.Value), out ip))
+                            if (!IPAddress.TryParse(Encoding.ASCII.GetString(r.Data), out ip))
                                 continue;
 
                             // TODO: Implement trust level checking on each source contact.
