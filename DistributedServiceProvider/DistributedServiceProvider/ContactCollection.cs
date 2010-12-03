@@ -72,6 +72,8 @@ namespace DistributedServiceProvider
                     return;
                 if (source.NetworkId != NetworkId)
                     throw new ArgumentException("Network Id of contact and ContactCollection must be the same");
+                if (source.Equals(LocalContact))
+                    return;
 
                 buckets[Identifier512.CommonPrefixLength(source.Identifier, LocalIdentifier)].Update(source);
             }
