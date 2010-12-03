@@ -54,6 +54,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Threading, Version=1.0.2787.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml.Linq">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
@@ -64,9 +65,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataStorage\BasicStore.cs" />
+    <Compile Include="DataStorage\DataResult.cs" />
+    <Compile Include="DataStorage\KeyCollisionException.cs" />
     <Compile Include="DnsProcess.cs" />
     <Compile Include="DomainMap.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="DataStorage\IDataStore.cs" />
     <Compile Include="Manager.cs" />
     <Compile Include="Mappings.cs" />
     <Compile Include="Program.cs" />
@@ -96,6 +101,10 @@
     <ProjectReference Include="..\DistributedServiceProvider\DistributedServiceProvider\DistributedServiceProvider.csproj">
       <Project>{8ED2362E-9295-4BED-B43B-2F907AD7741D}</Project>
       <Name>DistributedServiceProvider</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\protobuf-net\protobuf-net.csproj">
+      <Project>{8374E4D7-2A91-48F1-9360-09B09CF27C3F}</Project>
+      <Name>protobuf-net</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
