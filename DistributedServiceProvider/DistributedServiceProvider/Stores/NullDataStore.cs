@@ -28,14 +28,22 @@ namespace DistributedServiceProvider.Stores
         }
 
         /// <summary>
+        /// Deletes a key-value pair from the local data store that's participating in the DHT.
+        /// </summary>
+        /// <param name="key">The unique key.</param>
+        public void Delete(Identifier512 key)
+        {
+        }
+
+        /// <summary>
         /// Returns a list of values retrieved from all of the connected peers for the selected
         /// key request.
         /// </summary>
         /// <param name="key">The unique key.</param>
         /// <param name="timeout">The timeout value for each peer.</param>
-        public IEnumerable<KeyValuePair<Contact, byte[]>> Get(Identifier512 key, int timeout)
+        public IEnumerable<DataResult> Get(Identifier512 key, int timeout)
         {
-            return new List<KeyValuePair<Contact, byte[]>>();
+            return new List<DataResult>();
         }
 
         /// <summary>
