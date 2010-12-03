@@ -62,7 +62,6 @@ C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceP
 C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\obj\Debug\DistributedServiceProvider.dll
 C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\obj\Debug\DistributedServiceProvider.pdb
 C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\bin\Debug\DistributedServiceProvider.dll.config
-C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\bin\Debug\DistributedServiceProvider.XML
 C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\bin\Debug\DistributedServiceProvider.dll
 C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\bin\Debug\DistributedServiceProvider.pdb
 C:\Users\Martin\Documents\Visual Studio 2010\Projects\Trust4\DistributedServiceProvider\DistributedServiceProvider\bin\Debug\DistributedServiceProvider.Base.dll

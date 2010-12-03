@@ -5,9 +5,9 @@ using System.Text;
 using DistributedServiceProvider.Base;
 using System.Diagnostics;
 using ProtoBuf;
-using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace DistributedServiceProvider.Contacts
 {
