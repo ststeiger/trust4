@@ -34,7 +34,6 @@ namespace Trust4.DataStorage
         }
         #endregion
 
-        public IEnumerable<DataResult> Get(Identifier512 key)
         public override void Deliver(Contact source, byte[] message)
         {
             using (MemoryStream m = new MemoryStream(message))

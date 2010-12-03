@@ -42,7 +42,7 @@ namespace DistributedServiceProvider.Stores
         /// </summary>
         /// <param name="key">The unique key.</param>
         /// <param name="timeout">The timeout value for each peer.</param>
-        public IEnumerable<DataResult> Get(Identifier512 key, int timeout)
+        public IEnumerable<DataResult> Get(Identifier512 key)
         {
             return new List<DataResult>();
         }
