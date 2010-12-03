@@ -125,7 +125,7 @@ namespace Trust4
                         BucketRefreshPeriod = TimeSpan.FromMinutes(10),
                         BucketSize = 10,
                         LookupConcurrency = 5,
-                        LookupTimeout = 150,
+                        LookupTimeout = 500,
                         PingTimeout = TimeSpan.FromSeconds(1),
                         UpdateRoutingTable = true,
                     }
