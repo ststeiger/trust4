@@ -98,8 +98,6 @@ namespace DistributedServiceProvider.Contacts
 
         public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel)
         {
-            base.Send(source, consumerId, message, reliable, ordered, channel);
-
             UdpContact uSource = source as UdpContact;
 
             using(MemoryStream m = new MemoryStream())
@@ -136,10 +134,14 @@ namespace DistributedServiceProvider.Contacts
             {
                 while (listen)
                 {
-                    IPEndPoint groupEP = new IPEndPoint(IPAddress.Any, port);
-                    byte[] bytes = client.Receive(ref groupEP);
+                    var async = client.BeginReceive((a) => { }, null);
 
-                    using (MemoryStream m = new MemoryStream(bytes))
+                    while (!async.IsCompleted) { Thread.Sleep(10); }
+
+                    IPEndPoint groupEP = new IPEndPoint(IPAddress.Any, port);
+                    byte[] b = client.EndReceive(async, ref groupEP);
+
+                    using (MemoryStream m = new MemoryStream(b))
                     {
                         using (BinaryReader r = new BinaryReader(m))
                         {

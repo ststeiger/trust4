@@ -50,13 +50,16 @@ namespace DistributedServiceProvider.Contacts
 
         }
 
-        private static long sentBytes;
-        public static long SentBytes
+        /// <summary>
+        /// Sends a message to the consumer with the given Id
+        /// </summary>
+        /// <param name="source">The source of this messages</param>
+        /// <param name="consumerId">The consumer id.</param>
+        /// <param name="message">The message.</param>
+        /// <returns>The response fromthe remote consumer, or null if there was no response</returns>
+        public void Send(Contact source, Guid consumerId, byte[] message)
         {
-            get
-            {
-                return Interlocked.Read(ref sentBytes);
-            }
+            Send(source, consumerId, message, true, true, 1);
         }
 
         /// <summary>
@@ -65,21 +68,7 @@ namespace DistributedServiceProvider.Contacts
         /// <param name="consumerId">The consumer id.</param>
         /// <param name="message">The message.</param>
         /// <returns>The response fromthe remote consumer, or null if there was no response</returns>
-        public virtual void Send(Contact source, Guid consumerId, byte[] message)
-        {
-            Interlocked.Add(ref sentBytes, message.Length);
-        }
-
-        /// <summary>
-        /// Sends a message to the consumer with the given Id
-        /// </summary>
-        /// <param name="consumerId">The consumer id.</param>
-        /// <param name="message">The message.</param>
-        /// <returns>The response fromthe remote consumer, or null if there was no response</returns>
-        public virtual void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel)
-        {
-            Interlocked.Add(ref sentBytes, message.Length);
-        }
+        public abstract void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel);
 
         /// <summary>
         /// Pings this instance.
