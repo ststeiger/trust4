@@ -276,6 +276,11 @@ namespace Trust4.DataStorage
                 Data = data;
                 CallbackId = callbackId;
             }
+
+            public PutRequest()
+            {
+
+            }
         }
 
         [ProtoContract]
