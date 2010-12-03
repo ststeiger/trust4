@@ -1,5 +1,6 @@
 ﻿peerport = 12000
-dnsport = 6000
+dnsport = 53
+keysize = 2048
 
 // change this to your public IP
 localip = 78.105.97.103

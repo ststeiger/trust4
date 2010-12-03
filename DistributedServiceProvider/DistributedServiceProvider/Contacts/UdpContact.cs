@@ -174,22 +174,25 @@ namespace DistributedServiceProvider.Contacts
                     if (!listen)
                         break;
 
-                    using (MemoryStream m = new MemoryStream(b))
+                    ThreadPool.QueueUserWorkItem((a) =>
                     {
-                        using (BinaryReader r = new BinaryReader(m))
+                        using (MemoryStream m = new MemoryStream(b))
                         {
-                            PacketFlag f = (PacketFlag)r.ReadByte();
-
-                            switch (f)
+                            using (BinaryReader r = new BinaryReader(m))
                             {
-                                case PacketFlag.Ping: ParsePing(r); break;
-                                case PacketFlag.Data: ParseData(r); break;
-                                case PacketFlag.WhoAreYou: ParseWhoAreYou(r); break;
-                                case PacketFlag.WhoAreYouReply: ParseWhoAreYouReply(r); break;
-                                default: Console.WriteLine("Unknown packet type " + f); break;
+                                PacketFlag f = (PacketFlag)r.ReadByte();
+
+                                switch (f)
+                                {
+                                    case PacketFlag.Ping: ParsePing(r); break;
+                                    case PacketFlag.Data: ParseData(r); break;
+                                    case PacketFlag.WhoAreYou: ParseWhoAreYou(r); break;
+                                    case PacketFlag.WhoAreYouReply: ParseWhoAreYouReply(r); break;
+                                    default: Console.WriteLine("Unknown packet type " + f); break;
+                                }
                             }
                         }
-                    }
+                    });
                 }
             });
             listenThread.IsBackground = true;
