@@ -81,11 +81,11 @@ namespace Trust4.DataStorage
 
         public IEnumerable<DataResult> Get(Identifier512 key)
         {
-            var closest = getClosest.GetClosestContacts(key, null).GetEnumerator();
+            var closest = getClosest.GetClosestContacts(key, null).ToList();
 
-            do
+            foreach (var c in closest)
             {
-                if (closest.Current.Identifier == RoutingTable.LocalIdentifier)
+                if (c.Identifier == RoutingTable.LocalIdentifier)
                 {
                     byte[] returned;
                     if (localAuthoritativeData.TryGetValue(key, out returned))
@@ -105,7 +105,7 @@ namespace Trust4.DataStorage
 
                             Serializer.Serialize<GetRequest>(m, new GetRequest() { Key = key, CallbackId = token.Id });
 
-                            closest.Current.Send(RoutingTable.LocalContact, ConsumerId, m.ToArray());
+                            c.Send(RoutingTable.LocalContact, ConsumerId, m.ToArray());
                         }
 
                         if (!token.Wait(RoutingTable.Configuration.LookupTimeout))
@@ -126,7 +126,7 @@ namespace Trust4.DataStorage
                         callback.FreeToken(token);
                     }
                 }
-            } while (closest.MoveNext());
+            }
         }
 
         [ProtoContract]
@@ -197,10 +197,10 @@ namespace Trust4.DataStorage
             else
                 localCache.AddOrUpdate(key, value, (a, b) => value);
 
-            var closest = getClosest.GetClosestContacts(key, null).GetEnumerator();
-            do
+            var closest = getClosest.GetClosestContacts(key, null).ToList();
+            foreach (var c in closest)
             {
-                if (closest.Current.Identifier == RoutingTable.LocalIdentifier)
+                if (c.Identifier == RoutingTable.LocalIdentifier)
                 {
                     if (value == null)
                     {
@@ -227,7 +227,7 @@ namespace Trust4.DataStorage
                         {
                             Serializer.Serialize<PutRequest>(mStream, new PutRequest(key, value, token.Id));
 
-                            closest.Current.Send(RoutingTable.LocalContact, ConsumerId, mStream.ToArray());
+                            c.Send(RoutingTable.LocalContact, ConsumerId, mStream.ToArray());
 
                             if (!token.Wait(RoutingTable.Configuration.LookupTimeout))
                                 continue;
@@ -255,7 +255,7 @@ namespace Trust4.DataStorage
                         }
                     }
                 }
-            } while (closest.MoveNext());
+            }
         }
 
         [ProtoContract]
