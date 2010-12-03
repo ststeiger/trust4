@@ -138,10 +138,11 @@ namespace DistributedServiceProvider
 
         private void AutoLink(MessageConsumer consumer)
         {
-            foreach (var field in 
-                consumer
-                .GetType()
-                .GetFields()
+            var type = consumer.GetType();
+            var fields = type.GetFields();
+
+            foreach (var field in
+                fields
                 .Where(a => a.GetCustomAttributes(true).Any(b => b.GetType().IsAssignableFrom(typeof(LinkedConsumerAttribute))))
                 .Select(a => new KeyValuePair<LinkedConsumerAttribute, FieldInfo>((a.GetCustomAttributes(true).Where(b => b.GetType() == typeof(LinkedConsumerAttribute)).First() as LinkedConsumerAttribute), a)))
             {

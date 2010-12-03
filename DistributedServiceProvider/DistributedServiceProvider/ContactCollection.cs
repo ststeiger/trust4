@@ -97,15 +97,20 @@ namespace DistributedServiceProvider
         /// <param name="force">if set to <c>true</c> force the bucket to refresh no matter if it has been used recently.</param>
         public void RefreshFarBuckets(bool force)
         {
-            bool refresh = false;
+            int refreshIndex = -1;
             for (int i = buckets.Length - 1; i >= 0; i--)
             {
                 if (buckets[i].Count > 0)
-                    refresh = refresh || buckets[i].Count > 0;
-
-                if (refresh)
-                    buckets[i].Refresh(force);
+                {
+                    refreshIndex = i;
+                    break;
+                }
             }
+
+            System.Threading.Tasks.Parallel.For(refreshIndex, 0, (i) =>
+            {
+                buckets[i].Refresh(force);
+            });
         }
 
         /// <summary>
