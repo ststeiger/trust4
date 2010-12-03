@@ -2,10 +2,10 @@
 dnsport = 53
 
 //change this to your public IP
-localip = 59.167.198.201
+localip = 78.105.97.103
 
 //this should be four unique, comma separated GUIDs, perhaps from http://www.guidgenerator.com/online-guid-generator.aspx
-routingidentifier = 10839b2e-5440-45b0-b10e-ce9576830743,0301ece0-17e7-4cbb-9205-859695ef5e61,a5b397e3-5ef2-4162-9152-fb733da45c37,d04564f9-db7c-418d-8e02-034dda40ed4a
+routingidentifier = 7854998d-5f5c-42fd-92cc-529674fd62ac,617066d2-ee27-49fb-84c4-96ce5d33f81f,f632475b-85c6-444e-bfef-3383bbf77646,e9603f70-cb30-4693-aba6-238ae2b9bf83
 
 //don't change this, or you won't be able to connect to anyone!
 networkid = f35303bc-f334-4e68-b949-28943ff96955

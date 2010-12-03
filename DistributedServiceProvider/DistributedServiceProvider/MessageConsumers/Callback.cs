@@ -57,7 +57,7 @@ namespace DistributedServiceProvider.MessageConsumers
                     token.Response = r.ResponseBytes;
                     token.Source = source;
                 }
-                else if (r.CallbackId >= nextId)
+                else if (r.CallbackId > nextId)
                 {
                     throw new Exception("Token not found");
                 }
