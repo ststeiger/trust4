@@ -81,7 +81,7 @@ namespace DistributedServiceProvider.MessageConsumers
                     .SelectMany(c =>
                     {
                         try { return RemoteGetClosest(RoutingTable.LocalContact, c, target, RoutingTable.Configuration.LookupConcurrency, RoutingTable.Configuration.LookupTimeout); }
-                        catch (TimeoutException) { new List<Contact>(); }
+                        catch (TimeoutException) { return new List<Contact>(); }
                     })                                                                                      //select the closest ones they know about
                     .Where(n => n != null)
                     .Where(r => !heap.Contains(r)));                                                            //remove the results we already know about
