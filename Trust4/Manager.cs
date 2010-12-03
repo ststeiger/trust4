@@ -10,6 +10,8 @@ using DistributedServiceProvider.Base;
 using System.IO;
 using Trust4.DataStorage;
 using System.Threading;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Trust4
 {

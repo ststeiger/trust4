@@ -1,1 +1,2 @@
 ﻿A		opensuse.p2p		130.57.5.70
+CNAME	google.p2p			google.co.uk
