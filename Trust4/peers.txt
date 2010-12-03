@@ -1,6 +1,6 @@
-#format GUID GUID GUID GUID IP PORT
+#format TRUST IP PORT
 #eg:
-#faf4f285-b616-4d0b-b6fd-683b8ab93e9f 80e91245-6ccc-4721-9e2f-bc898b4d4b1c 2d2cb195-69a8-417f-a222-c216f94ce429 b30d2a9e-81f2-4ef7-b895-1be736cadf39 127.0.0.1 12000
+#0 127.0.0.1 12000
 
 #hellequin
 0 78.105.97.103 12000
@@ -13,3 +13,6 @@
 
 #Anubis
 0 134.225.185.241 12000
+
+#vehkls
+0 87.218.163.162 12000
