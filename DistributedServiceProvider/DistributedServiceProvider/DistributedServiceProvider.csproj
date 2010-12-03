@@ -61,6 +61,9 @@
     <Content Include="Notes\Specification.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\HandyCollections\HandyCollections\HandyCollections.csproj">
       <Project>{C18B7765-C1F8-4769-A114-291D0BDB5865}</Project>
       <Name>HandyCollections</Name>
@@ -74,10 +77,6 @@
       <Name>DistributedServiceProvider.Base</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
