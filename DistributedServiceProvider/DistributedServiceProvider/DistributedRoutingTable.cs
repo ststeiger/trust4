@@ -105,7 +105,7 @@ namespace DistributedServiceProvider
             }
 
             //Lookup selfto populate local buckets
-            GetConsumer<GetClosestNodes>(GetClosestNodes.GUID).GetClosestContacts(LocalIdentifier).ForEach((c) => { contacts.Update(c); });
+            GetConsumer<GetClosestNodes>(GetClosestNodes.GUID).GetClosestContacts(LocalIdentifier, null).ForEach((c) => { contacts.Update(c); });
 
             contacts.RefreshFarBuckets(true);
         }

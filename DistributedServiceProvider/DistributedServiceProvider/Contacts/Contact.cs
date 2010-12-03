@@ -58,13 +58,25 @@ namespace DistributedServiceProvider.Contacts
                 return Interlocked.Read(ref sentBytes);
             }
         }
+
         /// <summary>
         /// Sends a message to the consumer with the given Id
         /// </summary>
         /// <param name="consumerId">The consumer id.</param>
         /// <param name="message">The message.</param>
         /// <returns>The response fromthe remote consumer, or null if there was no response</returns>
-        public virtual void Send(Contact source, Guid consumerId, byte[] message, bool reliable = true, bool ordered = true, int channel = 1)
+        public virtual void Send(Contact source, Guid consumerId, byte[] message)
+        {
+            Interlocked.Add(ref sentBytes, message.Length);
+        }
+
+        /// <summary>
+        /// Sends a message to the consumer with the given Id
+        /// </summary>
+        /// <param name="consumerId">The consumer id.</param>
+        /// <param name="message">The message.</param>
+        /// <returns>The response fromthe remote consumer, or null if there was no response</returns>
+        public virtual void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel)
         {
             Interlocked.Add(ref sentBytes, message.Length);
         }
