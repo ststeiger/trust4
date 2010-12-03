@@ -163,8 +163,14 @@ namespace Trust4
                     decimal trust = Decimal.Parse(split[0]);
                     IPAddress ip = IPAddress.Parse(split[5]);
                     int port = Int32.Parse(split[6]);
-
+                    try
                     udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
+                        Identifier512 discoveredId = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
+
+                        Console.WriteLine("Discovered ID == ID " + (discoveredId == id));
+                    }
+                    catch (TimeoutException) { }
+
 
                     Console.WriteLine("Loaded bootstrap contact " + udp);
                 }
