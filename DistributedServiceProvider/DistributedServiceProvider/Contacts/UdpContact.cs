@@ -30,11 +30,11 @@ namespace DistributedServiceProvider.Contacts
 
             using (MemoryStream m = new MemoryStream())
             {
-                using(BinaryWriter w =new BinaryWriter(m))
+                using(BinaryWriter w = new BinaryWriter(m))
                 {
                     w.Write((byte)PacketFlag.Ping);
 
-                    WriteContact(w, this);
+                    WriteContact(w, uSource);
 
                     var callback = localTable.GetConsumer<Callback>(Callback.CONSUMER_ID);
                     var token = callback.AllocateToken();
@@ -100,13 +100,15 @@ namespace DistributedServiceProvider.Contacts
         {
             base.Send(source, consumerId, message, reliable, ordered, channel);
 
+            UdpContact uSource = source as UdpContact;
+
             using(MemoryStream m = new MemoryStream())
             {
                 using(BinaryWriter w = new BinaryWriter(m))
                 {
                     w.Write((byte)PacketFlag.Data);
 
-                    WriteContact(w, this);
+                    WriteContact(w, uSource);
 
                     byte[] guidBytes = consumerId.ToByteArray();
                     w.Write(IPAddress.HostToNetworkOrder(guidBytes.Length));
