@@ -46,7 +46,7 @@ namespace DistributedServiceProvider.Contacts
                         SendUdpMessage(m.ToArray(), Ip, Port);
                         
                         DateTime start = DateTime.Now;
-                        if (token.Wait(timeout.Milliseconds))
+                        if (token.Wait((int)timeout.TotalMilliseconds))
                         {
                             return DateTime.Now - start;
                         }

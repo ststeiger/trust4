@@ -35,7 +35,15 @@ namespace Trust4
 
             ReadMappings();
 
-            DistributedRoutingTable routingTable = new DistributedRoutingTable(routingIdentifier, (a) => new UdpContact(a.LocalIdentifier, networkId, localIp, m_Port), networkId, new Configuration());
+            DistributedRoutingTable routingTable = new DistributedRoutingTable(routingIdentifier, (a) => new UdpContact(a.LocalIdentifier, networkId, localIp, m_Port), networkId, new Configuration()
+                {
+                    BucketRefreshPeriod =TimeSpan.FromMinutes(10),
+                    BucketSize = 10,
+                    LookupConcurrency = 5,
+                    LookupTimeout = 150,
+                    PingTimeout = TimeSpan.FromSeconds(1),
+                    UpdateRoutingTable = true,
+                });
 
             UdpContact.InitialiseUdp(routingTable, m_Port);
 
