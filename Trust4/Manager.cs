@@ -153,24 +153,21 @@ namespace Trust4
                 try
                 {
                     string[] split = line.Split(' ');
-                    Guid a = new Guid(split[1]);
-                    Guid b = new Guid(split[2]);
-                    Guid c = new Guid(split[3]);
-                    Guid d = new Guid(split[4]);
-
-                    Identifier512 id = new Identifier512(a, b, c, d);
 
                     decimal trust = Decimal.Parse(split[0]);
-                    IPAddress ip = IPAddress.Parse(split[5]);
-                    int port = Int32.Parse(split[6]);
+
+                    IPAddress ip = IPAddress.Parse(split[1]);
+                    int port = Int32.Parse(split[2]);
+
                     try
-                    udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
+                    {
                         Identifier512 discoveredId = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
 
-                        Console.WriteLine("Discovered ID == ID " + (discoveredId == id));
-                    }
-                    catch (TimeoutException) { }
+                        Console.WriteLine("Discovered ID " + discoveredId + " for " + ip);
 
+                        udp = new TrustedContact(trust, discoveredId, this.p_Settings.NetworkID, ip, port);
+                    }
+                    catch (TimeoutException) { Console.WriteLine("Timeout trying to discover an id for " + ip + ":" + port); }
 
                     Console.WriteLine("Loaded bootstrap contact " + udp);
                 }
