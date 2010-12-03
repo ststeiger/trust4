@@ -83,7 +83,7 @@ namespace Trust4.DataStorage
         {
             var closest = getClosest.GetClosestContacts(key, null).GetEnumerator();
 
-            while (closest.MoveNext())
+            do
             {
                 if (closest.Current.Identifier == RoutingTable.LocalIdentifier)
                 {
@@ -126,7 +126,7 @@ namespace Trust4.DataStorage
                         callback.FreeToken(token);
                     }
                 }
-            }
+            } while (closest.MoveNext());
         }
 
         [ProtoContract]
@@ -198,7 +198,7 @@ namespace Trust4.DataStorage
                 localCache.AddOrUpdate(key, value, (a, b) => value);
 
             var closest = getClosest.GetClosestContacts(key, null).GetEnumerator();
-            while (closest.MoveNext())
+            do
             {
                 if (closest.Current.Identifier == RoutingTable.LocalIdentifier)
                 {
@@ -255,7 +255,7 @@ namespace Trust4.DataStorage
                         }
                     }
                 }
-            }
+            } while (closest.MoveNext());
         }
 
         [ProtoContract]

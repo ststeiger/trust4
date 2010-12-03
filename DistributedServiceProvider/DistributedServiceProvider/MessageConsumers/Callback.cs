@@ -59,8 +59,10 @@ namespace DistributedServiceProvider.MessageConsumers
                 }
                 else if (r.CallbackId > nextId)
                 {
-                    throw new Exception("Token not found");
+                    throw new Exception("Token not found, no such token has ever existed");
                 }
+                else
+                    throw new Exception("Token not found, token has been freed");
             }
         }
 
