@@ -10,6 +10,8 @@ using DistributedServiceProvider.Base;
 using System.IO;
 using Trust4.DataStorage;
 using System.Threading;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Trust4
 {
@@ -127,24 +129,24 @@ namespace Trust4
 	
 		public bool UpdateUnixUIDGID(uint uid, uint gid)
 		{
-			if (Mono.Unix.Native.Syscall.getuid() != 0)
-			{
-				// We don't need to lower / change permissions since we aren't root.
-				return true;
-			}
+            //if (Mono.Unix.Native.Syscall.getuid() != 0)
+            //{
+            //    // We don't need to lower / change permissions since we aren't root.
+            //    return true;
+            //}
 			
-			int res = Mono.Unix.Native.Syscall.setregid(uid, gid);
-			if (res != 0)
-			{
-				Console.WriteLine("Error! Unable to lower effective and real group IDs to " + gid + ".  Result from syscall was: " + res);
-				return false;
-			}
-			res = Mono.Unix.Native.Syscall.setreuid(uid, gid);
-			if (res != 0)
-			{
-				Console.WriteLine("Error! Unable to lower effective and real user IDs to " + uid + ".  Result from syscall was: " + res);
-				return false;
-			}
+            //int res = Mono.Unix.Native.Syscall.setregid(uid, gid);
+            //if (res != 0)
+            //{
+            //    Console.WriteLine("Error! Unable to lower effective and real group IDs to " + gid + ".  Result from syscall was: " + res);
+            //    return false;
+            //}
+            //res = Mono.Unix.Native.Syscall.setreuid(uid, gid);
+            //if (res != 0)
+            //{
+            //    Console.WriteLine("Error! Unable to lower effective and real user IDs to " + uid + ".  Result from syscall was: " + res);
+            //    return false;
+            //}
 			return true;
 		}
 
