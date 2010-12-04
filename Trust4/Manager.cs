@@ -173,7 +173,7 @@ namespace Trust4
 
             UdpContact.InitialiseUdp(this.p_RoutingTable, this.p_Settings.P2PPort);
 
-            Console.WriteLine("Bootstrapping DHT");
+            Console.WriteLine("Bootstrapping DHT\r\n { " + this.p_RoutingTable.LocalIdentifier + " }");
             this.p_RoutingTable.Bootstrap(this.BootstrapPeers());
 
             Console.WriteLine("Bootstrap finished");
