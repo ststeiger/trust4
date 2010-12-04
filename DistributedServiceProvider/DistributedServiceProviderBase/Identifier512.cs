@@ -458,6 +458,17 @@ namespace DistributedServiceProvider.Base
             return new Identifier512(b).GetHashedKey();
         }
 
+        public static Identifier512 CreateKey(RSACryptoServiceProvider CryptoProvider)
+        {
+            var pKey = CryptoProvider.ExportParameters(false).Modulus;
+
+            var bytes = new List<byte>();
+            while (bytes.Count * 8 < BIT_LENGTH)
+                bytes.AddRange(pKey);
+
+            return new Identifier512(bytes.Take(BIT_LENGTH / 8)).GetHashedKey();
+        }
+
         public object Clone()
         {
             byte[] b = new byte[bytes.Length];
