@@ -1,0 +1,13 @@
+﻿peerport = 12000
+dnsport = 53
+keysize = 2048
+
+// change this to your public IP
+localip = 59.167.198.201
+
+// don't change this, or you won't be able to connect to anyone!
+networkid = f35303bc-f334-4e68-b949-28943ff96955
+
+// change this if you're running on linux
+uid = 1000
+gid = 100
