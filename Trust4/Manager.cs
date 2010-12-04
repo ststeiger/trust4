@@ -108,7 +108,7 @@ namespace Trust4
             this.m_DNSProcess = new DnsProcess(this);
 
             // Start the DNS server.
-            this.m_DNSServer = new DnsServer(IPAddress.Any, this.p_Settings.DNSPort, 0, 10, this.m_DNSProcess.ProcessQuery);
+            this.m_DNSServer = new DnsServer(IPAddress.Any, this.p_Settings.DNSPort, 10, 10, this.m_DNSProcess.ProcessQuery);
             this.m_DNSServer.ExceptionThrown += new EventHandler<ExceptionEventArgs>(this.m_DNSProcess.ExceptionThrown);
             this.m_DNSServer.Start();
 			

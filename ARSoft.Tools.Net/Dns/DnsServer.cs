@@ -137,7 +137,19 @@ namespace ARSoft.Tools.Net.Dns
         {
             try
             {
-                _udpClient.BeginReceive(EndUdpReceive, null);
+				Thread t = new Thread(() =>
+					{
+						IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, _bindPort);
+						byte[] buffer = _udpClient.Receive(ref endpoint);
+						foreach (byte b in buffer)
+							Console.Write("\\" + (int)b);
+						Console.WriteLine();
+						this.EndUdpReceive(buffer, endpoint);
+					});
+				t.IsBackground = true;
+				t.Start();
+					
+                //_udpClient.BeginReceive(EndUdpReceive, null);
             }
             catch (Exception e)
             {
@@ -145,13 +157,13 @@ namespace ARSoft.Tools.Net.Dns
             }
         }
 
-        private void EndUdpReceive(IAsyncResult ar)
+        private void EndUdpReceive(byte[] buffer, IPEndPoint endpoint) //(IAsyncResult ar)
         {
             try
             {
-                IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, _bindPort);
+                //IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, _bindPort);
 
-                byte[] buffer = _udpClient.EndReceive(ar, ref endpoint);
+                //byte[] buffer = _udpClient.EndReceive(ar, ref endpoint);
 
                 DnsMessageBase query;
                 try
