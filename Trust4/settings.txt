@@ -1,11 +1,9 @@
 ﻿peerport = 12000
-dnsport = 6000
+dnsport = 53
+keysize = 2048
 
 // change this to your public IP
 localip = 59.167.198.201
-
-// this should be four unique, comma separated GUIDs, perhaps from http://www.guidgenerator.com/online-guid-generator.aspx
-routingidentifier = 8bc322bb-7872-4bcf-ba63-379aeebb5cee,43faba4e-078c-4d62-85d7-c096ef265427,e90ad264-0b0d-4df0-b42b-e7f00fde4416,bb904f02-f4dc-4afb-a0f1-3e96ef19283e
 
 // don't change this, or you won't be able to connect to anyone!
 networkid = f35303bc-f334-4e68-b949-28943ff96955
