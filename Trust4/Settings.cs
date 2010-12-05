@@ -105,7 +105,14 @@ namespace Trust4
                         this.p_DNSPort = Convert.ToInt32(value);
                         break;
                     case "localip":
-                        this.p_LocalIP = IPAddress.Parse(line[1]);
+                        if (line[1].Equals("dynamic", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            WebClient c = new WebClient();
+                            this.p_LocalIP = IPAddress.Parse(c.DownloadString("http://www.whatismyip.com/automation/n09230945.asp"));
+                        }
+                        else
+                            this.p_LocalIP = IPAddress.Parse(line[1]);
+                        Console.Title = this.p_LocalIP.ToString();
                         break;
                     case "networkid":
                         this.p_NetworkID = new Guid(line[1]);
