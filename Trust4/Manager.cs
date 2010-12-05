@@ -190,22 +190,35 @@ namespace Trust4
 
                 try
                 {
-                    string[] split = line.Split(' ');
+                    string[] split = line.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 
                     decimal trust = Decimal.Parse(split[0]);
 
                     IPAddress ip = IPAddress.Parse(split[1]);
                     int port = Int32.Parse(split[2]);
+					
+					if (split.Length == 7)
+					{
+						Guid a = new Guid(split[3]);
+                    	Guid b = new Guid(split[4]);
+                    	Guid c = new Guid(split[5]);
+                    	Guid d = new Guid(split[6]);
 
-                    try
-                    {
-                        Identifier512 discoveredId = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
-
-                        Console.WriteLine("Discovered ID " + discoveredId + " for " + ip);
-
-                        udp = new TrustedContact(trust, discoveredId, this.p_Settings.NetworkID, ip, port);
-                    }
-                    catch (TimeoutException) { Console.WriteLine("Timeout trying to discover an id for " + ip + ":" + port); }
+	                    Identifier512 id = new Identifier512(a, b, c, d);
+						udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
+					}
+					else
+					{
+                    	try
+                    	{
+	                        Identifier512 discoveredId = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
+	
+                        	Console.WriteLine("Discovered ID " + discoveredId + " for " + ip);
+	
+                        	udp = new TrustedContact(trust, discoveredId, this.p_Settings.NetworkID, ip, port);
+                    	}
+                    	catch (TimeoutException) { Console.WriteLine("Timeout trying to discover an id for " + ip + ":" + port); }
+					}
 
                     Console.WriteLine("Loaded bootstrap contact " + udp);
                 }

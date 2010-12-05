@@ -141,9 +141,6 @@ namespace ARSoft.Tools.Net.Dns
 					{
 						IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, _bindPort);
 						byte[] buffer = _udpClient.Receive(ref endpoint);
-						foreach (byte b in buffer)
-							Console.Write("\\" + (int)b);
-						Console.WriteLine();
 						this.EndUdpReceive(buffer, endpoint);
 					});
 				t.IsBackground = true;
