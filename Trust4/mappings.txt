@@ -1,0 +1,2 @@
+﻿A		opensuse.p2p		130.57.5.70			e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa	972ce690-695c-435f-99c2-98cf47d79287
+CNAME	google.p2p			google.co.uk
