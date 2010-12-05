@@ -1,19 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using DistributedServiceProvider.MessageConsumers;
-using System.Threading;
+﻿// 
+//  Copyright 2010  Trust4 Developers
+// 
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+// 
+//        http://www.apache.org/licenses/LICENSE-2.0
+// 
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+
+using System;
 using System.Collections.Concurrent;
-using DistributedServiceProvider.Base;
+using System.Collections.Generic;
 using System.IO;
-using ProtoBuf;
+using System.Linq;
+using DistributedServiceProvider.Base;
 using DistributedServiceProvider.Contacts;
+using DistributedServiceProvider.MessageConsumers;
+using ProtoBuf;
 
 namespace Trust4.DataStorage
 {
-    public class BasicStore
-        : MessageConsumer, IDataStore
+    public class BasicStore : MessageConsumer, IDataStore
     {
         #region fields
         [LinkedConsumer(Callback.GUID_STRING)]
@@ -27,10 +39,9 @@ namespace Trust4.DataStorage
         #endregion
 
         #region constructors
-        public BasicStore(Guid consumerId)
-            :base(consumerId)
+        public BasicStore(Guid consumerId) : base(consumerId)
         {
-
+            
         }
         #endregion
 
@@ -38,8 +49,8 @@ namespace Trust4.DataStorage
         {
             using (MemoryStream m = new MemoryStream(message))
             {
-                PacketFlag flag = (PacketFlag)m.ReadByte();
-
+                PacketFlag flag = (PacketFlag) m.ReadByte();
+                
                 switch (flag)
                 {
                     case PacketFlag.PutRequest:
@@ -57,24 +68,24 @@ namespace Trust4.DataStorage
         private void HandleRemoteGet(Contact source, MemoryStream m)
         {
             var msg = Serializer.Deserialize<GetRequest>(m);
-
+            
             var response = new GetResponse();
-
+            
             byte[] returned = null;
             bool authoritative = false;
-
+            
             if (localAuthoritativeData.TryGetValue(msg.Key, out returned))
                 authoritative = true;
             else if (localCache.TryGetValue(msg.Key, out returned))
                 authoritative = false;
-
+            
             response.Authoritative = authoritative;
             response.Data = returned;
-
+            
             using (MemoryStream mResponse = new MemoryStream())
             {
                 Serializer.Serialize<GetResponse>(mResponse, response);
-
+                
                 callback.SendResponse(RoutingTable.LocalContact, source, msg.CallbackId, mResponse.ToArray());
             }
         }
@@ -82,43 +93,58 @@ namespace Trust4.DataStorage
         public IEnumerable<DataResult> Get(Identifier512 key)
         {
             var closest = getClosest.GetClosestContacts(key, null).ToList();
-
+            
             foreach (var c in closest)
-            {
                 if (c.Identifier == RoutingTable.LocalIdentifier)
                 {
                     byte[] returned;
                     if (localAuthoritativeData.TryGetValue(key, out returned))
-                        yield return new DataResult() { Authoritative = true, Data = returned, Source = RoutingTable.LocalContact };
+                        yield return new DataResult {
+                            Authoritative = true,
+                            Data = returned,
+                            Source = RoutingTable.LocalContact
+                        };
                     else if (localCache.TryGetValue(key, out returned))
-                        yield return new DataResult() { Authoritative = false, Data = returned, Source = RoutingTable.LocalContact };
+                        yield return new DataResult {
+                            Authoritative = false,
+                            Data = returned,
+                            Source = RoutingTable.LocalContact
+                        };
                 }
+
                 else
                 {
                     var token = callback.AllocateToken();
-
+                    
                     try
                     {
                         using (MemoryStream m = new MemoryStream())
                         {
-                            m.WriteByte((byte)PacketFlag.GetRequest);
-
-                            Serializer.Serialize<GetRequest>(m, new GetRequest() { Key = key, CallbackId = token.Id });
-
+                            m.WriteByte((byte) PacketFlag.GetRequest);
+                            
+                            Serializer.Serialize<GetRequest>(m, new GetRequest {
+                                Key = key,
+                                CallbackId = token.Id
+                            });
+                            
                             c.Send(RoutingTable.LocalContact, ConsumerId, m.ToArray());
                         }
-
+                        
                         if (!token.Wait(RoutingTable.Configuration.LookupTimeout))
                             continue;
-
+                        
                         using (MemoryStream m = new MemoryStream(token.Response))
                         {
                             var response = Serializer.Deserialize<GetResponse>(m);
-
+                            
                             if (response.Data == null)
                                 continue;
-
-                            yield return new DataResult() { Authoritative = response.Authoritative, Data = response.Data, Source = token.Source };
+                            
+                            yield return new DataResult {
+                                Authoritative = response.Authoritative,
+                                Data = response.Data,
+                                Source = token.Source
+                            };
                         }
                     }
                     finally
@@ -126,7 +152,6 @@ namespace Trust4.DataStorage
                         callback.FreeToken(token);
                     }
                 }
-            }
         }
 
         [ProtoContract]
@@ -152,14 +177,14 @@ namespace Trust4.DataStorage
         private enum PacketFlag
         {
             PutRequest,
-            GetRequest,
+            GetRequest
         }
 
         #region put
         private void HandleRemotePut(Contact source, MemoryStream m)
         {
             var p = Serializer.Deserialize<PutRequest>(m);
-
+            
             PutResponse.Response responseCode = PutResponse.Response.Success;
             try
             {
@@ -169,13 +194,13 @@ namespace Trust4.DataStorage
             {
                 responseCode = PutResponse.Response.DuplicateKey;
             }
-
-            PutResponse response = new PutResponse() { ResponseCode = responseCode };
-
+            
+            PutResponse response = new PutResponse { ResponseCode = responseCode };
+            
             using (MemoryStream mResponse = new MemoryStream())
             {
                 Serializer.Serialize<PutResponse>(mResponse, response);
-
+                
                 callback.SendResponse(RoutingTable.LocalContact, source, p.CallbackId, m.ToArray());
             }
         }
@@ -194,12 +219,12 @@ namespace Trust4.DataStorage
                 byte[] removed;
                 localCache.TryRemove(key, out removed);
             }
-            else
-                localCache.AddOrUpdate(key, value, (a, b) => value);
 
+            else
+                localCache.AddOrUpdate(key, value, ( a, b ) => value);
+            
             var closest = getClosest.GetClosestContacts(key, null).ToList();
             foreach (var c in closest)
-            {
                 if (c.Identifier == RoutingTable.LocalIdentifier)
                 {
                     if (value == null)
@@ -208,30 +233,33 @@ namespace Trust4.DataStorage
                         if (!localAuthoritativeData.TryRemove(key, out removed))
                             throw new KeyNotFoundException("No such key in local authoritative data to delete");
                     }
+
                     else
                     {
-                        localAuthoritativeData.AddOrUpdate(key, value,
-                            (a, b) => { throw new KeyCollisionException("Key " + key + " already exists in local authoritative data"); }
-                        );
+                        localAuthoritativeData.AddOrUpdate(key, value, ( a, b ) =>
+                        {
+                            throw new KeyCollisionException("Key " + key + " already exists in local authoritative data");
+                        });
                     }
                 }
+
                 else
                 {
                     using (MemoryStream mStream = new MemoryStream())
                     {
-                        mStream.WriteByte((byte)PacketFlag.PutRequest);
-
+                        mStream.WriteByte((byte) PacketFlag.PutRequest);
+                        
                         var token = callback.AllocateToken();
-
+                        
                         try
                         {
                             Serializer.Serialize<PutRequest>(mStream, new PutRequest(key, value, token.Id));
-
+                            
                             c.Send(RoutingTable.LocalContact, ConsumerId, mStream.ToArray());
-
+                            
                             if (!token.Wait(RoutingTable.Configuration.LookupTimeout))
                                 continue;
-
+                            
                             using (MemoryStream m = new MemoryStream(token.Response))
                             {
                                 var r = Serializer.Deserialize<PutResponse>(m);
@@ -246,7 +274,7 @@ namespace Trust4.DataStorage
                                     default:
                                         break;
                                 }
-
+                                
                             }
                         }
                         finally
@@ -255,7 +283,6 @@ namespace Trust4.DataStorage
                         }
                     }
                 }
-            }
         }
 
         [ProtoContract]
@@ -279,7 +306,7 @@ namespace Trust4.DataStorage
 
             public PutRequest()
             {
-
+                
             }
         }
 
@@ -288,12 +315,11 @@ namespace Trust4.DataStorage
         {
             public Response ResponseCode;
 
-            public enum Response
-                :byte
+            public enum Response : byte
             {
                 Success,
                 DuplicateKey,
-                KeyNotFound,
+                KeyNotFound
             }
         }
         #endregion
