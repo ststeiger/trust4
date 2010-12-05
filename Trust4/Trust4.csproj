@@ -73,8 +73,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataStorage\Advanced\AdvancedStore.cs" />
+    <Compile Include="DataStorage\Advanced\AdvancedStoreDeliver.cs" />
+    <Compile Include="DataStorage\Advanced\AdvancedStoreGet.cs" />
+    <Compile Include="DataStorage\Advanced\AdvancedStorePut.cs" />
     <Compile Include="DataStorage\BasicStore.cs" />
     <Compile Include="DataStorage\DataResult.cs" />
+    <Compile Include="DataStorage\IMergingDataStore.cs" />
     <Compile Include="DataStorage\KeyCollisionException.cs" />
     <Compile Include="DnsProcess.cs" />
     <Compile Include="DomainMap.cs" />
@@ -141,7 +146,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <Folder Include="Authentication\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>

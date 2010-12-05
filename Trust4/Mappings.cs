@@ -81,10 +81,10 @@ namespace Trust4
                     Directory.CreateDirectory("keys");
 
                 CspParameters parms1 = new CspParameters();
-                parms.KeyContainerName = guids.Public;
+                parms1.KeyContainerName = guids.Public.ToString();
                 this.Public = new RSACryptoServiceProvider(parms1);
                 CspParameters parms2 = new CspParameters();
-                parms.KeyContainerName = guids.Private;
+                parms2.KeyContainerName = guids.Private.ToString();
                 this.Private = new RSACryptoServiceProvider(parms2);
 
                 // Load or create the public key.
