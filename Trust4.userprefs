@@ -1,39 +1,37 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" />
   <MonoDevelop.Ide.DebuggingService>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService>
-  <MonoDevelop.Ide.Workbench ActiveDocument="Trust4/mappings.txt">
+  <MonoDevelop.Ide.Workbench ActiveDocument="DistributedServiceProvider/DistributedServiceProviderBase/Identifier512.cs">
     <Files>
-      <File FileName="Trust4/Mappings.cs" Line="327" Column="9" />
+      <File FileName="Trust4/Mappings.cs" Line="283" Column="44" />
       <File FileName="Trust4/DnsSerializer.cs" Line="45" Column="76" />
       <File FileName="Trust4/DnsProcess.cs" Line="124" Column="65" />
-      <File FileName="ARSoft.Tools.Net/Dns/DnsServer.cs" Line="130" Column="39" />
-      <File FileName="Trust4/peers.txt" Line="5" Column="166" />
+      <File FileName="ARSoft.Tools.Net/Dns/DnsServer.cs" Line="112" Column="14" />
+      <File FileName="Trust4/peers.txt" Line="10" Column="9" />
       <File FileName="Trust4/settings.txt" Line="2" Column="12" />
-      <File FileName="Trust4/mappings.txt" Line="13" Column="42" />
+      <File FileName="Trust4/mappings.txt" Line="22" Column="28" />
       <File FileName="DistributedServiceProvider/DistributedServiceProvider/Contacts/UdpContact.cs" Line="164" Column="14" />
       <File FileName="Trust4/DataStorage/MultiRecordStore.cs" Line="43" Column="22" />
+      <File FileName="Trust4/Manager.cs" Line="181" Column="91" />
+      <File FileName="Trust4/Settings.cs" Line="146" Column="14" />
+      <File FileName="protobuf-net/ServiceModel/ProtoBehaviorAttribute.cs" Line="3" Column="14" />
+      <File FileName="HandyCollections/HandyCollections/BloomFilter/BloomFilter.cs" Line="109" Column="17" />
+      <File FileName="DistributedServiceProvider/DistributedServiceProviderBase/Identifier512.cs" Line="410" Column="13" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
-          <Node name="ARSoft.Tools.Net" expanded="True">
-            <Node name="References" expanded="True" />
-            <Node name="Dns" expanded="True">
-              <Node name="DnsRecord" expanded="True" />
-            </Node>
-          </Node>
-          <Node name="DistributedServiceProvider" expanded="True">
-            <Node name="Contacts" expanded="True" />
-          </Node>
+          <Node name="DistributedServiceProvider.Base" selected="True" />
           <Node name="protobuf-net" expanded="True">
+            <Node name="References" expanded="True" />
             <Node name="ServiceModel" expanded="True" />
           </Node>
           <Node name="Trust4" expanded="True">
             <Node name="References" expanded="True" />
+            <Node name="Authentication" expanded="True" />
             <Node name="DataStorage" expanded="True" />
-            <Node name="mappings.txt" selected="True" />
           </Node>
         </State>
       </Pad>
