@@ -59,59 +59,74 @@ namespace Trust4
                     // Search cache.
                     if (this.m_Manager.Mappings.Fetch(ref query, q))
                         Console.WriteLine("DNS LOOKUP - Returned answer from cache.");
-                    else
+                    else if (!this.m_Manager.Mappings.Waiting(q.Name.ToLowerInvariant()))
                     {
                         // Search DHT.
                         
                         // Since we're about to query peers, add this domain to our
                         // "waiting on" list which means that any requests for this
                         // domain from other peers will result in not found.
+                        Console.WriteLine("DNS LOOKUP - Begin wait on " + q.Name);
                         this.m_Manager.Mappings.BeginWait(q.Name.ToLowerInvariant());
                         
                         // We haven't found it in our local cache.  Query our
                         // peers to see if they've got any idea where this site is.
+                        Console.WriteLine("DNS LOOKUP - Create identifier on " + q.Name);
                         Identifier512 domainid = Identifier512.CreateKey(DnsSerializer.ToStore(q));
+                        Console.WriteLine("DNS LOOKUP - Retrieve results on " + q.Name);
                         IEnumerable<DataResult> results = this.m_Manager.DataStore.Get(domainid);
-                        
-                        // Get the most trusted result.
-                        DnsRecordBase highest = null;
-                        Contact highcontact = null;
-                        decimal hightrust = 0;
+
+                        // Find out the most trusted results.
+                        Console.WriteLine("DNS LOOKUP - Find trusted result on " + q.Name);
+                        Contact trustedcontact = null;
+                        decimal trustedamount = 0;
                         foreach (DataResult r in results)
                         {
                             Contact source = r.Source;
                             DnsRecordBase result = DnsSerializer.FromStore(q.Name.ToLowerInvariant(), r.Data);
-                            
+
                             // Assign if this result is trusted higher than the current result.
                             decimal trust = 0;
                             if (source is TrustedContact)
                                 trust = ( source as TrustedContact ).TrustAmount;
-                            
-                            if (( trust > hightrust || ( hightrust == 0 && highest == null ) ) && result != null)
+
+                            if (( trust > trustedamount || ( trustedamount == 0 && trustedcontact == null ) ) && result != null)
                             {
-                                highest = result;
-                                highcontact = source;
-                                hightrust = trust;
+                                trustedcontact = source;
+                                trustedamount = trust;
+                            }
+                        }
+
+                        // Now get the results from the most trusted person.
+                        if (trustedcontact == null)
+                            Console.WriteLine("DNS LOOKUP - There are no trusted results");
+                        else
+                            Console.WriteLine("DNS LOOKUP - Trusted results comes from " + trustedcontact.Identifier.ToString());
+
+                        foreach (DataResult r in results)
+                        {
+                            if (r.Source == trustedcontact)
+                            {
+                                Console.WriteLine("DNS LOOKUP - Retrieving result from store " + q.Name);
+                                DnsRecordBase result = DnsSerializer.FromStore(q.Name.ToLowerInvariant(), r.Data);
+
+                                // Cache the result.
+                                Console.WriteLine("DNS LOOKUP - Adding to cache " + q.Name);
+                                this.m_Manager.Mappings.AddCached(q, result);
+    
+                                string sip = "<unknown>";
+                                if (trustedcontact is UdpContact)
+                                    sip = ( trustedcontact as UdpContact ).Ip.ToString();
+                                Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + result.RecordType.ToString() + ")");
+
+                                // Add the result.
+                                query.ReturnCode = ReturnCode.NoError;
+                                query.AnswerRecords.Add(result);
                             }
                         }
                         
-                        // Check to see whether we got a result.
-                        if (highest != null)
-                        {
-                            // Cache the result.
-                            this.m_Manager.Mappings.AddCached(q, highest);
-                            
-                            string sip = "<unknown>";
-                            if (highcontact is UdpContact)
-                                sip = ( highcontact as UdpContact ).Ip.ToString();
-                            Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + highest.RecordType.ToString() + ")");
-                            
-                            // Add the result.
-                            query.ReturnCode = ReturnCode.NoError;
-                            query.AnswerRecords.Add(highest);
-                        }
-                        
                         // Remove the domain from the waiting on list.
+                        Console.WriteLine("DNS LOOKUP - End wait on " + q.Name);
                         this.m_Manager.Mappings.EndWait(q.Name.ToLowerInvariant());
                     }
                 }
@@ -124,7 +139,7 @@ namespace Trust4
                     // Search cache.
                     if (this.m_Manager.Mappings.Fetch(ref query, q))
                         Console.WriteLine("DNS LOOKUP - Returned answer from cache.");
-                    else
+                    else if (!this.m_Manager.Mappings.Waiting(q.Name.ToLowerInvariant()))
                     {
                         // Search DHT.
                         
@@ -164,7 +179,6 @@ namespace Trust4
                                     // Add the result.
                                     query.ReturnCode = ReturnCode.NoError;
                                     query.AnswerRecords.Add(record);
-                                    break;
                                 }
                             }
                         }
@@ -174,7 +188,12 @@ namespace Trust4
                     }
                 }
             }
-            
+
+            if (query.AnswerRecords.Count == 0)
+            {
+                Console.WriteLine("DNS LOOKUP - No results");
+            }
+
             return query;
         }
 
