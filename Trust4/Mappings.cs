@@ -44,7 +44,7 @@ namespace Trust4
             get { return this.p_Domains.AsReadOnly(); }
         }
 
-        private static RSACryptoServiceProvider CreateRSA(string containerName)
+        public static RSACryptoServiceProvider CreateRSA(string containerName)
         {
             CspParameters parms = new CspParameters();
             parms.KeyContainerName = containerName;
@@ -70,28 +70,131 @@ namespace Trust4
             }
         }
 
-        public static byte[] Encrypt(EncryptionGuids guids, byte[] data)
+        public struct EncryptorPair
         {
-            // Create an encryptor and a decryptor.
-            RSACryptoServiceProvider decryptor = Mappings.CreateRSA(guids.Public.ToString());
-            RSACryptoServiceProvider encryptor = Mappings.CreateRSA(guids.Private.ToString());
-            
-            // Export the public key from the decryptor
-            string key = decryptor.ToXmlString(false);
-            
-            // Load the public key into the encryptor
-            encryptor.FromXmlString(key);
-            
-            // Now encrypt our data.
-            return encryptor.Encrypt(data, true);
+            public RSACryptoServiceProvider Public;
+            public RSACryptoServiceProvider Private;
+
+            public EncryptorPair(EncryptionGuids guids)
+            {
+                if (!Directory.Exists("keys"))
+                    Directory.CreateDirectory("keys");
+
+                CspParameters parms1 = new CspParameters();
+                parms.KeyContainerName = guids.Public;
+                this.Public = new RSACryptoServiceProvider(parms1);
+                CspParameters parms2 = new CspParameters();
+                parms.KeyContainerName = guids.Private;
+                this.Private = new RSACryptoServiceProvider(parms2);
+
+                // Load or create the public key.
+                if (File.Exists("keys/" + guids.Public + ".public.key"))
+                    this.Public.FromXmlString(File.ReadAllText("keys/" + guids.Public + ".public.key"));
+                else
+                    File.WriteAllText("keys/" + guids.Public + ".public.key", this.Public.ToXmlString(false));
+
+
+                // Load or create the private key.
+                if (File.Exists("keys/" + guids.Private + ".private.key"))
+                    this.Private.FromXmlString(File.ReadAllText("keys/" + guids.Private + ".private.key"));
+                else
+                    File.WriteAllText("keys/" + guids.Private + ".private.key", this.Private.ToXmlString(false));
+            }
+
+            public EncryptorPair(string publickey)
+            {
+                this.Private = null;
+                CspParameters parms = new CspParameters();
+                parms.KeyContainerName = guids.Public;
+                this.Public = new RSACryptoServiceProvider(parms);
+                this.Public.FromXmlString(publickey);
+            }
         }
 
-        public static byte[] Decrypt(EncryptionGuids guids, byte[] encrypted)
+        public static byte[] Sign(EncryptorPair pair, byte[] data)
         {
-            // Create a decryptor.
-            RSACryptoServiceProvider decryptor = Mappings.CreateRSA(guids.Public.ToString());
-            
-            return decryptor.Decrypt(encrypted, true);
+            // Final Format: SIGNATURE | RECORD DATA | PUBLIC KEY
+            List<byte> tmp = new List<byte>();
+
+            // First build the byte[] that is both the unencrypted data and the public key.
+            tmp.Clear();
+            foreach (byte b in data)
+                tmp.Add(b);
+            tmp.Add("|");
+            foreach (byte b in Encoding.ASCII.GetBytes(pair.Public.ToXmlString()))
+                tmp.Add(b);
+
+            // Sign it.
+            byte[] dataandkey = tmp.ToArray();
+            byte[] signature = pair.Private.SignData(dataandkey, "SHA256");
+
+            // Combine it.
+            tmp.Clear();
+            foreach (byte b in signature)
+                tmp.Add(b);
+            tmp.Add("|");
+            foreach (byte b in dataandkey)
+                tmp.Add(b);
+
+            return tmp.ToArray();
+        }
+
+        public static byte[] Verify(byte[] publichash, byte[] data)
+        {
+            // Starting format: SIGNATURE | RECORD DATA | PUBLIC KEY
+            List<byte> signature = new List<byte>();
+            List<byte> recorddata = new List<byte>();
+            List<byte> publickey = new List<byte>();
+            List<byte> combined = new List<byte>();
+
+            // Loop through the data and pull out the required parts.
+            int mode = 0; // Start with Signature.
+            foreach (byte b in data)
+            {
+                switch (mode)
+                {
+                    case 0:
+                        if (b == "|")
+                            mode += 1; // Switch to Record Data.
+                        else
+                            signature.Add(b);
+                        break;
+                    case 0:
+                        if (b == "|")
+                        {
+                            mode += 1; // Switch to Public Key.
+                            combined.Add("|");
+                        }
+                        else
+                        {
+                            recorddata.Add(b);
+                            combined.Add(b);
+                        }
+                        break;
+                    case 0:
+                        if (b == "|")
+                            mode += 1; // Switch off.
+                        else
+                        {
+                            publickey.Add(b);
+                            combined.Add(b);
+                        }
+                        break;
+                }
+            }
+
+            // Verify that the public hash matches the hash of the public key.
+            SHA256 sha = new SHA256();
+            if (!sha.ComputeHash(publickey).SequenceEqual(publichash))
+                return null; // Failed.
+
+            // Verify that the signature is valid.
+            EncryptorPair pair = new EncryptorPair(Encoding.ASCII.GetString(publickey.ToArray()));
+            if (!pair.Public.VerifyData(combined, "SHA256", signature))
+                return null; // Failed.
+
+            // We're all good.
+            return recorddata;
         }
 
         /// <summary>
@@ -151,8 +254,31 @@ namespace Trust4
             DnsQuestion keyquestion = new DnsQuestion(keydomain, RecordType.CName, RecordClass.INet);
             
             // Add the original answer to the DHT, but encrypt it using our private key.
+            Console.WriteLine(
+               Encoding.ASCII.GetString(
+                    Encoding.ASCII.GetBytes(
+                        DnsSerializer.ToStore(
+                            answer
+                            )
+                        )
+                    )
+                );
             Identifier512 keyquestionid = Identifier512.CreateKey(DnsSerializer.ToStore(keyquestion));
-            this.m_Manager.DataStore.Put(keyquestionid, Mappings.Encrypt(guids, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer))));
+            this.m_Manager.DataStore.Put(
+                keyquestionid,
+                Encoding.ASCII.GetBytes(
+                    Convert.ToBase64String(
+                        Mappings.Encrypt(
+                            guids,
+                            Encoding.ASCII.GetBytes(
+                                DnsSerializer.ToStore(
+                                    answer
+                                    )
+                                )
+                            )
+                        )
+                    )
+                );
             
             // Add the domain to our cache.
             this.p_Domains.Add(new DomainMap(question, keyanswer));

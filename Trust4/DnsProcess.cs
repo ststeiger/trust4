@@ -21,6 +21,7 @@ using ARSoft.Tools.Net.Dns;
 using DistributedServiceProvider.Base;
 using DistributedServiceProvider.Contacts;
 using Trust4.DataStorage;
+using System.Text;
 
 namespace Trust4
 {
@@ -167,7 +168,22 @@ namespace Trust4
                             // we know that it's valid.
                             foreach (DataResult r in results)
                             {
-                                DnsRecordBase record = DnsSerializer.FromStore(q.Name.ToLowerInvariant(), Mappings.Decrypt(guids, r.Data));
+                                Console.WriteLine(
+                                    Encoding.ASCII.GetString(
+                                        r.Data
+                                        )
+                                    );
+                                DnsRecordBase record = DnsSerializer.FromStore(
+                                    q.Name.ToLowerInvariant(),
+                                    Mappings.Decrypt(
+                                        guids,
+                                        Convert.FromBase64String(
+                                            Encoding.ASCII.GetString(
+                                                r.Data
+                                                )
+                                            )
+                                        )
+                                    );
                                 
                                 if (record != null)
                                 {
