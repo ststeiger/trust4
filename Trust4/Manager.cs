@@ -39,6 +39,7 @@ namespace Trust4
 
         private static readonly Guid m_P2PRootStore = new Guid("94e9bd40-2547-4232-9266-4f93310bf906");
         private static readonly Guid m_KeyRootStore = new Guid("09a2cbb4-ef12-431c-9419-5a655075039e");
+        private static readonly Guid m_RootPseudonym = new Guid("3a88f92d-66d2-4d1f-87ee-ee90523ec47d");
 
         /// <summary>
         /// Creates a new Manager instance, which handles execution of the Trust4
@@ -187,6 +188,9 @@ namespace Trust4
         private void AttachDhtServices()
         {
             p_RoutingTable.RegisterConsumer(new MultiRecordStore(Manager.m_P2PRootStore));
+
+            //register the root pseudonym for this peer
+            p_RoutingTable.RegisterConsumer(new Pseudonym(m_RootPseudonym, p_Settings.CryptoProvider));
         }
 
         /// <summary>
