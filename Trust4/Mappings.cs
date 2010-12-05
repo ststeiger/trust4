@@ -159,6 +159,7 @@ namespace Trust4
         /// <returns>Whether the answer was added to the return message.</returns>
         public bool Fetch(ref DnsMessage msg, DnsQuestion question)
         {
+            bool found = false;
             foreach (DomainMap m in this.p_Domains)
             {
                 Console.Write(m.Domain + " == " + question.Name + "? ");
@@ -166,14 +167,13 @@ namespace Trust4
                 {
                     Console.WriteLine("yes");
                     msg.AnswerRecords.Add(m.Answer);
-                    return true;
+                    found = true;
                 }
-
                 else
                     Console.WriteLine("no");
             }
             
-            return false;
+            return found;
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace Trust4
                                     break;
                                 }
                                 
-                                this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new MxRecord(domain + "." + target, 3600, Convert.ToUInt16(priority), tdomain));
+                                this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new MxRecord(domain, 3600, Convert.ToUInt16(priority), tdomain));
                                 Console.WriteLine("done.");
                                 break;
                             default:
