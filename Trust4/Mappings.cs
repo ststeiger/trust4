@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -183,12 +184,8 @@ namespace Trust4
         {
             using (StreamReader reader = new StreamReader(this.m_Path))
             {
-                while (!reader.EndOfStream)
+                foreach (var s in File.ReadAllLines(this.m_Path).OmitComments("#", "//").Select(a => a.ToLowerInvariant().Split(new char[] { '\t', ' ' }, StringSplitOptions.RemoveEmptyEntries)))
                 {
-                    string[] s = reader.ReadLine().Split(new char[] {
-                        ' ',
-                        '\t'
-                    }, StringSplitOptions.RemoveEmptyEntries);
                     string type = s[0].Trim();
                     
                     try
