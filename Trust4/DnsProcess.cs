@@ -72,43 +72,48 @@ namespace Trust4
                         // peers to see if they've got any idea where this site is.
                         Identifier512 domainid = Identifier512.CreateKey(DnsSerializer.ToStore(q));
                         IEnumerable<DataResult> results = this.m_Manager.DataStore.Get(domainid);
-                        
-                        // Get the most trusted result.
-                        DnsRecordBase highest = null;
-                        Contact highcontact = null;
-                        decimal hightrust = 0;
+
+                        // Find out the most trusted results.
+                        Contact trustedcontact = null;
+                        decimal trustedamount = 0;
                         foreach (DataResult r in results)
                         {
                             Contact source = r.Source;
                             DnsRecordBase result = DnsSerializer.FromStore(q.Name.ToLowerInvariant(), r.Data);
-                            
+
                             // Assign if this result is trusted higher than the current result.
                             decimal trust = 0;
                             if (source is TrustedContact)
                                 trust = ( source as TrustedContact ).TrustAmount;
-                            
-                            if (( trust > hightrust || ( hightrust == 0 && highest == null ) ) && result != null)
+
+                            if (( trust > trustedamount || ( trustedamount == 0 && trustedcontact == null ) ) && result != null)
                             {
-                                highest = result;
-                                highcontact = source;
-                                hightrust = trust;
+                                trustedcontact = source;
+                                trustedamount = trust;
                             }
                         }
-                        
-                        // Check to see whether we got a result.
-                        if (highest != null)
+
+                        // Now get the results from the most trusted person.
+                        foreach (DataResult r in results)
                         {
-                            // Cache the result.
-                            this.m_Manager.Mappings.AddCached(q, highest);
-                            
-                            string sip = "<unknown>";
-                            if (highcontact is UdpContact)
-                                sip = ( highcontact as UdpContact ).Ip.ToString();
-                            Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + highest.RecordType.ToString() + ")");
-                            
-                            // Add the result.
-                            query.ReturnCode = ReturnCode.NoError;
-                            query.AnswerRecords.Add(highest);
+                            if (r.Source == trustedcontact)
+                            {
+                                DnsRecordBase result = DnsSerializer.FromStore(q.Name.ToLowerInvariant(), r.Data);
+
+                                // Cache the result.
+                                this.m_Manager.Mappings.AddCached(q, result);
+    
+                                string sip = "<unknown>";
+                                if (trustedcontact is UdpContact)
+                                    sip = ( trustedcontact as UdpContact ).Ip.ToString();
+                                Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + result.RecordType.ToString() + ")");
+
+                                // Add the result.
+                                query.ReturnCode = ReturnCode.NoError;
+                                query.AnswerRecords.Add(result);
+
+                                break;
+                            }
                         }
                         
                         // Remove the domain from the waiting on list.
@@ -164,7 +169,6 @@ namespace Trust4
                                     // Add the result.
                                     query.ReturnCode = ReturnCode.NoError;
                                     query.AnswerRecords.Add(record);
-                                    break;
                                 }
                             }
                         }

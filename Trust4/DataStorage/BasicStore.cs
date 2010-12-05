@@ -90,7 +90,7 @@ namespace Trust4.DataStorage
             }
         }
 
-        public IEnumerable<DataResult> Get(Identifier512 key)
+        public virtual IEnumerable<DataResult> Get(Identifier512 key)
         {
             var closest = getClosest.GetClosestContacts(key, null).ToList();
             
@@ -212,7 +212,7 @@ namespace Trust4.DataStorage
         /// <param name="value">The value.</param>
         /// <exception cref="KeyCollisionException">Thrown if you try to put an already existing value</exception>
         /// <exception cref="KeyNotFoundException">Thrown if you try to put null into a non existant key</exception>
-        public void Put(DistributedServiceProvider.Base.Identifier512 key, byte[] value)
+        public virtual void Put(DistributedServiceProvider.Base.Identifier512 key, byte[] value)
         {
             if (value == null)
             {
@@ -325,7 +325,7 @@ namespace Trust4.DataStorage
         #endregion
 
         #region delete
-        public void Delete(Identifier512 key)
+        public virtual void Delete(Identifier512 key)
         {
             Put(key, null);
         }
