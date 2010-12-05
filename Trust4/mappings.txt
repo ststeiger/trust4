@@ -20,8 +20,8 @@ MX		30					opensuse.p2p		mx3.opensuse.p2p
 # format of NS records are:
 #
 # TYPE	DOMAIN				NAMESERVER
-NS		redpoint.p2p		ns1.linode.com
-NS		redpoint.p2p		ns2.linode.com
-NS		redpoint.p2p		ns3.linode.com
-NS		redpoint.p2p		ns4.linode.com
-NS		redpoint.p2p		ns5.linode.com
+NS		redpoint.p2p		ns1.linode.com		e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa	972ce690-695c-435f-99c2-98cf47d79287
+NS		redpoint.p2p		ns2.linode.com		e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa	972ce690-695c-435f-99c2-98cf47d79287
+NS		redpoint.p2p		ns3.linode.com		e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa	972ce690-695c-435f-99c2-98cf47d79287
+NS		redpoint.p2p		ns4.linode.com		e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa	972ce690-695c-435f-99c2-98cf47d79287
+NS		redpoint.p2p		ns5.linode.com		e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa	972ce690-695c-435f-99c2-98cf47d79287

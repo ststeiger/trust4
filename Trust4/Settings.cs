@@ -142,7 +142,7 @@ namespace Trust4
             
             if (Environment.OSVersion.Platform == PlatformID.Unix && ( !setuid || !setgid ))
             {
-                Console.WriteLine("Warning!  You didn't set the 'uid' and 'gid' options in settings.txt.  This probably is going to work as you expect!");
+                Console.WriteLine("Warning!  You didn't set the 'uid' and 'gid' options in settings.txt.  This is probably not going to work as you expect!");
             }
         }
 

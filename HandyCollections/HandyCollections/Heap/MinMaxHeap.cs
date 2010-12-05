@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-#if DEBUG
 using System.Linq;
-#endif
 
 namespace HandyCollections.Heap
 {
