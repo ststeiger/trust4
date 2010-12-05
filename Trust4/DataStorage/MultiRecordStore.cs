@@ -33,9 +33,8 @@ namespace Trust4.DataStorage
             // Now split the results into multiple records based on the values.
             foreach (DataResult o in original)
             {
-                int i = 0;
                 List<byte> buf = new List<byte>();
-                while (i < o.Data.Length)
+                for (int i = 0; i < o.Data.Length; i += 1)
                 {
                     byte b = o.Data[i];
                     if (b != 0)

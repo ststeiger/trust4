@@ -51,9 +51,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Posix">
-      <HintPath>..\Assemblies\Mono.Posix.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -76,7 +73,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Authentication\Pseudonym.cs" />
     <Compile Include="DataStorage\BasicStore.cs" />
     <Compile Include="DataStorage\DataResult.cs" />
     <Compile Include="DataStorage\KeyCollisionException.cs" />
@@ -91,6 +87,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="TrustedContact.cs" />
     <Compile Include="DnsSerializer.cs" />
+    <Compile Include="DataStorage\MultiRecordStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="mappings.txt">
@@ -143,4 +140,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="Authentication\" />
+  </ItemGroup>
 </Project>

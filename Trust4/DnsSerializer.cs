@@ -32,6 +32,8 @@ namespace Trust4
                     return "DNS!" + question.Name.ToLowerInvariant();
                 case RecordType.Mx:
                     return "DNS!" + question.Name.ToLowerInvariant();
+                case RecordType.Ns:
+                    return "DNS!" + question.Name.ToLowerInvariant();
                 default:
                     throw new NotSupportedException("The specified DNS question is not supported by the serializer.");
             }
@@ -45,6 +47,8 @@ namespace Trust4
                 return "DNS!CNAME!" + ( answer as CNameRecord ).CanonicalName.ToLowerInvariant();
             else if (answer is MxRecord)
                 return "DNS!MX!" + ( answer as MxRecord ).Preference.ToString() + "!" + ( answer as MxRecord ).ExchangeDomainName.ToLowerInvariant();
+            else if (answer is NsRecord)
+                return "DNS!NS!" + ( answer as NsRecord ).NameServer.ToLowerInvariant();
             else
                 throw new NotSupportedException("The specified DNS answer type is not supported by the serializer.");
         }
@@ -70,6 +74,9 @@ namespace Trust4
                 case "MX":
                     // Grab the priority and domain.
                     return new MxRecord(domain, 3600, Convert.ToUInt16(split[2].ToLowerInvariant()), split[3].ToLowerInvariant());
+                case "NS":
+                    // Only one field for this..
+                    return new NsRecord(domain, 3600, split[2].ToLowerInvariant());
                 default:
                     return null;
             }
