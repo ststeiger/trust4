@@ -197,6 +197,7 @@ namespace Trust4
         {
             foreach (var line in File.ReadAllLines("peers.txt").OmitComments("#", "//"))
             {
+                Identifier512 id = null;
                 TrustedContact udp = null;
                 
                 try
@@ -218,27 +219,26 @@ namespace Trust4
                         Guid c = new Guid(split[5]);
                         Guid d = new Guid(split[6]);
                         
-                        Identifier512 id = new Identifier512(a, b, c, d);
-                        udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
+                        id = new Identifier512(a, b, c, d);
                     }
-
                     else
                     {
                         try
                         {
-                            Identifier512 discoveredId = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
-                            
-                            Console.WriteLine("Discovered ID " + discoveredId + " for " + ip);
-                            
-                            udp = new TrustedContact(trust, discoveredId, this.p_Settings.NetworkID, ip, port);
+                            id = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
+                            Console.WriteLine("Discovered ID " + id + " for " + ip);
                         }
                         catch (TimeoutException)
                         {
                             Console.WriteLine("Timeout trying to discover an id for " + ip + ":" + port);
                         }
                     }
-                    
-                    Console.WriteLine("Loaded bootstrap contact " + udp);
+
+                    if (id != null)
+                    {
+                        udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
+                        Console.WriteLine("Loaded bootstrap contact " + udp);
+                    }
                 }
                 catch (Exception e)
                 {
