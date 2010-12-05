@@ -15,6 +15,7 @@
 
 using System.Collections.Generic;
 using DistributedServiceProvider.Base;
+using System;
 
 namespace Trust4.DataStorage
 {

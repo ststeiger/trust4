@@ -19,6 +19,9 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
+using ARSoft.Tools.Net.Dns;
+using DistributedServiceProvider.Base;
+using System.Text;
 
 namespace Trust4
 {
@@ -129,7 +132,7 @@ namespace Trust4
         {
             // Add the record to the DHT.
             Identifier512 questionid = Identifier512.CreateKey(DnsSerializer.ToStore(question));
-            this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer)));
+            this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer)), null);
 
             // Add the domain to our cache.
             this.p_Domains.Add(new DomainMap(question, answer));
