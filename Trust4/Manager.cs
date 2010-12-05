@@ -24,6 +24,7 @@ using DistributedServiceProvider.Base;
 using DistributedServiceProvider.Contacts;
 using Trust4.DataStorage;
 using Trust4.Authentication;
+using System.Security.AccessControl;
 
 namespace Trust4
 {
@@ -134,17 +135,24 @@ namespace Trust4
                 // We don't need to lower / change permissions since we aren't root.
                 return true;
             }
-            
-            int res = Mono.Unix.Native.Syscall.setregid(uid, gid);
-            if (res != 0)
+
+            // Ensure that the environment variable XDG_CONFIG_HOME is set correctly.
+            if (Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") != ".")
             {
-                Console.WriteLine("Error! Unable to lower effective and real group IDs to " + gid + ".  Result from syscall was: " + res);
+                Console.WriteLine("Error!  You must set XDG_CONFIG_HOME to \".\" when running this application.  i.e. 'sudo XDG_CONFIG_HOME=. mono Trust4.exe'");
                 return false;
             }
-            res = Mono.Unix.Native.Syscall.setreuid(uid, gid);
+
+            int res = Mono.Unix.Native.Syscall.setregid(gid, gid);
             if (res != 0)
             {
-                Console.WriteLine("Error! Unable to lower effective and real user IDs to " + uid + ".  Result from syscall was: " + res);
+                Console.WriteLine("Error!  Unable to lower effective and real group IDs to " + gid + ".  '" + Mono.Unix.Native.Stdlib.GetLastError().ToString() + "'");
+                return false;
+            }
+            res = Mono.Unix.Native.Syscall.setreuid(uid, uid);
+            if (res != 0)
+            {
+                Console.WriteLine("Error!  Unable to lower effective and real user IDs to " + uid + ".  '" + Mono.Unix.Native.Stdlib.GetLastError().ToString() + "'");
                 return false;
             }
             return true;
@@ -178,7 +186,7 @@ namespace Trust4
 
         private void AttachDhtServices()
         {
-            p_RoutingTable.RegisterConsumer(new BasicStore(Manager.m_P2PRootStore));
+            p_RoutingTable.RegisterConsumer(new MultiRecordStore(Manager.m_P2PRootStore));
         }
 
         /// <summary>
