@@ -98,7 +98,7 @@ namespace Trust4
         /// </summary>
         public IDataStore DataStore
         {
-            get { return this.p_RoutingTable.GetConsumer<BasicStore>(Manager.m_P2PRootStore, (  ) => new BasicStore(Manager.m_P2PRootStore)); }
+            get { return this.p_RoutingTable.GetConsumer<MultiRecordStore>(Manager.m_P2PRootStore, (  ) => new MultiRecordStore(Manager.m_P2PRootStore)); }
         }
 
         /// <summary>

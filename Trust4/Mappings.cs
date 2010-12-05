@@ -17,11 +17,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 using ARSoft.Tools.Net.Dns;
 using DistributedServiceProvider.Base;
-using System.Text;
 
 namespace Trust4
 {
@@ -102,20 +103,56 @@ namespace Trust4
         /// <param name="guids">The encryption GUIDs for this domain record.</param>
         public void Add(DnsQuestion question, DnsRecordBase answer, EncryptionGuids guids)
         {
+            this.Add(question, answer, guids, false);
+        }
+
+        /// <summary>
+        /// Adds the specified question-answer pair to the DHT, adding an intermediatary CNAME record
+        /// to prevent modification of the end destination for the domain.
+        /// </summary>
+        /// <param name="question">The original DNS question that will be asked.</param>
+        /// <param name="answer">The original DNS answer that should be returned.</param>
+        /// <param name="guids">The encryption GUIDs for this domain record.</param>
+        /// <param name="reverse">
+        /// Whether the first (original) question should result in the original type of record, rather than
+        /// a CNAME.  In this case, the second (.key domain) is a CNAME to the target listed in the answer.
+        /// Used for when the question does not support having CNAME records returned (e.g. NS records).
+        /// </param>
+        public void Add(DnsQuestion question, DnsRecordBase answer, EncryptionGuids guids, bool reverse)
+        {
             // First automatically create a DnsRecordBase based on the question.
-            string keydomain = question.Name.ToLowerInvariant() + "." + guids.Public.ToString() + ".key";
-            DnsRecordBase keyanswer = new CNameRecord(question.Name.ToLowerInvariant(), 3600, keydomain);
-            
+            string keydomain = null;
+            DnsRecordBase keyanswer = null;
+            if (!reverse)
+            {
+                keydomain = question.Name.ToLowerInvariant() + "." + guids.Public.ToString() + ".key";
+                keyanswer = new CNameRecord(question.Name.ToLowerInvariant(), 3600, keydomain);
+            }
+            else
+            {
+                DnsRecordBase newanswer = null;
+                if (answer is NsRecord)
+                {
+                    keydomain = ( answer as NsRecord ).NameServer + "." + guids.Public.ToString() + "." + question.Name.ToLowerInvariant() + "." + guids.Public.ToString() + ".key";
+                    newanswer = new CNameRecord(keydomain, 3600, ( answer as NsRecord ).NameServer);
+                    answer = new NsRecord(question.Name.ToLowerInvariant(), 3600, keydomain);
+                }
+                else
+                    throw new ArgumentException("reverse was true, but the specified record type could not be recreated with the new target.");
+                keyanswer = answer;
+                answer = newanswer;
+            }
+
             // Add that CNAME record to the DHT.
             Identifier512 questionid = Identifier512.CreateKey(DnsSerializer.ToStore(question));
-			this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(keyanswer)), null);
+            this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(keyanswer)));
             
             // Now create a CNAME question that will be asked after looking up the original domain.
             DnsQuestion keyquestion = new DnsQuestion(keydomain, RecordType.CName, RecordClass.INet);
             
             // Add the original answer to the DHT, but encrypt it using our private key.
             Identifier512 keyquestionid = Identifier512.CreateKey(DnsSerializer.ToStore(keyquestion));
-			this.m_Manager.DataStore.Put(keyquestionid, Mappings.Encrypt(guids, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer))), null);
+            this.m_Manager.DataStore.Put(keyquestionid, Mappings.Encrypt(guids, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer))));
             
             // Add the domain to our cache.
             this.p_Domains.Add(new DomainMap(question, keyanswer));
@@ -132,8 +169,8 @@ namespace Trust4
         {
             // Add the record to the DHT.
             Identifier512 questionid = Identifier512.CreateKey(DnsSerializer.ToStore(question));
-            this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer)), null);
-
+            this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer)));
+            
             // Add the domain to our cache.
             this.p_Domains.Add(new DomainMap(question, answer));
         }
@@ -159,6 +196,7 @@ namespace Trust4
         /// <returns>Whether the answer was added to the return message.</returns>
         public bool Fetch(ref DnsMessage msg, DnsQuestion question)
         {
+            bool found = false;
             foreach (DomainMap m in this.p_Domains)
             {
                 Console.Write(m.Domain + " == " + question.Name + "? ");
@@ -166,14 +204,14 @@ namespace Trust4
                 {
                     Console.WriteLine("yes");
                     msg.AnswerRecords.Add(m.Answer);
-                    return true;
+                    found = true;
                 }
 
                 else
                     Console.WriteLine("no");
             }
             
-            return false;
+            return found;
         }
 
         /// <summary>
@@ -183,12 +221,11 @@ namespace Trust4
         {
             using (StreamReader reader = new StreamReader(this.m_Path))
             {
-                while (!reader.EndOfStream)
+                foreach (var s in File.ReadAllLines(this.m_Path).OmitComments("#", "//").Select(a => a.ToLowerInvariant().Split(new char[] {
+                    '\t',
+                    ' '
+                }, StringSplitOptions.RemoveEmptyEntries)))
                 {
-                    string[] s = reader.ReadLine().Split(new char[] {
-                        ' ',
-                        '\t'
-                    }, StringSplitOptions.RemoveEmptyEntries);
                     string type = s[0].Trim();
                     
                     try
@@ -226,7 +263,7 @@ namespace Trust4
                                 domain = s[2].Trim();
                                 target = s[3].Trim();
                                 Console.Write("Mapping (" + type.ToUpperInvariant() + ") " + domain + " to " + target + " with priority " + priority + "... ");
-
+                                
                                 // Get the target domain.
                                 tdomain = this.GetPublicCNAME(target);
                                 if (tdomain == null)
@@ -235,8 +272,18 @@ namespace Trust4
                                     Console.WriteLine("A record must exist for domain target when MX record reached.  " + "Place the A record earlier in your mappings file or add it if needed.  " + "The MX record will be ignored.");
                                     break;
                                 }
+
                                 
-                                this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new MxRecord(domain + "." + target, 3600, Convert.ToUInt16(priority), tdomain));
+                                this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new MxRecord(domain, 3600, Convert.ToUInt16(priority), tdomain));
+                                Console.WriteLine("done.");
+                                break;
+                            case "NS":
+                                domain = s[1].Trim();
+                                target = s[2].Trim();
+                                publicguid = s[3].Trim();
+                                privateguid = s[4].Trim();
+                                Console.Write("Mapping (" + type.ToUpperInvariant() + ") " + domain + " to " + target + "... ");
+                                this.Add(new DnsQuestion(domain, RecordType.Ns, RecordClass.INet), new NsRecord(domain, 3600, target), new EncryptionGuids(publicguid, privateguid), true);
                                 Console.WriteLine("done.");
                                 break;
                             default:
@@ -265,13 +312,11 @@ namespace Trust4
         public string GetPublicCNAME(string domain)
         {
             foreach (DomainMap d in this.p_Domains)
-            {
                 if (d.Domain == domain)
                 {
                     return d.CNAMETarget;
                 }
-            }
-
+            
             return null;
         }
 
