@@ -168,7 +168,7 @@ namespace DistributedServiceProvider.Contacts
 
                     while (!async.IsCompleted && listen) { Thread.Sleep(10); }
 
-                    IPEndPoint groupEP = new IPEndPoint(IPAddress.Any, port);
+                    IPEndPoint groupEP = default(IPEndPoint);
                     byte[] b = client.EndReceive(async, ref groupEP);
 
                     if (!listen)
