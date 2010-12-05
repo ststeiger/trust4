@@ -54,5 +54,19 @@ namespace DistributedServiceProvider.Base.Extensions
             foreach (var item in collection)
                 func(item);
         }
+
+        public static IEnumerable<Z> Zip<X, Y, Z>(this IEnumerable<X> a, IEnumerable<Y> b, Func<X, Y, Z> zip)
+        {
+            var aE = a.GetEnumerator();
+            var bE = b.GetEnumerator();
+
+            while (aE.MoveNext())
+            {
+                if (!bE.MoveNext())
+                    break;
+
+                yield return zip(aE.Current, bE.Current);
+            }
+        }
     }
 }

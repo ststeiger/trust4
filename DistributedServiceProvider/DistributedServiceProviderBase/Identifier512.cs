@@ -313,23 +313,7 @@ namespace DistributedServiceProvider.Base
 
         public static Identifier512 operator ^(Identifier512 a, Identifier512 b)
         {
-            return new Identifier512(Identifier512.Zip<byte>(a.GetBytes(), b.GetBytes(), (x, y) => (byte)(x ^ y)));
-        }
-
-        public static IEnumerable<T> Zip<T>(IEnumerable<T> a, IEnumerable<T> b, Func<T, T, T> zip)
-        {
-            List<T> aL = a.ToList();
-            List<T> bL = b.ToList();
-
-            if (aL.Count > bL.Count)
-            {
-                var c = aL;
-                aL = bL;
-                bL = c;
-            }
-
-            for (int i = 0; i < aL.Count; i++)
-                yield return zip(aL[i], bL[i]);
+            return new Identifier512(a.GetBytes().Zip(b.GetBytes(), (x, y) => (byte)(x ^ y)));
         }
 
         public static bool operator <(Identifier512 a, Identifier512 b)

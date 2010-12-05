@@ -12,6 +12,7 @@ using Trust4.DataStorage;
 using System.Threading;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Trust4.Authentication;
 
 namespace Trust4
 {
@@ -173,11 +174,18 @@ namespace Trust4
 
             UdpContact.InitialiseUdp(this.p_RoutingTable, this.p_Settings.P2PPort);
 
+            AttachDhtServices();
+
             Console.WriteLine("Bootstrapping DHT\r\n { " + this.p_RoutingTable.LocalIdentifier + " }");
             this.p_RoutingTable.Bootstrap(this.BootstrapPeers());
 
             Console.WriteLine("Bootstrap finished");
             Console.WriteLine("There are " + this.p_RoutingTable.ContactCount + " Contacts");
+        }
+
+        private void AttachDhtServices()
+        {
+            p_RoutingTable.RegisterConsumer(new BasicStore(Manager.m_P2PRootStore));
         }
 
         /// <summary>
