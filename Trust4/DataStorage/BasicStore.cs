@@ -188,7 +188,7 @@ namespace Trust4.DataStorage
             PutResponse.Response responseCode = PutResponse.Response.Success;
             try
             {
-                Put(p.Key, p.Data);
+                Put(p.Key, p.Data, null);
             }
             catch (KeyCollisionException)
             {
@@ -212,7 +212,7 @@ namespace Trust4.DataStorage
         /// <param name="value">The value.</param>
         /// <exception cref="KeyCollisionException">Thrown if you try to put an already existing value</exception>
         /// <exception cref="KeyNotFoundException">Thrown if you try to put null into a non existant key</exception>
-        public void Put(DistributedServiceProvider.Base.Identifier512 key, byte[] value)
+        public void Put(DistributedServiceProvider.Base.Identifier512 key, byte[] value, Func<byte[], byte[], byte[]> merge)
         {
             if (value == null)
             {
@@ -327,7 +327,7 @@ namespace Trust4.DataStorage
         #region delete
         public void Delete(Identifier512 key)
         {
-            Put(key, null);
+            Put(key, null, null);
         }
         #endregion
     }

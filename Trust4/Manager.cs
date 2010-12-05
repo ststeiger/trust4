@@ -23,6 +23,7 @@ using DistributedServiceProvider;
 using DistributedServiceProvider.Base;
 using DistributedServiceProvider.Contacts;
 using Trust4.DataStorage;
+using Trust4.Authentication;
 
 namespace Trust4
 {
@@ -166,11 +167,18 @@ namespace Trust4
             
             UdpContact.InitialiseUdp(this.p_RoutingTable, this.p_Settings.P2PPort);
             
+            AttachDhtServices();
+
             Console.WriteLine("Bootstrapping DHT\r\n { " + this.p_RoutingTable.LocalIdentifier + " }");
             this.p_RoutingTable.Bootstrap(this.BootstrapPeers());
             
             Console.WriteLine("Bootstrap finished");
             Console.WriteLine("There are " + this.p_RoutingTable.ContactCount + " Contacts");
+        }
+
+        private void AttachDhtServices()
+        {
+            p_RoutingTable.RegisterConsumer(new BasicStore(Manager.m_P2PRootStore));
         }
 
         /// <summary>

@@ -25,7 +25,7 @@ namespace Trust4.DataStorage
         /// </summary>
         /// <param name="key">The unique key.</param>
         /// <param name="value">The value.</param>
-        void Put(Identifier512 key, byte[] value);
+        void Put(Identifier512 key, byte[] value, Func<byte[], byte[], byte[]> merge);
 
         /// <summary>
         /// Deletes a key-value pair from the local data store that's participating in the DHT.

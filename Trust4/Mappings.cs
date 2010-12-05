@@ -19,9 +19,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
-using System.Text;
-using ARSoft.Tools.Net.Dns;
-using DistributedServiceProvider.Base;
 
 namespace Trust4
 {
@@ -108,14 +105,14 @@ namespace Trust4
             
             // Add that CNAME record to the DHT.
             Identifier512 questionid = Identifier512.CreateKey(DnsSerializer.ToStore(question));
-            this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(keyanswer)));
+			this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(keyanswer)), null);
             
             // Now create a CNAME question that will be asked after looking up the original domain.
             DnsQuestion keyquestion = new DnsQuestion(keydomain, RecordType.CName, RecordClass.INet);
             
             // Add the original answer to the DHT, but encrypt it using our private key.
             Identifier512 keyquestionid = Identifier512.CreateKey(DnsSerializer.ToStore(keyquestion));
-            this.m_Manager.DataStore.Put(keyquestionid, Mappings.Encrypt(guids, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer))));
+			this.m_Manager.DataStore.Put(keyquestionid, Mappings.Encrypt(guids, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer))), null);
             
             // Add the domain to our cache.
             this.p_Domains.Add(new DomainMap(question, keyanswer));
