@@ -1,0 +1,54 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService>
+  <MonoDevelop.Ide.Workbench ActiveDocument="Trust4/mappings.txt">
+    <Files>
+      <File FileName="Trust4/Mappings.cs" Line="327" Column="9" />
+      <File FileName="Trust4/DnsSerializer.cs" Line="45" Column="76" />
+      <File FileName="Trust4/DnsProcess.cs" Line="124" Column="65" />
+      <File FileName="ARSoft.Tools.Net/Dns/DnsServer.cs" Line="130" Column="39" />
+      <File FileName="Trust4/peers.txt" Line="5" Column="166" />
+      <File FileName="Trust4/settings.txt" Line="2" Column="12" />
+      <File FileName="Trust4/mappings.txt" Line="13" Column="42" />
+      <File FileName="DistributedServiceProvider/DistributedServiceProvider/Contacts/UdpContact.cs" Line="164" Column="14" />
+      <File FileName="Trust4/DataStorage/MultiRecordStore.cs" Line="43" Column="22" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State expanded="True">
+          <Node name="ARSoft.Tools.Net" expanded="True">
+            <Node name="References" expanded="True" />
+            <Node name="Dns" expanded="True">
+              <Node name="DnsRecord" expanded="True" />
+            </Node>
+          </Node>
+          <Node name="DistributedServiceProvider" expanded="True">
+            <Node name="Contacts" expanded="True" />
+          </Node>
+          <Node name="protobuf-net" expanded="True">
+            <Node name="ServiceModel" expanded="True" />
+          </Node>
+          <Node name="Trust4" expanded="True">
+            <Node name="References" expanded="True" />
+            <Node name="DataStorage" expanded="True" />
+            <Node name="mappings.txt" selected="True" />
+          </Node>
+        </State>
+      </Pad>
+      <Pad Id="ClassPad">
+        <State expanded="True" selected="True" />
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches>
+    <Watch file="ARSoft.Tools.Net/Dns/DnsServer.cs" line="166" offsetX="867" offsetY="1952" expression="query" liveUpdate="False" />
+    <Watch file="ARSoft.Tools.Net/Dns/DnsServer.cs" line="154" offsetX="643" offsetY="1760" expression="ar" liveUpdate="False" />
+    <Watch file="ARSoft.Tools.Net/Dns/DnsServer.cs" line="152" offsetX="699" offsetY="1728" expression="endpoint" liveUpdate="False" />
+    <Watch file="Trust4/DnsProcess.cs" line="63" offsetX="843" offsetY="848" expression="results" liveUpdate="False" />
+  </MonoDevelop.Ide.DebuggingService.PinnedWatches>
+</Properties>
