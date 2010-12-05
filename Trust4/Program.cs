@@ -1,4 +1,4 @@
-﻿// 
+﻿//
 //  Copyright 2010  Trust4 Developers
 // 
 //    Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,8 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
+using System;
+
 namespace Trust4
 {
     public class Program
@@ -21,7 +23,14 @@ namespace Trust4
 
         public static void Main(string[] args)
         {
-            Program.p_Manager = new Manager();
+            try
+            {
+                Program.p_Manager = new Manager();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
 
         public static Manager Manager

@@ -178,7 +178,7 @@ namespace Trust4
 
         private void AttachDhtServices()
         {
-            p_RoutingTable.RegisterConsumer(new BasicStore(Manager.m_P2PRootStore));
+            p_RoutingTable.RegisterConsumer(new MultiRecordStore(Manager.m_P2PRootStore));
         }
 
         /// <summary>
