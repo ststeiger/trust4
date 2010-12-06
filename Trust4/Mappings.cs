@@ -223,6 +223,8 @@ namespace Trust4
         /// </param>
         public void Add(DnsQuestion question, DnsRecordBase answer, EncryptionGuids guids, bool reverse)
         {
+            throw new NotImplementedException("If the add is successful, add a pseudonym to the routing table with the public/private key pair");
+
             // First automatically create a DnsRecordBase based on the question.
             string keydomain = null;
             DnsRecordBase keyanswer = null;
