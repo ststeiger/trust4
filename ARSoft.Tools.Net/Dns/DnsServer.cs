@@ -135,13 +135,25 @@ namespace ARSoft.Tools.Net.Dns
 
         private void StartUdpListen()
         {
+            // TODO: One listener, multiple workers to handle requests
             try
             {
 				Thread t = new Thread(() =>
 					{
-						IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, _bindPort);
-						byte[] buffer = _udpClient.Receive(ref endpoint);
-						this.EndUdpReceive(buffer, endpoint);
+                        while (true)
+                        {
+                            try
+                            {
+                                IPEndPoint endpoint = new IPEndPoint(IPAddress.Any, _bindPort);
+                                byte[] buffer = _udpClient.Receive(ref endpoint);
+                                this.EndUdpReceive(buffer, endpoint);
+
+                                return;
+                            }
+                            catch (SocketException e)
+                            {
+                            }
+                        }
 					});
 				t.IsBackground = true;
 				t.Start();
