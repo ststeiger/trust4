@@ -105,7 +105,7 @@ namespace Daylight
 		/// <summary>
 		/// Make a node on a random available port, using an ID specific to this machine.
 		/// </summary>
-		public KademliaNode() : this(0, ID.HostID())
+		public KademliaNode() : this(new IPEndPoint(IPAddress.Loopback, 0), ID.HostID())
 		{
 			// Nothing to do!
 		}
@@ -114,7 +114,7 @@ namespace Daylight
 		/// Make a node with a specified ID.
 		/// </summary>
 		/// <param name="id"></param>
-		public KademliaNode(ID id) : this(0, id)
+		public KademliaNode(ID id) : this(new IPEndPoint(IPAddress.Loopback, 0), id)
 		{
 			// Nothing to do!
 		}
@@ -123,7 +123,7 @@ namespace Daylight
 		/// Make a node on a specified port.
 		/// </summary>
 		/// <param name="port"></param>
-		public KademliaNode(int port) : this(port, ID.HostID())
+		public KademliaNode(IPEndPoint endpoint) : this(endpoint, ID.HostID())
 		{
 			// Nothing to do!
 		}
@@ -132,13 +132,13 @@ namespace Daylight
 		/// Make a node on a specific port, with a specified ID
 		/// </summary>
 		/// <param name="port"></param>
-		public KademliaNode(int port, ID id)
+		public KademliaNode(IPEndPoint endpoint, ID id)
 		{
 			// Set up all our data
 			nodeID = id;
 			contactCache = new BucketList(nodeID);
 			contactQueue = new List<Contact>();
-			datastore = new LocalStorage();
+			datastore = new LocalStorage(endpoint, id);
 			acceptedStoreRequests = new SortedList<ID, DateTime>();
 			sentStoreRequests = new SortedList<ID, KademliaNode.OutstandingStoreRequest>();
 			responseCache = new SortedList<ID, KademliaNode.CachedResponse>();
@@ -166,7 +166,7 @@ namespace Daylight
 			GotStoreData += HandleStoreData;
 			
 			// Connect
-			client = new UdpClient(port);
+			client = new UdpClient(endpoint.Port);
 			clientMinder = new Thread(new ThreadStart(MindClient));
 			clientMinder.IsBackground = true;
 			clientMinder.Start();
@@ -272,15 +272,15 @@ namespace Daylight
 		/// </summary>
 		/// <param name="key"></param>
 		/// <returns></returns>
-		public IList<string> Get(ID key)
+		public IList<Result> Get(ID key)
 		{
 			if(datastore.ContainsKey(key)) { // Check the local datastore first.
 				return datastore.Get(key);
 			} else {
 				IList<Contact> close;
-				IList<string> found = IterativeFindValue(key, out close);
+				IList<Result> found = IterativeFindValue(key, out close);
 				if(found == null) { // Empty list for nothing found
-					return new List<string>();
+					return new List<Result>();
 				} else {
 					return found;
 				}
@@ -364,7 +364,7 @@ namespace Daylight
 		/// <returns></returns>
 		private IList<Contact> IterativeFindNode(ID target)
 		{
-			IList<string> temp;
+			IList<Result> temp;
 			return IterativeFind(target, false, out temp);
 		}
 		
@@ -377,9 +377,9 @@ namespace Daylight
 		/// <param name="target"></param>
 		/// <param name="close"></param>
 		/// <returns></returns>
-		private IList<string> IterativeFindValue(ID target, out IList<Contact> close)
+		private IList<Result> IterativeFindValue(ID target, out IList<Contact> close)
 		{
-			IList<string> found;
+			IList<Result> found;
 			close = IterativeFind(target, true, out found);
 			return found;
 		}
@@ -392,7 +392,7 @@ namespace Daylight
 		/// <param name="getValue">true for FindValue, false for FindNode</param>
 		/// <param name="vals"></param>
 		/// <returns></returns>
-		private IList<Contact> IterativeFind(ID target, bool getValue, out IList<string> vals)
+		private IList<Contact> IterativeFind(ID target, bool getValue, out IList<Result> vals)
 		{
 			// Log the lookup
 			if(target != nodeID) {
@@ -423,7 +423,7 @@ namespace Daylight
 				for(int i = shortlistIndex; i < shortlistIndex + PARALELLISM && i < shortlist.Count; i++) {
 					List<Contact> suggested;
 					if(getValue) { // Get list or value
-						IList<string> returnedValues = null;
+						IList<Result> returnedValues = null;
 						suggested = SyncFindValue(shortlist.Values[i].GetEndPoint(), target, out returnedValues);
 						if(returnedValues != null) { // We found it! Pass it up!
 							vals = returnedValues;
@@ -528,18 +528,20 @@ namespace Daylight
 		/// <param name="toFind"></param>
 		/// <param name="val"></param>
 		/// <returns></returns>
-		private List<Contact> SyncFindValue(IPEndPoint ask, ID toFind, out IList<string> val)
+		private List<Contact> SyncFindValue(IPEndPoint ask, ID toFind, out IList<Result> val)
 		{
-			// Send message
-			DateTime called = DateTime.Now;
-			Message question = new FindValue(nodeID, toFind);
-			SendMessage(ask, question);
-			
-			while(DateTime.Now < called.Add(MAX_SYNC_WAIT)) {
-				// See if we got data!
-				FindValueDataResponse dataResp = GetCachedResponse<FindValueDataResponse>(question.GetConversationID());
-				if(dataResp != null) {
-					// Send it out and return null!
+		    // Send message
+		    DateTime called = DateTime.Now;
+		    Message question = new FindValue(nodeID, toFind);
+		    SendMessage(ask, question);
+		 
+			while (DateTime.Now < called.Add(MAX_SYNC_WAIT))
+      {
+		        // See if we got data!
+		        FindValueDataResponse dataResp = GetCachedResponse<FindValueDataResponse>(question.GetConversationID());
+		        if (dataResp != null)
+          {
+		            // Send it out and return null!
 					val = dataResp.GetValues();
 					return null;
 				}
@@ -666,7 +668,7 @@ namespace Daylight
 		private void HandleFindValue(Contact sender, FindValue request)
 		{
 			if(datastore.ContainsKey(request.GetKey())) {
-				IList<string> vals = datastore.Get(request.GetKey());
+				IList<Result> vals = datastore.Get(request.GetKey());
 				Message response = new FindValueDataResponse(nodeID, request, vals);
 				SendMessage(sender.GetEndPoint(), response);
 			} else {

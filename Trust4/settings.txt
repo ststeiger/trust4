@@ -1,6 +1,5 @@
 ﻿peerport = 12000
 dnsport = 6000
-keysize = 2048
 
 //if you have a static IP, specify it here, otherwise specify dynamic
 localip = 59.167.198.201
