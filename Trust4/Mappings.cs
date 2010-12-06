@@ -72,40 +72,47 @@ namespace Trust4
 
         public struct EncryptorPair
         {
-            public RSACryptoServiceProvider Public;
-            public RSACryptoServiceProvider Private;
+            private RSACryptoServiceProvider m_Crypto;
+            public RSAParameters Public;
+            public RSAParameters Private;
 
             public EncryptorPair(EncryptionGuids guids)
             {
                 if (!Directory.Exists("keys"))
                     Directory.CreateDirectory("keys");
 
-                CspParameters parms1 = new CspParameters();
-                parms1.KeyContainerName = guids.Public.ToString();
-                this.Public = new RSACryptoServiceProvider(parms1);
-                CspParameters parms2 = new CspParameters();
-                parms2.KeyContainerName = guids.Private.ToString();;
-                this.Private = new RSACryptoServiceProvider(parms2);
+                // Create the crypto provider.
+                this.m_Crypto = new RSACryptoServiceProvider();
 
-                // Load or create the public key.
-                if (File.Exists("keys/" + guids.Public + ".public.key"))
-                    this.Public.FromXmlString(File.ReadAllText("keys/" + guids.Public + ".public.key"));
+                // Load or save the cryptographic data.
+                if (File.Exists("keys/" + guids.Private + ".key"))
+                    this.m_Crypto.FromXmlString(File.ReadAllText("keys/" + guids.Private + ".key"));
                 else
-                    File.WriteAllText("keys/" + guids.Public + ".public.key", this.Public.ToXmlString(false));
+                    File.WriteAllText("keys/" + guids.Private + ".key", this.m_Crypto.ToXmlString(true));
 
-                // Load or create the private key.
-                if (File.Exists("keys/" + guids.Private + ".private.key"))
-                    this.Private.FromXmlString(File.ReadAllText("keys/" + guids.Private + ".private.key"));
-                else
-                    File.WriteAllText("keys/" + guids.Private + ".private.key", this.Private.ToXmlString(false));
+                // Set the public and private parameters.
+                this.Public = this.m_Crypto.ExportParameters(false);
+                this.Private = this.m_Crypto.ExportParameters(true);
             }
 
             public EncryptorPair(string publickey)
             {
-                this.Private = null;
-                CspParameters parms = new CspParameters();
-                this.Public = new RSACryptoServiceProvider(parms);
-                this.Public.FromXmlString(publickey);
+                // Create the crypto provider.
+                this.m_Crypto = new RSACryptoServiceProvider();
+
+                // Load the public data.
+                this.m_Crypto.FromXmlString(publickey);
+
+                // Set the public and private parameters.  In this case, the private
+                // parameters are the same as the public ones since we don't have
+                // any private information.
+                this.Public = this.m_Crypto.ExportParameters(false);
+                this.Private = this.m_Crypto.ExportParameters(false);
+            }
+
+            public string ToXmlString(bool exportprivate)
+            {
+                return this.m_Crypto.ToXmlString(exportprivate);
             }
         }
 
@@ -119,21 +126,32 @@ namespace Trust4
             foreach (byte b in data)
                 tmp.Add(b);
             tmp.Add((byte) '|');
-            foreach (byte b in ByteString.GetBytes(pair.Public.ToXmlString(false)))
+            foreach (byte b in ByteString.GetBytes(pair.ToXmlString(false)))
                 tmp.Add(b);
 
-            // Sign it.
-            byte[] dataandkey = tmp.ToArray();
-            byte[] signature = ByteString.GetBytes(ByteString.GetBase32String(pair.Private.SignData(dataandkey, "SHA256")));
-            Console.WriteLine("Sign Data: " + ByteString.GetString(dataandkey));
-            Console.WriteLine("Sign Result: " + ByteString.GetString(signature));
+            // Sign the data.
+            byte[] publicdata = tmp.ToArray();
+            byte[] signature = Mappings.SignBytes(publicdata, pair.Private);
+
+            // Ensure that the signature is verifiable with the private and public information.
+            if (!Mappings.VerifyBytes(publicdata, signature, pair.Private))
+            {
+                Console.WriteLine("CRYPTOGRAPHY ERROR: The generated signature could not be verified using the private key.");
+                return new byte[] {};
+            }
+            if (!Mappings.VerifyBytes(publicdata, signature, pair.Public))
+            {
+                Console.WriteLine("CRYPTOGRAPHY ERROR: The generated signature could not be verified using the public key.");
+                return new byte[] {};
+            }
+            Console.WriteLine("CRYPTOGRAPHY SUCCESS: The generated signature is valid.");
 
             // Combine it.
             tmp.Clear();
-            foreach (byte b in signature)
+            foreach (byte b in ByteString.GetBytes(ByteString.GetBase32String(signature)))
                 tmp.Add(b);
             tmp.Add((byte)'|');
-            foreach (byte b in dataandkey)
+            foreach (byte b in publicdata)
                 tmp.Add(b);
 
             return tmp.ToArray();
@@ -183,31 +201,75 @@ namespace Trust4
                 }
             }
 
+            // Undecode the signature from it's Base-32 state.
             signature = ByteString.GetBase32Bytes(ByteString.GetString(signature.ToArray())).ToList();
-
-            Console.WriteLine("Record Data: " + ByteString.GetString(recorddata.ToArray()));
 
             // Verify that the public hash matches the hash of the public key.
             SHA256Cng sha = new SHA256Cng();
-            Console.WriteLine("SHA-256 Hash of Public Key (in domain): " + ByteString.GetBase32String(publichash));
-            Console.WriteLine("SHA-256 Hash of Public Key (calculated): " + ByteString.GetBase32String(sha.ComputeHash(publickey.ToArray())));
-            Console.WriteLine("Public Key: " + ByteString.GetString(publickey.ToArray()));
             if (!sha.ComputeHash(publickey.ToArray()).SequenceEqual(publichash))
-                return null; // Failed.
+            {
+                Console.WriteLine("CRYPTOGRAPHY ERROR: The public key has been modified in this request.");
+                return null;
+            }
+            Console.WriteLine("CRYPTOGRAPHY INFORMATION: The public key is valid for this request.");
 
-            Console.WriteLine("PUBLIC KEY IS OKAY");
+            // Load the public key since we now know it's valid.
+            EncryptorPair pair = new EncryptorPair(ByteString.GetString(publickey.ToArray()));
 
             // Verify that the signature is valid.
-            Console.WriteLine("Public Key Signature: " + ByteString.GetBase32String(signature.ToArray()));
-            Console.WriteLine("Combined Data: " + ByteString.GetString(combined.ToArray()));
-            EncryptorPair pair = new EncryptorPair(ByteString.GetString(publickey.ToArray()));
-            if (!pair.Public.VerifyData(combined.ToArray(), "SHA256", signature.ToArray()))
-                return null; // Failed.
-
-            Console.WriteLine("SIGNATURE IS OKAY");
+            if (!Mappings.VerifyBytes(combined.ToArray(), signature.ToArray(), pair.Public))
+            {
+                Console.WriteLine("CRYPTOGRAPHY ERROR: The signature for this request is invalid.");
+            }
+            Console.WriteLine("CRYPTOGRAPHY INFORMATION: The signature for this request is valid.");
 
             // We're all good.
             return recorddata.ToArray();
+        }
+
+        public static byte[] SignBytes(byte[] data, RSAParameters key)
+        {
+            try
+            {   
+                // Create a new instance of RSACryptoServiceProvider using the 
+                // key from RSAParameters.  
+                RSACryptoServiceProvider alg = new RSACryptoServiceProvider();
+    
+                alg.ImportParameters(key);
+    
+                // Hash and sign the data. Pass a new instance of SHA1CryptoServiceProvider
+                // to specify the use of SHA1 for hashing.
+                return alg.SignData(data, new SHA1CryptoServiceProvider());
+            }
+            catch(CryptographicException e)
+            {
+                Console.WriteLine(e.Message);
+
+                return null;
+            }
+        }
+    
+        public static bool VerifyBytes(byte[] data, byte[] signature, RSAParameters key)
+        {
+            try
+            {
+                // Create a new instance of RSACryptoServiceProvider using the 
+                // key from RSAParameters.
+                RSACryptoServiceProvider alg = new RSACryptoServiceProvider();
+    
+                alg.ImportParameters(key);
+    
+                // Verify the data using the signature.  Pass a new instance of SHA1CryptoServiceProvider
+                // to specify the use of SHA1 for hashing.
+                return alg.VerifyData(data, new SHA1CryptoServiceProvider(), signature);
+    
+            }
+            catch(CryptographicException e)
+            {
+                Console.WriteLine(e.Message);
+    
+                return false;
+            }
         }
 
         /// <summary>
@@ -239,7 +301,7 @@ namespace Trust4
             // Calculate the public key hash.
             EncryptorPair pair = new EncryptorPair(guids);
             SHA256Cng sha = new SHA256Cng();
-            string publichash = ByteString.GetBase32String(sha.ComputeHash(ByteString.GetBytes(pair.Public.ToXmlString(false))));
+            string publichash = ByteString.GetBase32String(sha.ComputeHash(ByteString.GetBytes(pair.ToXmlString(false))));
 
             // First automatically create a DnsRecordBase based on the question.
             string keydomain = null;
