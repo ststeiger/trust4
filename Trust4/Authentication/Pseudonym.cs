@@ -32,54 +32,6 @@ namespace Trust4.Authentication
             randomNumberGenerator = new RNGCryptoServiceProvider();
         }
 
-        /// <summary>
-        /// Returns true if the given peer has the private key for the given public key
-        /// </summary>
-        /// <param name="peer">The peer.</param>
-        /// <param name="publicKey">The public key.</param>
-        /// <param name="id">The ID of the psuedonym.</param>
-        public bool Challenge(Contact peer, Guid id, RSACryptoServiceProvider publicKey, int size, int timeout)
-        {
-            byte[] challenge = new byte[size];
-            lock (randomNumberGenerator) { randomNumberGenerator.GetBytes(challenge); }
-
-            byte[] encrypted = publicKey.EncryptLargeData(challenge, F_OAP);
-
-            var token = Callback.AllocateToken();
-
-            try
-            {
-                //send challenge
-                using(MemoryStream m = new MemoryStream())
-	            {
-		            Serializer.Serialize<ChallengePacket>(m, new ChallengePacket() { Challenge = challenge, Callback = token.Id });
-                    peer.Send(RoutingTable.LocalContact, id, m.ToArray());
-	            }
-
-                if (!token.Wait(timeout))
-                    throw new TimeoutException("Peer did not respond in a timely manner");
-
-                if (token.Response == null)
-                    return false;
-
-                ChallengeResponse response;
-                using(MemoryStream m = new MemoryStream(token.Response))
-		            response = Serializer.Deserialize<ChallengeResponse>(m);
-
-                if (response.Flooded)
-                    throw new FloodException(response.Backoff);
-
-                if (response.Response.Length != challenge.Length)
-                    return false;
-
-                return response.Response.Zip(challenge, (a, b) => a == b).Aggregate((a, b) => a && b);
-            }
-            finally
-            {
-                Callback.FreeToken(token);
-            }
-        }
-
         public override void Deliver(Contact source, byte[] message)
         {
             using (MemoryStream m = new MemoryStream(message))
@@ -90,27 +42,12 @@ namespace Trust4.Authentication
                     case PacketFlag.Challenge:
                         HandleRemoteChallenge(source, m);
                         break;
+                    case PacketFlag.SecureMessage:
+                        HandleRemoteSecureMessage(source, m);
+                        break;
                     default:
                         break;
                 }
-            }
-        }
-
-        private void HandleRemoteChallenge(Contact source, Stream message)
-        {
-            var p = Serializer.Deserialize<ChallengePacket>(message);
-
-            var decrypted = cryptoProvider.DecryptLargeData(p.Challenge, F_OAP);
-
-            using (MemoryStream m = new MemoryStream())
-            {
-                Serializer.Serialize<ChallengeResponse>(m, new ChallengeResponse()
-                {
-                    Flooded = false,
-                    Response = decrypted
-                });
-
-                Callback.SendResponse(RoutingTable.LocalContact, source, p.Callback, m.ToArray());
             }
         }
 
@@ -130,6 +67,111 @@ namespace Trust4.Authentication
             :byte
         {
             Challenge,
+            SecureMessage,
+        }
+
+        #region secure messaging
+        public void SendSecureMessage(Contact destination, Guid consumerId, byte[] data, RSACryptoServiceProvider remotePublicKey)
+        {
+            using (MemoryStream m = new MemoryStream())
+            {
+                using (BinaryWriter w = new BinaryWriter(m))
+                {
+                    w.Write((byte)PacketFlag.SecureMessage);
+
+                    var encryptedData = remotePublicKey.EncryptLargeData(data, F_OAP);
+                    w.Write(encryptedData.Length);
+                    w.Write(encryptedData, 0, encryptedData.Length);
+
+                    var guidBytes = consumerId.ToByteArray();
+                    w.Write(guidBytes.Length);
+                    w.Write(guidBytes, 0, guidBytes.Length);
+                }
+            }
+        }
+
+        private void HandleRemoteSecureMessage(Contact source, MemoryStream m)
+        {
+            using (BinaryReader r = new BinaryReader(m))
+            {
+                int dataLength = r.ReadInt32();
+                byte[] decryptedData = cryptoProvider.DecryptLargeData(r.ReadBytes(dataLength), F_OAP);
+
+                int guidLength = r.ReadInt32();
+                Guid consumerId = new Guid(r.ReadBytes(guidLength));
+
+                RoutingTable.Deliver(source, consumerId, decryptedData);
+            }
+        }
+        #endregion
+
+        #region challenge
+        /// <summary>
+        /// Returns true if the given peer has the private key for the given public key
+        /// </summary>
+        /// <param name="peer">The peer.</param>
+        /// <param name="publicKey">The public key.</param>
+        /// <param name="id">The ID of the psuedonym.</param>
+        public bool Challenge(Contact peer, Guid id, RSACryptoServiceProvider publicKey, int size, int timeout)
+        {
+            byte[] challenge = new byte[size];
+            lock (randomNumberGenerator) { randomNumberGenerator.GetBytes(challenge); }
+
+            byte[] encrypted = publicKey.EncryptLargeData(challenge, F_OAP);
+
+            var token = Callback.AllocateToken();
+
+            try
+            {
+                //send challenge
+                using (MemoryStream m = new MemoryStream())
+                {
+                    m.WriteByte((byte)PacketFlag.Challenge);
+
+                    Serializer.Serialize<ChallengePacket>(m, new ChallengePacket() { Challenge = challenge, Callback = token.Id });
+                    peer.Send(RoutingTable.LocalContact, id, m.ToArray());
+                }
+
+                if (!token.Wait(timeout))
+                    throw new TimeoutException("Peer did not respond in a timely manner");
+
+                if (token.Response == null)
+                    return false;
+
+                ChallengeResponse response;
+                using (MemoryStream m = new MemoryStream(token.Response))
+                    response = Serializer.Deserialize<ChallengeResponse>(m);
+
+                if (response.Flooded)
+                    throw new FloodException(response.Backoff);
+
+                if (response.Response.Length != challenge.Length)
+                    return false;
+
+                return response.Response.Zip(challenge, (a, b) => a == b).Aggregate((a, b) => a && b);
+            }
+            finally
+            {
+                Callback.FreeToken(token);
+            }
+        }
+
+        private void HandleRemoteChallenge(Contact source, Stream message)
+        {
+            var p = Serializer.Deserialize<ChallengePacket>(message);
+
+            var decrypted = cryptoProvider.DecryptLargeData(p.Challenge, F_OAP);
+
+            using (MemoryStream m = new MemoryStream())
+            {
+                Serializer.Serialize<ChallengeResponse>(m, new ChallengeResponse()
+                {
+                    Flooded = false,
+                    Response = decrypted
+                });
+
+                Callback.SendResponse(RoutingTable.LocalContact, source, p.Callback, m.ToArray());
+            }
         }
 
         [ProtoContract]
@@ -165,5 +207,6 @@ namespace Trust4.Authentication
             [ProtoMember(2)]
             public byte[] Response;
         }
+        #endregion
     }
 }

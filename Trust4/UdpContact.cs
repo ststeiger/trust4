@@ -11,15 +11,25 @@ using System.Threading;
 using ProtoBuf;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using DistributedServiceProvider.Contacts;
+using DistributedServiceProvider;
 
-namespace DistributedServiceProvider.Contacts
+namespace Trust4
 {
-    [ProtoContract]
     public class UdpContact
         :Contact, IEquatable<UdpContact>
     {
-        [ProtoMember(3)]
-        private byte[] addressBytes;
+        private byte[] addressBytes
+        {
+            get
+            {
+                return Extensible.GetValue<byte[]>(this, NEXT_PROTO_TAG);
+            }
+            set
+            {
+                Extensible.AppendValue(this, NEXT_PROTO_TAG, value);
+            }
+        }
 
         public IPAddress Ip
         {
@@ -33,11 +43,16 @@ namespace DistributedServiceProvider.Contacts
             }
         }
 
-        [ProtoMember(4)]
         public int Port
         {
-            get;
-            private set;
+            get
+            {
+                return Extensible.GetValue<int>(this, NEXT_PROTO_TAG + 1);
+            }
+            private set
+            {
+                Extensible.AppendValue<int>(this, NEXT_PROTO_TAG + 1, value);
+            }
         }
 
         public UdpContact(Identifier512 id, Guid networkId, IPAddress ip, int port)
@@ -123,7 +138,8 @@ namespace DistributedServiceProvider.Contacts
             byte[] addrBytes = reader.ReadBytes(addrBytesLength);
             IPAddress address = new IPAddress(addrBytes);
 
-            return new UdpContact(id, netId, address, port);
+            var c = new UdpContact(id, netId, address, port);
+            return c;
         }
 
         public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel)
@@ -293,6 +309,9 @@ namespace DistributedServiceProvider.Contacts
         {
             UdpContact c = ReadContact(reader);
 
+            if (c == null)
+                return;
+
             long tokenId = IPAddress.NetworkToHostOrder(reader.ReadInt64());
 
             localTable.DeliverPing(c);
@@ -304,6 +323,9 @@ namespace DistributedServiceProvider.Contacts
         private static void ParseData(BinaryReader reader)
         {
             UdpContact source = ReadContact(reader);
+
+            if (source == null)
+                return;
 
             int guidLength = IPAddress.NetworkToHostOrder(reader.ReadInt32());
             byte[] guidBytes = reader.ReadBytes(guidLength);
