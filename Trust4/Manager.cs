@@ -190,6 +190,7 @@ namespace Trust4
             p_RoutingTable.RegisterConsumer(new MultiRecordStore(Manager.m_P2PRootStore));
 
             //register the root pseudonym for this peer
+            //this is the nym that proves that this peer picked this routing identifier through cryptographic means
             p_RoutingTable.RegisterConsumer(new Pseudonym(m_RootPseudonym, p_Settings.CryptoProvider));
         }
 
