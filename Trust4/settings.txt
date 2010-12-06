@@ -1,10 +1,10 @@
 ﻿peerport = 12000
-dnsport = 53
+dnsport = 6000
 keysize = 2048
 
 //if you have a static IP, specify it here, otherwise specify dynamic
-//localip = 59.167.198.201
-localip = dynamic
+localip = 59.167.198.201
+//localip = dynamic
 
 // don't change this, or you won't be able to connect to anyone!
 networkid = f35303bc-f334-4e68-b949-28943ff96955
