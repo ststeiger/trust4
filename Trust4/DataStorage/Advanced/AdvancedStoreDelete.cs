@@ -5,6 +5,7 @@ using System.Text;
 using DistributedServiceProvider.Contacts;
 using System.IO;
 using DistributedServiceProvider.MessageConsumers;
+using Trust4.Authentication;
 
 namespace Trust4.DataStorage.Advanced
 {
@@ -13,12 +14,12 @@ namespace Trust4.DataStorage.Advanced
     {
         private readonly byte remoteDeleteFlag;
 
-        public void Delete(K key)
+        public void Delete(K key, Pseudonym authentication)
         {
             throw new NotImplementedException();
         }
 
-        public void Delete(K key, Contact peer)
+        public void Delete(K key, Contact peer, Pseudonym authentication)
         {
             throw new NotImplementedException();
         }

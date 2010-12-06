@@ -13,7 +13,7 @@ namespace Trust4.DataStorage.Advanced
     {
         private readonly byte remoteGetFlag;
 
-        public IEnumerable<KeyValuePair<Contact, V>> Get(K key)
+        public IEnumerable<KeyValuePair<Contact, SignedValue<V>>> Get(K key)
         {
             throw new NotImplementedException();
         }
