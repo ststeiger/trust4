@@ -1,0 +1,5 @@
+#format TRUST IP PORT
+#eg:
+#0 127.0.0.1 12000
+
+0.5	74.207.247.199	12000	58f7ec2e-60e8-c124-86ef-a5f1f050f8e5 1e1928da-eaab-9b27-85eb-eb0dfea4fbc7 34b01e5d-b257-9d73-923f-f3f33adb7f26 c12af3be-6110-f143-e0e1-26171ab5535d
