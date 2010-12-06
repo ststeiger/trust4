@@ -6,6 +6,7 @@ using DistributedServiceProvider.MessageConsumers;
 using Trust4.Authentication;
 using DistributedServiceProvider.Contacts;
 using System.IO;
+using DistributedServiceProvider.Base;
 
 namespace Trust4.DataStorage.Advanced
 {
@@ -16,6 +17,10 @@ namespace Trust4.DataStorage.Advanced
 
         public int Put(K key, V value, Func<V, Conflict<V>, V> merge, Pseudonym authentication)
         {
+            //Get remote versions
+            //ignore ones which do not authenticate correctly
+            //merge each remote version with the local version
+            //put the final merged version into the appropriate nodes
             throw new NotImplementedException();
         }
 

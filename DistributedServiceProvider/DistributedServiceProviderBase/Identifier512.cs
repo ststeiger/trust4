@@ -184,7 +184,7 @@ namespace DistributedServiceProvider.Base
             Identifier512 unhashedKey1 = this + 1;
             Identifier512 unhashedKey2 = unhashedKey1 + 1;
             Identifier512 unhashedKey3 = unhashedKey2 + 1;
-            MD5 hasher = MD5.Create();
+            SHA512 hasher = SHA512.Create();
             byte[] b =
                 hasher.ComputeHash(this.GetBytes().ToArray())
                 .Append(hasher.ComputeHash(unhashedKey1.GetBytes().ToArray()))

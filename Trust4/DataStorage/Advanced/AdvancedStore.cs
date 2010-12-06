@@ -9,6 +9,13 @@ using DistributedServiceProvider.MessageConsumers;
 
 namespace Trust4.DataStorage.Advanced
 {
+    /// <summary>
+    /// A merging datastore.
+    /// This store is built upon the fact that a distributed storage system will *not* provide consistency.
+    /// Put operations provide a merge operation to reconcile differing concurrent versions
+    /// </summary>
+    /// <typeparam name="K"></typeparam>
+    /// <typeparam name="V"></typeparam>
     public partial class AdvancedStore<K, V>
         :MessageConsumer, IMergingDataStore<K, V>
     {
@@ -41,6 +48,15 @@ namespace Trust4.DataStorage.Advanced
         public V Deserialise(byte[] value)
         {
             return deserialise(value);
+        }
+
+        private IEnumerable<Identifier512> GetReplicas(Identifier512 key)
+        {
+            while (true)
+            {
+                key = key.GetHashedKey();
+                yield return key;
+            }
         }
     }
 }

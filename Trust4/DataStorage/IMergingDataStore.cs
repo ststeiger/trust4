@@ -24,21 +24,21 @@ namespace Trust4.DataStorage
         /// Attempts to delete all records with the given key
         /// </summary>
         /// <param name="key"></param>
-        void Delete(K key);
+        void Delete(K key, Pseudonym authentication);
 
         /// <summary>
         /// Delete data with a specific key stored on a specific peer
         /// </summary>
         /// <param name="key"></param>
         /// <param name="peer"></param>
-        void Delete(K key, Contact peer);
+        void Delete(K key, Contact peer, Pseudonym authentication);
 
         /// <summary>
         /// Get the replications of this item, paired with the contact which they came from
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        IEnumerable<KeyValuePair<Contact, V>> Get(K key);
+        IEnumerable<KeyValuePair<Contact, SignedValue<V>>> Get(K key);
 
         /// <summary>
         /// Create an identifier from a key
@@ -71,6 +71,18 @@ namespace Trust4.DataStorage
         {
             ConflictingValue = conflictingValue;
             Source = source;
+        }
+    }
+
+    public struct SignedValue<V>
+    {
+        public readonly V Value;
+        public readonly byte[] Signature;
+
+        public SignedValue(V value, byte[] signature)
+        {
+            Value = value;
+            Signature = signature;
         }
     }
 }
