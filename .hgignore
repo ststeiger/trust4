@@ -3,7 +3,5 @@ glob:*.pidb
 glob:*.suo
 glob:Testcase/*
 glob:Trust4/bin/*
-glob:DistributedServiceProvider/DistributedServiceProvider/bin/*
-glob:DistributedServiceProvider/DistributedServiceProviderBase/bin/*
-glob:protobuf-net/bin/*
-glob:HandyCollections/HandyCollections/bin/*
+glob:Daylight/bin/*
+glob:Daylight/obj/*
