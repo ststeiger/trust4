@@ -6,8 +6,12 @@
   <MonoDevelop.Ide.Workbench ActiveDocument="Trust4/DnsProcess.cs">
     <Files>
       <File FileName="Trust4/Program.cs" Line="26" Column="13" />
-      <File FileName="Trust4/Mappings.cs" Line="103" Column="1" />
-      <File FileName="Trust4/DnsProcess.cs" Line="178" Column="46" />
+      <File FileName="Trust4/Mappings.cs" Line="305" Column="1" />
+      <File FileName="Trust4/DnsProcess.cs" Line="223" Column="26" />
+      <File FileName="Trust4/settings.txt" Line="15" Column="1" />
+      <File FileName="Trust4/DataStorage/MultiRecordStore.cs" Line="30" Column="48" />
+      <File FileName="Trust4/mappings.txt" Line="1" Column="1" />
+      <File FileName="Trust4/peers.txt" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -29,9 +33,7 @@
     </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="/home/james/Documents/Trust4/Trust4/Mappings.cs" line="132" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches>
     <Watch file="ARSoft.Tools.Net/Dns/DnsServer.cs" line="166" offsetX="867" offsetY="1952" expression="query" liveUpdate="False" />
