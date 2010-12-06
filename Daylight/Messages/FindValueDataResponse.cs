@@ -17,7 +17,7 @@ namespace Daylight.Messages
 	[Serializable]
 	public class FindValueDataResponse : Response
 	{
-		private IList<string> vals;
+		private IList<Result> vals;
 		
 		/// <summary>
 		/// Make a new response.
@@ -25,7 +25,7 @@ namespace Daylight.Messages
 		/// <param name="nodeID"></param>
 		/// <param name="request"></param>
 		/// <param name="data"></param>
-		public FindValueDataResponse(ID nodeID, FindValue request, IList<string> data) : base(nodeID, request)
+		public FindValueDataResponse(ID nodeID, FindValue request, IList<Result> data) : base(nodeID, request)
 		{
 			vals = data;
 		}
@@ -34,7 +34,7 @@ namespace Daylight.Messages
 		/// Get the values returned for the key
 		/// </summary>
 		/// <returns></returns>
-		public IList<string> GetValues()
+		public IList<Result> GetValues()
 		{
 			return vals;
 		}

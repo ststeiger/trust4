@@ -98,9 +98,9 @@ namespace Daylight
 		/// </summary>
 		/// <param name="key">The key of the value to retrieve.</param>
 		/// <returns>an arbitrary value stored for the key, or null if no values are found</returns>
-		public string Get(string key)
+		public Result Get(string key)
 		{
-			IList<string> found = dhtNode.Get(ID.Hash(key));
+			IList<Result> found = dhtNode.Get(ID.Hash(key));
 			if(found.Count > 0) {
 				return found[0]; // An arbitrary value
 			} else {
@@ -113,7 +113,7 @@ namespace Daylight
 		/// </summary>
 		/// <param name="key"></param>
 		/// <returns></returns>
-		public IList<string> GetAll(string key)
+		public IList<Result> GetAll(string key)
 		{
 			return dhtNode.Get(ID.Hash(key));
 		}

@@ -15,16 +15,15 @@
 
 using System;
 using System.Net;
-using DistributedServiceProvider.Base;
-using DistributedServiceProvider.Contacts;
+using Daylight;
 
 namespace Trust4
 {
-    public class TrustedContact : UdpContact
+    public class TrustedContact : Contact
     {
         private decimal p_TrustAmount = 0;
 
-        public TrustedContact(decimal trust, Identifier512 id, Guid network, IPAddress ip, int port) : base(id, network, ip, port)
+        public TrustedContact(decimal trust, ID id, IPEndPoint endpoint) : base(id, endpoint)
         {
             this.p_TrustAmount = trust;
         }

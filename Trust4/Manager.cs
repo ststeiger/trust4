@@ -19,12 +19,8 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using ARSoft.Tools.Net.Dns;
-using DistributedServiceProvider;
-using DistributedServiceProvider.Base;
-using DistributedServiceProvider.Contacts;
-using Trust4.DataStorage;
-using Trust4.Authentication;
 using System.Security.AccessControl;
+using Daylight;
 
 namespace Trust4
 {
@@ -35,7 +31,8 @@ namespace Trust4
 
         private DnsServer m_DNSServer = null;
         private DnsProcess m_DNSProcess = null;
-        private DistributedRoutingTable p_RoutingTable = null;
+        private KademliaNode p_KademliaNode = null;
+        private Dht p_KademliaDHT = null;
 
         private static readonly Guid m_P2PRootStore = new Guid("94e9bd40-2547-4232-9266-4f93310bf906");
         private static readonly Guid m_KeyRootStore = new Guid("09a2cbb4-ef12-431c-9419-5a655075039e");
@@ -52,8 +49,11 @@ namespace Trust4
             
             // Initalize the DNS service.
             if (!this.InitalizeDNS())
+            {
+                // Couldn't lower permissions from root; exit immediately.
                 return;
-            // Couldn't lower permissions from root; exit immediately.
+            }
+
             // Initalize the DHT service.
             this.InitalizeDHT();
             
@@ -63,8 +63,6 @@ namespace Trust4
             
             // .. the Trust4 server is now running ..
             Thread.Sleep(Timeout.Infinite);
-            //Console.WriteLine("Press any key to stop server.");
-            //Console.ReadLine();
             
             // Stop the server
             this.m_DNSServer.Stop();
@@ -89,17 +87,17 @@ namespace Trust4
         /// <summary>
         /// Returns the distributed routing table.
         /// </summary>
-        public DistributedRoutingTable RoutingTable
+        public KademliaNode KademliaNode
         {
-            get { return this.p_RoutingTable; }
+            get { return this.p_KademliaNode; }
         }
 
         /// <summary>
         /// The data store for the distributed routing table.
         /// </summary>
-        public IDataStore DataStore
+        public Dht KademliaDHT
         {
-            get { return this.p_RoutingTable.GetConsumer<MultiRecordStore>(Manager.m_P2PRootStore, (  ) => new MultiRecordStore(Manager.m_P2PRootStore)); }
+            get { return this.p_KademliaDHT; }
         }
 
         /// <summary>
@@ -164,89 +162,47 @@ namespace Trust4
         public void InitalizeDHT()
         {
             // Start the Distributed Hash Table.
-            this.p_RoutingTable = new DistributedRoutingTable(this.p_Settings.RoutingIdentifier, a => new UdpContact(a.LocalIdentifier, this.p_Settings.NetworkID, this.p_Settings.LocalIP, this.p_Settings.P2PPort), this.p_Settings.NetworkID, new Configuration {
-                BucketRefreshPeriod = TimeSpan.FromMinutes(10),
-                BucketSize = 10,
-                LookupConcurrency = 5,
-                LookupTimeout = 5000,
-                PingTimeout = TimeSpan.FromSeconds(1),
-                UpdateRoutingTable = true
-            });
-            
-            UdpContact.InitialiseUdp(this.p_RoutingTable, this.p_Settings.P2PPort);
-            
-            AttachDhtServices();
+            this.p_KademliaNode = new KademliaNode(new IPEndPoint(this.p_Settings.LocalIP, this.p_Settings.P2PPort));
+            this.p_KademliaDHT = new Dht(this.p_Settings.NetworkID.ToString(), true);
 
-            Console.WriteLine("Bootstrapping DHT\r\n { " + this.p_RoutingTable.LocalIdentifier + " }");
-            this.p_RoutingTable.Bootstrap(this.BootstrapPeers());
-            
+            // Bootstrap connections using the peers.
+            Console.WriteLine("Bootstrapping DHT\r\n { " + this.p_KademliaNode.GetID().ToString() + " }");
+            this.BootstrapPeers();
             Console.WriteLine("Bootstrap finished");
-            Console.WriteLine("There are " + this.p_RoutingTable.ContactCount + " Contacts");
-        }
-
-        private void AttachDhtServices()
-        {
-            p_RoutingTable.RegisterConsumer(new MultiRecordStore(Manager.m_P2PRootStore));
         }
 
         /// <summary>
         /// Yeilds a list of peers as they are read from the peers.txt file.
         /// </summary>
         /// <returns>The next peer.</returns>
-        public IEnumerable<Contact> BootstrapPeers()
+        public void BootstrapPeers()
         {
             foreach (var line in File.ReadAllLines("peers.txt").OmitComments("#", "//"))
             {
-                TrustedContact udp = null;
-                
                 try
                 {
                     string[] split = line.Split(new char[] {
                         ' ',
                         '\t'
                     }, StringSplitOptions.RemoveEmptyEntries);
-                    
-                    decimal trust = Decimal.Parse(split[0]);
-                    
-                    IPAddress ip = IPAddress.Parse(split[1]);
-                    int port = Int32.Parse(split[2]);
-                    
-                    if (split.Length == 7)
-                    {
-                        Guid a = new Guid(split[3]);
-                        Guid b = new Guid(split[4]);
-                        Guid c = new Guid(split[5]);
-                        Guid d = new Guid(split[6]);
-                        
-                        Identifier512 id = new Identifier512(a, b, c, d);
-                        udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
-                    }
 
+                    // Bootstrap by reading the peer and connecting to them.
+                    decimal trust = Decimal.Parse(split[0]);
+                    IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse(split[1]), int.Parse(split[2]));
+
+                    if (this.p_KademliaNode.Bootstrap(endpoint))
+                    {
+                        Console.WriteLine("BOOTSTRAP SUCCESS: Got a bootstrapping response from " + endpoint.ToString() + ".");
+                    }
                     else
                     {
-                        try
-                        {
-                            Identifier512 discoveredId = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
-                            
-                            Console.WriteLine("Discovered ID " + discoveredId + " for " + ip);
-                            
-                            udp = new TrustedContact(trust, discoveredId, this.p_Settings.NetworkID, ip, port);
-                        }
-                        catch (TimeoutException)
-                        {
-                            Console.WriteLine("Timeout trying to discover an id for " + ip + ":" + port);
-                        }
+                        Console.WriteLine("BOOTSTRAP FAILURE: No peer online at " + endpoint.ToString() + ".");
                     }
-                    
-                    Console.WriteLine("Loaded bootstrap contact " + udp);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Exception parsing bootstrap file: " + e);
+                    Console.WriteLine("BOOTSTRAP FAILURE: Exception parsing bootstrap file: " + e);
                 }
-                
-                if (udp != null)
-                    yield return udp;
             }
         }
     }
