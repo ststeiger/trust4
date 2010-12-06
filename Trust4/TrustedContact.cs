@@ -23,15 +23,20 @@ namespace Trust4
     public class TrustedContact : UdpContact
     {
         private decimal p_TrustAmount = 0;
+        public decimal TrustAmount
+        {
+            get { return this.p_TrustAmount; }
+        }
 
-        public TrustedContact(decimal trust, Identifier512 id, Guid network, IPAddress ip, int port) : base(id, network, ip, port)
+        public TrustedContact(decimal trust, Identifier512 id, Guid network, IPAddress ip, int port)
+            :base(id, network, ip, port)
         {
             this.p_TrustAmount = trust;
         }
 
-        public decimal TrustAmount
+        public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel)
         {
-            get { return this.p_TrustAmount; }
+            base.Send(source, consumerId, message, reliable, ordered, channel);
         }
     }
 }

@@ -39,6 +39,7 @@ namespace Trust4
 
         private static readonly Guid m_P2PRootStore = new Guid("94e9bd40-2547-4232-9266-4f93310bf906");
         private static readonly Guid m_KeyRootStore = new Guid("09a2cbb4-ef12-431c-9419-5a655075039e");
+        private static readonly Guid m_RootPseudonym = new Guid("3a88f92d-66d2-4d1f-87ee-ee90523ec47d");
 
         /// <summary>
         /// Creates a new Manager instance, which handles execution of the Trust4
@@ -187,6 +188,10 @@ namespace Trust4
         private void AttachDhtServices()
         {
             p_RoutingTable.RegisterConsumer(new MultiRecordStore(Manager.m_P2PRootStore));
+
+            //register the root pseudonym for this peer
+            //this is the nym that proves that this peer picked this routing identifier through cryptographic means
+            p_RoutingTable.RegisterConsumer(new Pseudonym(m_RootPseudonym, p_Settings.CryptoProvider));
         }
 
         /// <summary>
@@ -197,6 +202,7 @@ namespace Trust4
         {
             foreach (var line in File.ReadAllLines("peers.txt").OmitComments("#", "//"))
             {
+                Identifier512 id = null;
                 TrustedContact udp = null;
                 
                 try
@@ -218,27 +224,26 @@ namespace Trust4
                         Guid c = new Guid(split[5]);
                         Guid d = new Guid(split[6]);
                         
-                        Identifier512 id = new Identifier512(a, b, c, d);
-                        udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
+                        id = new Identifier512(a, b, c, d);
                     }
-
                     else
                     {
                         try
                         {
-                            Identifier512 discoveredId = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
-                            
-                            Console.WriteLine("Discovered ID " + discoveredId + " for " + ip);
-                            
-                            udp = new TrustedContact(trust, discoveredId, this.p_Settings.NetworkID, ip, port);
+                            id = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
+                            Console.WriteLine("Discovered ID " + id + " for " + ip);
                         }
                         catch (TimeoutException)
                         {
                             Console.WriteLine("Timeout trying to discover an id for " + ip + ":" + port);
                         }
                     }
-                    
-                    Console.WriteLine("Loaded bootstrap contact " + udp);
+
+                    if (id != null)
+                    {
+                        udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
+                        Console.WriteLine("Loaded bootstrap contact " + udp);
+                    }
                 }
                 catch (Exception e)
                 {
