@@ -33,6 +33,10 @@ namespace Trust4.DataStorage
             // Now split the results into multiple records based on the values.
             foreach (DataResult o in original)
             {
+                Console.WriteLine("================ RETRIEVE ================");
+                Console.WriteLine(ByteString.GetString(o.Data));
+                Console.WriteLine("============ END RETRIEVE ================");
+
                 List<byte> buf = new List<byte>();
                 for (int i = 0; i < o.Data.Length; i += 1)
                 {
@@ -71,6 +75,10 @@ namespace Trust4.DataStorage
             try
             {
                 base.Put(key, value);
+
+                Console.WriteLine("================ STORE ===================");
+                Console.WriteLine(ByteString.GetString(value));
+                Console.WriteLine("============ END STORE ===================");
             }
             catch (KeyCollisionException)
             {

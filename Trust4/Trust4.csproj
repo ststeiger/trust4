@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -89,6 +89,7 @@
     <Compile Include="DnsSerializer.cs" />
     <Compile Include="DataStorage\MultiRecordStore.cs" />
     <Compile Include="Authentication\Pseudonym.cs" />
+    <Compile Include="ByteString.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="mappings.txt">
@@ -117,6 +118,10 @@
     <ProjectReference Include="..\protobuf-net\protobuf-net.csproj">
       <Project>{8374E4D7-2A91-48F1-9360-09B09CF27C3F}</Project>
       <Name>protobuf-net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Base32Encoder\Base32Encoder.csproj">
+      <Project>{510EC060-479F-4A49-86E8-A06A4D7B7AFC}</Project>
+      <Name>Base32Encoder</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

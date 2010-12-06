@@ -160,29 +160,28 @@ namespace Trust4
                         if (s.Length >= 2)
                         {
                             // The .key domain is valid.
-                            Mappings.EncryptionGuids guids = new Mappings.EncryptionGuids(s[s.Length - 2]);
+                            byte[] publichash = ByteString.GetBase32Bytes(s[s.Length - 2]);
+                            Console.WriteLine(s[s.Length - 2]);
                             
                             // Loop through the results; trust order doesn't matter here
-                            // because we have the public key to decrypt the data.  If decryption
+                            // because we have the public hash to verify the data.  If verification
                             // results in something the Serializer can get a record from, then
                             // we know that it's valid.
                             foreach (DataResult r in results)
                             {
-                                Console.WriteLine(
-                                    Encoding.ASCII.GetString(
-                                        r.Data
-                                        )
+                                byte[] v = Mappings.Verify(
+                                    publichash,
+                                    r.Data
                                     );
+                                if (v == null)
+                                {
+                                    Console.WriteLine("Unable to verify the result of the DNS query!");
+                                    continue;
+                                }
+
                                 DnsRecordBase record = DnsSerializer.FromStore(
                                     q.Name.ToLowerInvariant(),
-                                    Mappings.Decrypt(
-                                        guids,
-                                        Convert.FromBase64String(
-                                            Encoding.ASCII.GetString(
-                                                r.Data
-                                                )
-                                            )
-                                        )
+                                    v
                                     );
                                 
                                 if (record != null)

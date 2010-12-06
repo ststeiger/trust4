@@ -81,10 +81,10 @@ namespace Trust4
                     Directory.CreateDirectory("keys");
 
                 CspParameters parms1 = new CspParameters();
-                parms.KeyContainerName = guids.Public;
+                parms1.KeyContainerName = guids.Public.ToString();
                 this.Public = new RSACryptoServiceProvider(parms1);
                 CspParameters parms2 = new CspParameters();
-                parms.KeyContainerName = guids.Private;
+                parms2.KeyContainerName = guids.Private.ToString();;
                 this.Private = new RSACryptoServiceProvider(parms2);
 
                 // Load or create the public key.
@@ -92,7 +92,6 @@ namespace Trust4
                     this.Public.FromXmlString(File.ReadAllText("keys/" + guids.Public + ".public.key"));
                 else
                     File.WriteAllText("keys/" + guids.Public + ".public.key", this.Public.ToXmlString(false));
-
 
                 // Load or create the private key.
                 if (File.Exists("keys/" + guids.Private + ".private.key"))
@@ -105,7 +104,6 @@ namespace Trust4
             {
                 this.Private = null;
                 CspParameters parms = new CspParameters();
-                parms.KeyContainerName = guids.Public;
                 this.Public = new RSACryptoServiceProvider(parms);
                 this.Public.FromXmlString(publickey);
             }
@@ -120,19 +118,21 @@ namespace Trust4
             tmp.Clear();
             foreach (byte b in data)
                 tmp.Add(b);
-            tmp.Add("|");
-            foreach (byte b in Encoding.ASCII.GetBytes(pair.Public.ToXmlString()))
+            tmp.Add((byte) '|');
+            foreach (byte b in ByteString.GetBytes(pair.Public.ToXmlString(false)))
                 tmp.Add(b);
 
             // Sign it.
             byte[] dataandkey = tmp.ToArray();
-            byte[] signature = pair.Private.SignData(dataandkey, "SHA256");
+            byte[] signature = ByteString.GetBytes(ByteString.GetBase32String(pair.Private.SignData(dataandkey, "SHA256")));
+            Console.WriteLine("Sign Data: " + ByteString.GetString(dataandkey));
+            Console.WriteLine("Sign Result: " + ByteString.GetString(signature));
 
             // Combine it.
             tmp.Clear();
             foreach (byte b in signature)
                 tmp.Add(b);
-            tmp.Add("|");
+            tmp.Add((byte)'|');
             foreach (byte b in dataandkey)
                 tmp.Add(b);
 
@@ -154,16 +154,16 @@ namespace Trust4
                 switch (mode)
                 {
                     case 0:
-                        if (b == "|")
+                        if (b == (byte)'|')
                             mode += 1; // Switch to Record Data.
                         else
                             signature.Add(b);
                         break;
-                    case 0:
-                        if (b == "|")
+                    case 1:
+                        if (b == (byte)'|')
                         {
                             mode += 1; // Switch to Public Key.
-                            combined.Add("|");
+                            combined.Add((byte)'|');
                         }
                         else
                         {
@@ -171,8 +171,8 @@ namespace Trust4
                             combined.Add(b);
                         }
                         break;
-                    case 0:
-                        if (b == "|")
+                    case 2:
+                        if (b == (byte)'|')
                             mode += 1; // Switch off.
                         else
                         {
@@ -183,18 +183,31 @@ namespace Trust4
                 }
             }
 
+            signature = ByteString.GetBase32Bytes(ByteString.GetString(signature.ToArray())).ToList();
+
+            Console.WriteLine("Record Data: " + ByteString.GetString(recorddata.ToArray()));
+
             // Verify that the public hash matches the hash of the public key.
-            SHA256 sha = new SHA256();
-            if (!sha.ComputeHash(publickey).SequenceEqual(publichash))
+            SHA256Cng sha = new SHA256Cng();
+            Console.WriteLine("SHA-256 Hash of Public Key (in domain): " + ByteString.GetBase32String(publichash));
+            Console.WriteLine("SHA-256 Hash of Public Key (calculated): " + ByteString.GetBase32String(sha.ComputeHash(publickey.ToArray())));
+            Console.WriteLine("Public Key: " + ByteString.GetString(publickey.ToArray()));
+            if (!sha.ComputeHash(publickey.ToArray()).SequenceEqual(publichash))
                 return null; // Failed.
+
+            Console.WriteLine("PUBLIC KEY IS OKAY");
 
             // Verify that the signature is valid.
-            EncryptorPair pair = new EncryptorPair(Encoding.ASCII.GetString(publickey.ToArray()));
-            if (!pair.Public.VerifyData(combined, "SHA256", signature))
+            Console.WriteLine("Public Key Signature: " + ByteString.GetBase32String(signature.ToArray()));
+            Console.WriteLine("Combined Data: " + ByteString.GetString(combined.ToArray()));
+            EncryptorPair pair = new EncryptorPair(ByteString.GetString(publickey.ToArray()));
+            if (!pair.Public.VerifyData(combined.ToArray(), "SHA256", signature.ToArray()))
                 return null; // Failed.
 
+            Console.WriteLine("SIGNATURE IS OKAY");
+
             // We're all good.
-            return recorddata;
+            return recorddata.ToArray();
         }
 
         /// <summary>
@@ -223,12 +236,17 @@ namespace Trust4
         /// </param>
         public void Add(DnsQuestion question, DnsRecordBase answer, EncryptionGuids guids, bool reverse)
         {
+            // Calculate the public key hash.
+            EncryptorPair pair = new EncryptorPair(guids);
+            SHA256Cng sha = new SHA256Cng();
+            string publichash = ByteString.GetBase32String(sha.ComputeHash(ByteString.GetBytes(pair.Public.ToXmlString(false))));
+
             // First automatically create a DnsRecordBase based on the question.
             string keydomain = null;
             DnsRecordBase keyanswer = null;
             if (!reverse)
             {
-                keydomain = question.Name.ToLowerInvariant() + "." + guids.Public.ToString() + ".key";
+                keydomain = question.Name.ToLowerInvariant() + "." + publichash + ".key";
                 keyanswer = new CNameRecord(question.Name.ToLowerInvariant(), 3600, keydomain);
             }
             else
@@ -236,7 +254,7 @@ namespace Trust4
                 DnsRecordBase newanswer = null;
                 if (answer is NsRecord)
                 {
-                    keydomain = ( answer as NsRecord ).NameServer + "." + guids.Public.ToString() + "." + question.Name.ToLowerInvariant() + "." + guids.Public.ToString() + ".key";
+                    keydomain = ( answer as NsRecord ).NameServer + "." + publichash + "." + question.Name.ToLowerInvariant() + "." + publichash + ".key";
                     newanswer = new CNameRecord(keydomain, 3600, ( answer as NsRecord ).NameServer);
                     answer = new NsRecord(question.Name.ToLowerInvariant(), 3600, keydomain);
                 }
@@ -246,34 +264,35 @@ namespace Trust4
                 answer = newanswer;
             }
 
+            Console.WriteLine(keydomain);
+
             // Add that CNAME record to the DHT.
             Identifier512 questionid = Identifier512.CreateKey(DnsSerializer.ToStore(question));
-            this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(keyanswer)));
+            this.m_Manager.DataStore.Put(questionid, ByteString.GetBytes(DnsSerializer.ToStore(keyanswer)));
             
             // Now create a CNAME question that will be asked after looking up the original domain.
             DnsQuestion keyquestion = new DnsQuestion(keydomain, RecordType.CName, RecordClass.INet);
             
             // Add the original answer to the DHT, but encrypt it using our private key.
-            Console.WriteLine(
-               Encoding.ASCII.GetString(
-                    Encoding.ASCII.GetBytes(
+            Identifier512 keyquestionid = Identifier512.CreateKey(DnsSerializer.ToStore(keyquestion));
+            this.m_Manager.DataStore.Put(
+                keyquestionid,
+                Mappings.Sign(
+                    new EncryptorPair(guids),
+                    ByteString.GetBytes(
                         DnsSerializer.ToStore(
                             answer
                             )
                         )
                     )
                 );
-            Identifier512 keyquestionid = Identifier512.CreateKey(DnsSerializer.ToStore(keyquestion));
-            this.m_Manager.DataStore.Put(
-                keyquestionid,
-                Encoding.ASCII.GetBytes(
-                    Convert.ToBase64String(
-                        Mappings.Encrypt(
-                            guids,
-                            Encoding.ASCII.GetBytes(
-                                DnsSerializer.ToStore(
-                                    answer
-                                    )
+            Console.WriteLine(
+                ByteString.GetBase32String(
+                    Mappings.Sign(
+                        new EncryptorPair(guids),
+                        ByteString.GetBytes(
+                            DnsSerializer.ToStore(
+                                answer
                                 )
                             )
                         )
@@ -295,7 +314,7 @@ namespace Trust4
         {
             // Add the record to the DHT.
             Identifier512 questionid = Identifier512.CreateKey(DnsSerializer.ToStore(question));
-            this.m_Manager.DataStore.Put(questionid, Encoding.ASCII.GetBytes(DnsSerializer.ToStore(answer)));
+            this.m_Manager.DataStore.Put(questionid, ByteString.GetBytes(DnsSerializer.ToStore(answer)));
             
             // Add the domain to our cache.
             this.p_Domains.Add(new DomainMap(question, answer));

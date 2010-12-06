@@ -55,7 +55,7 @@ namespace Trust4
 
         public static DnsRecordBase FromStore(string domain, byte[] data)
         {
-            string[] split = Encoding.ASCII.GetString(data).Split(new char[] { '!' });
+            string[] split = ByteString.GetString(data).Split(new char[] { '!' });
             if (split[0] != "DNS")
                 return null;
             
