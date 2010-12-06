@@ -240,6 +240,9 @@ namespace DistributedServiceProvider
         /// <param name="c">The contact who sent the ping</param>
         public void DeliverPing(Contact c)
         {
+            if (c == null)
+                return;
+
             Console.WriteLine("Ping from " + c);
 
             contacts.Update(c);
