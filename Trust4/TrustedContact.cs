@@ -20,7 +20,7 @@ using DistributedServiceProvider.Contacts;
 
 namespace Trust4
 {
-    public class TrustedContact : UdpContact
+    public class TrustedContact : DistributedServiceProvider.Contacts.UdpContact
     {
         private decimal p_TrustAmount = 0;
         public decimal TrustAmount
