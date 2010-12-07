@@ -191,10 +191,10 @@ namespace DistributedServiceProvider.Base
                 .Append(hasher.ComputeHash(unhashedKey2.GetBytes().ToArray()))
                 .Append(hasher.ComputeHash(unhashedKey3.GetBytes().ToArray())).ToArray();
 
-            if (b.Length * 8 != 512)
+            if (b.Length * 8 < 512)
                 throw new Exception("Length of array should be 512 bits");
 
-            return new Identifier512(b);
+            return new Identifier512(b.Take(BIT_LENGTH / 8));
         }
 
         private static readonly Random random = new Random();
