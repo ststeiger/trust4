@@ -32,7 +32,7 @@ namespace Trust4
         private DnsServer m_DNSServer = null;
         private DnsProcess m_DNSProcess = null;
         private KademliaNode p_KademliaNode = null;
-        private Dht p_KademliaDHT = null;
+        private bool m_KademliaJoined = false;
 
         private static readonly Guid m_P2PRootStore = new Guid("94e9bd40-2547-4232-9266-4f93310bf906");
         private static readonly Guid m_KeyRootStore = new Guid("09a2cbb4-ef12-431c-9419-5a655075039e");
@@ -90,14 +90,6 @@ namespace Trust4
         public KademliaNode KademliaNode
         {
             get { return this.p_KademliaNode; }
-        }
-
-        /// <summary>
-        /// The data store for the distributed routing table.
-        /// </summary>
-        public Dht KademliaDHT
-        {
-            get { return this.p_KademliaDHT; }
         }
 
         /// <summary>
@@ -163,12 +155,43 @@ namespace Trust4
         {
             // Start the Distributed Hash Table.
             this.p_KademliaNode = new KademliaNode(new IPEndPoint(this.p_Settings.LocalIP, this.p_Settings.P2PPort));
-            this.p_KademliaDHT = new Dht(this.p_Settings.NetworkID.ToString(), true);
+            this.p_KademliaNode.EnableDebug();
+
+            // Connect the events.
+            this.p_KademliaNode.GotPing += delegate(Contact sender, Daylight.Messages.Ping message)
+            {
+                Console.WriteLine("PEERING INFORMATION: Got ping from " + sender.GetEndPoint().ToString() + ".");
+
+                // Join the network if needed.
+                if (!this.m_KademliaJoined)
+                {
+                    this.p_KademliaNode.Bootstrap(sender.GetEndPoint());
+                    this.m_KademliaJoined = this.p_KademliaNode.JoinNetwork();
+                }
+            };
+            this.p_KademliaNode.GotPong += delegate(Contact sender, Daylight.Messages.Pong message)
+            {
+                Console.WriteLine("PEERING INFORMATION: Got pong from " + sender.GetEndPoint().ToString() + ".");
+                
+                // Join the network if needed.
+                if (!this.m_KademliaJoined)
+                {
+                    this.p_KademliaNode.Bootstrap(sender.GetEndPoint());
+                    this.m_KademliaJoined = this.p_KademliaNode.JoinNetwork();
+                }
+            };
 
             // Bootstrap connections using the peers.
-            Console.WriteLine("Bootstrapping DHT\r\n { " + this.p_KademliaNode.GetID().ToString() + " }");
+            Console.WriteLine("BOOTSTRAP INFORMATION: START { " + this.p_KademliaNode.GetID().ToString() + " }");
             this.BootstrapPeers();
-            Console.WriteLine("Bootstrap finished");
+            Console.WriteLine("BOOTSTRAP INFORMATION: FINISHED");
+
+            // Wait a little while for our peers to process their bucket queues.
+            Thread.Sleep(50);
+
+            // Join the network.
+            if (!this.m_KademliaJoined)
+                this.m_KademliaJoined = this.p_KademliaNode.JoinNetwork();
         }
 
         /// <summary>

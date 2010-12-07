@@ -59,21 +59,11 @@ namespace Daylight
             
             string assembly = Assembly.GetEntryAssembly().GetName().Name;
             string libname = Assembly.GetExecutingAssembly().GetName().Name;
-            
-            // Check the mutex to see if we get the disk storage
-            string mutexName = libname + "-" + assembly + "-storage";
-            try
-            {
-                mutex = Mutex.OpenExisting(mutexName);
-                // If that worked, our disk storage has to be in a temp directory
-                storageRoot = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            }
-            catch (Exception ex)
-            {
-                // We get the real disk storage
-                mutex = new Mutex(true, mutexName);
-                storageRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\" + libname + "\\" + assembly + "\\";
-            }
+
+            // Set the storage root to be in the <current working directory>/daylight.
+            storageRoot = Path.Combine(Environment.CurrentDirectory, "daylight");
+            if (!Directory.Exists(storageRoot))
+                Directory.CreateDirectory(storageRoot);
             
             Console.WriteLine("Storing data in " + storageRoot);
             

@@ -76,10 +76,10 @@ namespace Trust4
                             Console.WriteLine("DNS LOOKUP - Create identifier on " + q.Name);
                             ID domainid = ID.Hash(DnsSerializer.ToStore(q));
                             Console.WriteLine("DNS LOOKUP - Retrieve results on " + q.Name);
-                            IEnumerable<Result> results = this.m_Manager.KademliaDHT.GetAll(domainid.ToString());
+                            IList<Result> results = this.m_Manager.KademliaNode.Get(domainid);
     
                             // Find out the most trusted results.
-                            Console.WriteLine("DNS LOOKUP - Find trusted result on " + q.Name);
+                            Console.WriteLine("DNS LOOKUP - Find trusted result on " + q.Name + " (total results: " + results.Count + ")");
                             Contact trustedcontact = null;
                             decimal trustedamount = 0;
                             foreach (Result r in results)
@@ -164,7 +164,7 @@ namespace Trust4
                             // We haven't found it in our local cache.  Query our
                             // peers to see if they've got any idea where this site is.
                             ID domainid = ID.Hash(DnsSerializer.ToStore(q));
-                            IEnumerable<Result> results = this.m_Manager.KademliaDHT.GetAll(domainid.ToString());
+                            IList<Result> results = this.m_Manager.KademliaNode.Get(domainid);
                         
                             // We need to fetch the public key from the domain request so
                             // that we can decrypt / verify the results.
@@ -179,6 +179,7 @@ namespace Trust4
                                 // because we have the public hash to verify the data.  If verification
                                 // results in something the Serializer can get a record from, then
                                 // we know that it's valid.
+                                Console.WriteLine("DNS LOOKUP - Find verified result on " + q.Name + " (total results: " + results.Count + ")");
                                 foreach (Result r in results)
                                 {
                                     byte[] v = Mappings.Verify(
