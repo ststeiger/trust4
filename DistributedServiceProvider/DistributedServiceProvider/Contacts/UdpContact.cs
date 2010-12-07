@@ -200,16 +200,6 @@ namespace DistributedServiceProvider.Contacts
                                         break;
                                     case PacketFlag.Data:
                                         ParseData(r);
-                                        break;
-                                    case PacketFlag.WhoAreYou:
-                                        ParseWhoAreYou(r);
-                                        break;
-                                    case PacketFlag.WhoAreYouReply:
-                                        ParseWhoAreYouReply(r);
-                                        break;
-                                    default:
-                                        Console.WriteLine("Unknown packet type " + f);
-                                        break;
                                 }
                             }
                         }
@@ -323,11 +313,6 @@ namespace DistributedServiceProvider.Contacts
             
             var callback = localTable.GetConsumer<Callback>(Callback.CONSUMER_ID);
             callback.SendResponse(localTable.LocalContact, c, tokenId, new byte[] {
-                1,
-                3,
-                3,
-                7
-            });
         }
 
         private static void ParseData(BinaryReader reader)

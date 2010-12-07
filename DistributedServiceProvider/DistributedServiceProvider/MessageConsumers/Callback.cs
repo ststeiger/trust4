@@ -48,7 +48,7 @@ namespace DistributedServiceProvider.MessageConsumers
         {
             using (MemoryStream m = new MemoryStream(message))
             {
-                Response r = Serializer.Deserialize<Response>(m);
+                Response r = Serializer.DeserializeWithLengthPrefix<Response>(m);
 
                 WaitToken token;
                 //if (tokens.TryGetValue(r.CallbackId, out token))
@@ -77,7 +77,7 @@ namespace DistributedServiceProvider.MessageConsumers
         {
             using (MemoryStream m = new MemoryStream())
             {
-                Serializer.Serialize<Response>(m, new Response(callbackId, responseBytes));
+                Serializer.SerializeWithLengthPrefix<Response>(m, new Response(callbackId, responseBytes));
                 target.Send(local, ConsumerId, m.ToArray());
             }
         }
