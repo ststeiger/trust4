@@ -5,7 +5,7 @@ namespace ProtoBuf
     /// <summary>
     /// Indicates that a type is defined for protocol-buffer serialization.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum,
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum,
         AllowMultiple = false, Inherited = true)]
     public sealed class ProtoContractAttribute : Attribute
     {
@@ -37,15 +37,9 @@ namespace ProtoBuf
         public ImplicitFields ImplicitFields { get { return implicitFields; } set { implicitFields = value; } }
         private ImplicitFields implicitFields;
 
+  
 
-        private enum TriBool : byte
-        {
-            Null = 0,
-            True,
-            False
-        }
-
-        private TriBool inferTagFromName;
+        private bool? inferTagFromName;
         /// <summary>
         /// Enables/disables automatic tag generation based on the existing name / order
         /// of the defined members. This option is not used for members marked
@@ -57,19 +51,8 @@ namespace ProtoBuf
         /// <remarks>If not specified, the default is assumed from <see cref="Serializer.GlobalOptions.InferTagFromName"/>.</remarks>
         public bool InferTagFromName
         {
-            get
-            {
-                switch (inferTagFromName)
-                {
-                    case TriBool.True:
-                        return true;
-                    case TriBool.False:
-                        return false;
-                    default:
-                        return Serializer.GlobalOptions.InferTagFromName;
-                }
-            }
-            set { inferTagFromName = value ? TriBool.True : TriBool.False; }
+            get { return inferTagFromName ?? Serializer.GlobalOptions.InferTagFromName; }
+            set { inferTagFromName = value; }
         }
 
         private int dataMemberOffset;

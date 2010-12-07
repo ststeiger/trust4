@@ -23,14 +23,19 @@ namespace Trust4
 
         public static void Main(string[] args)
         {
+#if Release
             try
             {
+#endif
                 Program.p_Manager = new Manager();
+#if Release
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                Console.ReadLine();
             }
+#endif
         }
 
         public static Manager Manager

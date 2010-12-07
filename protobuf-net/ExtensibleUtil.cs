@@ -1,9 +1,8 @@
-﻿#if !NO_GENERICS
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using ProtoBuf.Meta;
+using System.Reflection;
+using ProtoBuf.Property;
 
 namespace ProtoBuf
 {
@@ -22,12 +21,11 @@ namespace ProtoBuf
         /// </summary>
         internal static IEnumerable<TValue> GetExtendedValues<TValue>(IExtensible instance, int tag, DataFormat format, bool singleton, bool allowDefinedTag)
         {
-            throw new NotImplementedException();//TODO: NotImplementedException
-            /*if (instance == null) throw new ArgumentNullException("instance");
+            if (instance == null) throw new ArgumentNullException("instance");
             return (IEnumerable<TValue>)typeof(ExtensibleUtil)
                 .GetMethod("GetExtendedValuesTyped", BindingFlags.Public | BindingFlags.Static)
                 .MakeGenericMethod(instance.GetType(), typeof(TValue))
-                .Invoke(null, new object[] { instance, tag, format, singleton, allowDefinedTag });*/
+                .Invoke(null, new object[] { instance, tag, format, singleton, allowDefinedTag });
         }
 
         /// <summary>
@@ -42,118 +40,105 @@ namespace ProtoBuf
             TSource instance, int tag, DataFormat format, bool singleton, bool allowDefinedTag)
             where TSource : class, IExtensible
         {
-            throw new NotImplementedException();//TODO: NotImplementedException
+            if (instance == null) throw new ArgumentNullException("instance");
 
-            //if (instance == null) throw new ArgumentNullException("instance");
-
-            //if (!allowDefinedTag) { Serializer.CheckTagNotInUse(typeof(TSource),tag); }
-            //Property<TValue, TValue> prop = PropertyFactory.CreatePassThru<TValue>(tag, ref format);
-            //List<Property<TValue, TValue>> props = new List<Property<TValue, TValue>>();
-            //foreach (Property<TValue, TValue> altProp in prop.GetCompatibleReaders())
-            //{
-            //    props.Add(altProp);
-            //}
+            if (!allowDefinedTag) { Serializer<TSource>.CheckTagNotInUse(tag); }
+            Property<TValue, TValue> prop = PropertyFactory.CreatePassThru<TValue>(tag, ref format);
+            List<Property<TValue, TValue>> props = new List<Property<TValue, TValue>>();
+            foreach (Property<TValue, TValue> altProp in prop.GetCompatibleReaders())
+            {
+                props.Add(altProp);
+            }
             
 
-            //IExtension extn = instance.GetExtensionObject(false);
-            //if (extn == null) yield break;
+            IExtension extn = instance.GetExtensionObject(false);
+            if (extn == null) yield break;
 
-            //Stream stream = extn.BeginQuery();
-            //TValue lastValue = default(TValue);
-            //bool hasValue = false;
-            //try
-            //{
-            //    SerializationContext ctx = new SerializationContext(stream, null);
-            //    uint fieldPrefix;
+            Stream stream = extn.BeginQuery();
+            TValue lastValue = default(TValue);
+            bool hasValue = false;
+            try
+            {
+                SerializationContext ctx = new SerializationContext(stream, null);
+                uint fieldPrefix;
 
-            //    while (ctx.TryReadFieldPrefix(out fieldPrefix))
-            //    {
-            //        WireType a;
-            //        int b;
-            //        Serializer.ParseFieldToken(fieldPrefix, out a, out b);
+                while (ctx.TryReadFieldPrefix(out fieldPrefix))
+                {
+                    WireType a;
+                    int b;
+                    Serializer.ParseFieldToken(fieldPrefix, out a, out b);
 
-            //        Property<TValue, TValue> actProp = null;
-            //        if(fieldPrefix == prop.FieldPrefix) {
-            //            actProp = prop;
-            //        } else {
-            //            foreach (Property<TValue, TValue> x in props)
-            //            {
-            //                if (x.FieldPrefix == fieldPrefix)
-            //                {
-            //                    actProp = x;
-            //                    break;
-            //                }
-            //            }
-            //        }
+                    Property<TValue, TValue> actProp = null;
+                    if(fieldPrefix == prop.FieldPrefix) {
+                        actProp = prop;
+                    } else {
+                        foreach (Property<TValue, TValue> x in props)
+                        {
+                            if (x.FieldPrefix == fieldPrefix)
+                            {
+                                actProp = x;
+                                break;
+                            }
+                        }
+                    }
                     
-            //        if(actProp != null) {
-            //            TValue value = actProp.DeserializeImpl(lastValue, ctx);
-            //            hasValue = true;
-            //            if (singleton)
-            //            {
-            //                // merge with later values before returning
-            //                lastValue = value;
-            //            }
-            //            else
-            //            {
-            //                // return immediately; no merge
-            //                yield return value;
-            //            }
-            //        }
-            //        else
-            //        {
-            //            int readTag;
-            //            WireType wireType;
-            //            Serializer.ParseFieldToken(fieldPrefix, out wireType, out readTag);
+                    if(actProp != null) {
+                        TValue value = actProp.DeserializeImpl(lastValue, ctx);
+                        hasValue = true;
+                        if (singleton)
+                        {
+                            // merge with later values before returning
+                            lastValue = value;
+                        }
+                        else
+                        {
+                            // return immediately; no merge
+                            yield return value;
+                        }
+                    }
+                    else
+                    {
+                        int readTag;
+                        WireType wireType;
+                        Serializer.ParseFieldToken(fieldPrefix, out wireType, out readTag);
 
-            //            if (readTag == tag)
-            //            {
-            //                // we can't deserialize data of that type - for example,
-            //                // have received Fixed32 for a string, etc
-            //                throw new ProtoException(string.Format(
-            //                    "Unexpected wire-type ({0}) found for tag {1}.",
-            //                    wireType, readTag));
-            //            }
+                        if (readTag == tag)
+                        {
+                            // we can't deserialize data of that type - for example,
+                            // have received Fixed32 for a string, etc
+                            throw new ProtoException(string.Format(
+                                "Unexpected wire-type ({0}) found for tag {1}.",
+                                wireType, readTag));
+                        }
 
-            //            // skip all other tags
-            //            Serializer.SkipData(ctx, readTag, wireType);
-            //        }
-            //    }
-            //}
-            //finally
-            //{
-            //    extn.EndQuery(stream);
-            //}
+                        // skip all other tags
+                        Serializer.SkipData(ctx, readTag, wireType);
+                    }
+                }
+            }
+            finally
+            {
+                extn.EndQuery(stream);
+            }
 
-            //if (singleton && hasValue)
-            //{
-            //    yield return lastValue;
-            //}
+            if (singleton && hasValue)
+            {
+                yield return lastValue;
+            }
         }
         
-        internal static void AppendExtendValue<TValue>(TypeModel model, IExtensible instance, int tag, DataFormat format, object value)
+        /// <summary>
+        /// All this does is call AppendExtendValueTyped with the correct type for "instance";
+        /// this ensures that we don't get issues with subclasses declaring conflicting types -
+        /// the caller must respect the fields defined for the type they pass in.
+        /// </summary>
+        internal static void AppendExtendValue<TValue>(IExtensible instance, int tag, DataFormat format, object value)
         {
-            if(instance == null) throw new ArgumentNullException("instance");
-            if(value == null) throw new ArgumentNullException("value");
-
-            //TODO: CheckTagNotInUse
-            //model.CheckTagNotInUse(tag);
-
-            // obtain the extension object and prepare to write
-            IExtension extn = instance.GetExtensionObject(true);
-            if (extn == null) throw new InvalidOperationException("No extension object available; appended data would be lost.");
-            bool commit = false;
-            Stream stream = extn.BeginAppend();
-            try {
-                using(ProtoWriter writer = new ProtoWriter(stream, model)) {
-                    model.TrySerializeAuxiliaryType(writer, null, format, tag, value);
-                    writer.Close();
-                }
-                commit = true;
-            }
-            finally {
-                extn.EndAppend(stream, commit);
-            }
+            if (instance == null) throw new ArgumentNullException("instance");
+            typeof(ExtensibleUtil)
+                .GetMethod("AppendExtendValueTyped", BindingFlags.Public | BindingFlags.Static)
+                .MakeGenericMethod(instance.GetType(), typeof(TValue))
+                .Invoke(null, new object[] { instance, tag, format, value });
         }
 
         /// <summary>
@@ -162,11 +147,30 @@ namespace ProtoBuf
         /// </summary>
         /// <remarks>Needs to be public to be callable thru reflection in Silverlight</remarks>
         public static void AppendExtendValueTyped<TSource, TValue>(
-            TypeModel model, TSource instance, int tag, DataFormat format, TValue value)
+            TSource instance, int tag, DataFormat format, TValue value)
             where TSource : class, IExtensible
         {
-            AppendExtendValue<TValue>(model, instance, tag, format, value);
+            Serializer<TSource>.CheckTagNotInUse(tag);
+            Property<TValue, TValue> prop = PropertyFactory.CreatePassThru<TValue>(tag, ref format);
+
+            IExtension extn = instance.GetExtensionObject(true);
+            if (extn == null) throw new InvalidOperationException("No extension object available; appended data would be lost.");
+
+            Stream stream = extn.BeginAppend();
+            try
+            {
+                SerializationContext ctx = new SerializationContext(stream, null);
+                ctx.Push(instance); // for recursion detection
+                prop.Serialize(value, ctx);
+                ctx.Pop(instance);
+                ctx.Flush();
+                extn.EndAppend(stream, true);
+            }
+            catch
+            {
+                extn.EndAppend(stream, false);
+                throw;
+            }
         }
     }
 }
-#endif

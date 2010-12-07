@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -97,7 +97,6 @@
     <Compile Include="Authentication\Pseudonym.cs" />
     <Compile Include="UdpContact.cs" />
     <Compile Include="ByteString.cs" />
-
   </ItemGroup>
   <ItemGroup>
     <Content Include="mappings.txt">
@@ -123,13 +122,13 @@
       <Project>{8ED2362E-9295-4BED-B43B-2F907AD7741D}</Project>
       <Name>DistributedServiceProvider</Name>
     </ProjectReference>
-    <ProjectReference Include="..\protobuf-net\protobuf-net.csproj">
-      <Project>{8374E4D7-2A91-48F1-9360-09B09CF27C3F}</Project>
-      <Name>protobuf-net</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Base32Encoder\Base32Encoder.csproj">
       <Project>{510EC060-479F-4A49-86E8-A06A4D7B7AFC}</Project>
       <Name>Base32Encoder</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\protobuf-net\protobuf-net.csproj">
+      <Project>{8374E4D7-2A91-48F1-9360-09B09CF27C3F}</Project>
+      <Name>protobuf-net</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
