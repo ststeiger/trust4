@@ -9,6 +9,7 @@ glob:Base32Encoder/bin/*
 glob:ARSoft.Tools.Net/bin/*
 glob:protobuf-net/bin/*
 glob:HandyCollections/HandyCollections/bin/*
+glob:Trust4/obj/*
 glob:DistributedServiceProvider/DistributedServiceProvider/obj/*
 glob:DistributedServiceProvider/DistributedServiceProviderBase/obj/*
 glob:Base32Encoder/obj/*
