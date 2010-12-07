@@ -76,6 +76,7 @@
     <Compile Include="ContactCollection.cs" />
     <Compile Include="Contacts\ContactComparer.cs" />
     <Compile Include="Contacts\LocalContact.cs" />
+    <Compile Include="Contacts\UdpContact.cs" />
     <Compile Include="DistributedRoutingTable.cs" />
     <Compile Include="MessageConsumers\Callback.cs" />
     <Compile Include="MessageConsumers\GetClosestNodes.cs" />

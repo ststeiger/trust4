@@ -12,7 +12,7 @@ namespace DistributedServiceProvider.Contacts
     /// <summary>
     /// A contact point for a remote routing table
     /// </summary>
-    [ProtoContract]
+    [ProtoContract, ProtoInclude(3, typeof(UdpContact))]
     public abstract class Contact
         :Extensible
     {
