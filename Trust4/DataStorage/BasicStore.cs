@@ -132,7 +132,10 @@ namespace Trust4.DataStorage
                         
                         if (!token.Wait(RoutingTable.Configuration.LookupTimeout))
                             continue;
-                        
+
+                        if (token.Response == null)
+                            continue;
+
                         using (MemoryStream m = new MemoryStream(token.Response))
                         {
                             var response = Serializer.Deserialize<GetResponse>(m);
