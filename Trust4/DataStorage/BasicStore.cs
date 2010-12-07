@@ -67,7 +67,7 @@ namespace Trust4.DataStorage
 
         private void HandleRemoteGet(Contact source, MemoryStream m)
         {
-            var msg = Serializer.Deserialize<GetRequest>(m);
+            var msg = Serializer.DeserializeWithLengthPrefix<GetRequest>(m);
             
             var response = new GetResponse();
             
@@ -84,7 +84,7 @@ namespace Trust4.DataStorage
             
             using (MemoryStream mResponse = new MemoryStream())
             {
-                Serializer.Serialize<GetResponse>(mResponse, response);
+                Serializer.SerializeWithLengthPrefix<GetResponse>(mResponse, response);
                 
                 callback.SendResponse(RoutingTable.LocalContact, source, msg.CallbackId, mResponse.ToArray());
             }
@@ -122,7 +122,7 @@ namespace Trust4.DataStorage
                         {
                             m.WriteByte((byte) PacketFlag.GetRequest);
                             
-                            Serializer.Serialize<GetRequest>(m, new GetRequest {
+                            Serializer.SerializeWithLengthPrefix<GetRequest>(m, new GetRequest {
                                 Key = key,
                                 CallbackId = token.Id
                             });
@@ -138,7 +138,7 @@ namespace Trust4.DataStorage
 
                         using (MemoryStream m = new MemoryStream(token.Response))
                         {
-                            var response = Serializer.Deserialize<GetResponse>(m);
+                            var response = Serializer.DeserializeWithLengthPrefix<GetResponse>(m);
                             
                             if (response.Data == null)
                                 continue;
@@ -186,7 +186,7 @@ namespace Trust4.DataStorage
         #region put
         private void HandleRemotePut(Contact source, MemoryStream m)
         {
-            var p = Serializer.Deserialize<PutRequest>(m);
+            var p = Serializer.DeserializeWithLengthPrefix<PutRequest>(m);
             
             PutResponse.Response responseCode = PutResponse.Response.Success;
             try
@@ -202,7 +202,7 @@ namespace Trust4.DataStorage
             
             using (MemoryStream mResponse = new MemoryStream())
             {
-                Serializer.Serialize<PutResponse>(mResponse, response);
+                Serializer.SerializeWithLengthPrefix<PutResponse>(mResponse, response);
                 
                 callback.SendResponse(RoutingTable.LocalContact, source, p.CallbackId, m.ToArray());
             }
@@ -256,7 +256,7 @@ namespace Trust4.DataStorage
                         
                         try
                         {
-                            Serializer.Serialize<PutRequest>(mStream, new PutRequest(key, value, token.Id));
+                            Serializer.SerializeWithLengthPrefix<PutRequest>(mStream, new PutRequest(key, value, token.Id));
                             
                             c.Send(RoutingTable.LocalContact, ConsumerId, mStream.ToArray());
                             
@@ -265,7 +265,7 @@ namespace Trust4.DataStorage
                             
                             using (MemoryStream m = new MemoryStream(token.Response))
                             {
-                                var r = Serializer.Deserialize<PutResponse>(m);
+                                var r = Serializer.DeserializeWithLengthPrefix<PutResponse>(m);
                                 switch (r.ResponseCode)
                                 {
                                     case PutResponse.Response.Success:

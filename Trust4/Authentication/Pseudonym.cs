@@ -128,7 +128,7 @@ namespace Trust4.Authentication
                 {
                     m.WriteByte((byte)PacketFlag.Challenge);
 
-                    Serializer.Serialize<ChallengePacket>(m, new ChallengePacket() { Challenge = challenge, Callback = token.Id });
+                    Serializer.SerializeWithLengthPrefix<ChallengePacket>(m, new ChallengePacket() { Challenge = challenge, Callback = token.Id });
                     peer.Send(RoutingTable.LocalContact, id, m.ToArray());
                 }
 
@@ -140,7 +140,7 @@ namespace Trust4.Authentication
 
                 ChallengeResponse response;
                 using (MemoryStream m = new MemoryStream(token.Response))
-                    response = Serializer.Deserialize<ChallengeResponse>(m);
+                    response = Serializer.DeserializeWithLengthPrefix<ChallengeResponse>(m);
 
                 if (response.Flooded)
                     throw new FloodException(response.Backoff);
@@ -158,13 +158,13 @@ namespace Trust4.Authentication
 
         private void HandleRemoteChallenge(Contact source, Stream message)
         {
-            var p = Serializer.Deserialize<ChallengePacket>(message);
+            var p = Serializer.DeserializeWithLengthPrefix<ChallengePacket>(message);
 
             var decrypted = cryptoProvider.DecryptLargeData(p.Challenge, F_OAP);
 
             using (MemoryStream m = new MemoryStream())
             {
-                Serializer.Serialize<ChallengeResponse>(m, new ChallengeResponse()
+                Serializer.SerializeWithLengthPrefix<ChallengeResponse>(m, new ChallengeResponse()
                 {
                     Flooded = false,
                     Response = decrypted

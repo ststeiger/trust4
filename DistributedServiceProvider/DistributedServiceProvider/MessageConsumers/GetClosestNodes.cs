@@ -45,7 +45,7 @@ namespace DistributedServiceProvider.MessageConsumers
 
             using (MemoryStream mStream = new MemoryStream())
             {
-                Serializer.Serialize<RequestMessage>(mStream, request);
+                Serializer.SerializeWithLengthPrefix<RequestMessage>(mStream, request);
                 remote.Send(local, ConsumerId, mStream.ToArray());
             }
 
@@ -114,13 +114,13 @@ namespace DistributedServiceProvider.MessageConsumers
         {
             RequestMessage m;
             using (MemoryStream mStream = new MemoryStream(message))
-                m = Serializer.Deserialize<RequestMessage>(mStream);
+                m = Serializer.DeserializeWithLengthPrefix<RequestMessage>(mStream);
 
             byte[] responseBytes;
             using (MemoryStream mStream = new MemoryStream())
             {
                 ResponseMessage response = new ResponseMessage().AddRange(contacts.ClosestNodes(m.Target).Take(m.Limit));
-                Serializer.Serialize<ResponseMessage>(mStream, response);
+                Serializer.SerializeWithLengthPrefix<ResponseMessage>(mStream, response);
 
                 responseBytes = mStream.ToArray();
             }
@@ -161,7 +161,7 @@ namespace DistributedServiceProvider.MessageConsumers
         {
             using (MemoryStream mStream = new MemoryStream(response))
             {
-                return Serializer.Deserialize<ResponseMessage>(mStream);
+                return Serializer.DeserializeWithLengthPrefix<ResponseMessage>(mStream);
             }
         }
 
