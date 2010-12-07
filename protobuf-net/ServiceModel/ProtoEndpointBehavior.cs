@@ -1,4 +1,4 @@
-﻿#if FEAT_SERVICEMODEL
+﻿#if NET_3_0 && !SILVERLIGHT
 using System.ServiceModel.Description;
 
 namespace ProtoBuf.ServiceModel
@@ -57,7 +57,7 @@ namespace ProtoBuf.ServiceModel
 
         private static void ReplaceDataContractSerializerOperationBehavior(ServiceEndpoint serviceEndpoint)
         {
-            foreach (OperationDescription operationDescription in serviceEndpoint.Contract.Operations)
+            foreach (var operationDescription in serviceEndpoint.Contract.Operations)
             {
                 ReplaceDataContractSerializerOperationBehavior(operationDescription);
             }

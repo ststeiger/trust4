@@ -14,18 +14,17 @@ namespace ProtoBuf
         /// </summary>
         public int Value
         {
-            get { return enumValue; }
-            set { this.enumValue = value; hasValue = true; }
+            get { return enumValue.GetValueOrDefault(); }
+            set {this.enumValue = value; }
         }
 
         /// <summary>
         /// Indicates whether this instance has a customised value mapping
         /// </summary>
         /// <returns>true if a specific value is set</returns>
-        public bool HasValue() { return hasValue; }
-
-        private bool hasValue;
-        private int enumValue;
+        public bool HasValue() { return enumValue.HasValue; }
+        
+        private int? enumValue;
 
         /// <summary>
         /// Gets or sets the defined name of the enum, as used in .proto

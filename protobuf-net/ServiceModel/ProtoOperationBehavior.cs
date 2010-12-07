@@ -1,8 +1,9 @@
-﻿#if FEAT_SERVICEMODEL
+﻿#if NET_3_0 && !SILVERLIGHT
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.ServiceModel.Description;
+using ProtoBuf.Property;
 
 namespace ProtoBuf.ServiceModel
 {
