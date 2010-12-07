@@ -7,3 +7,7 @@ glob:DistributedServiceProvider/DistributedServiceProvider/bin/*
 glob:DistributedServiceProvider/DistributedServiceProviderBase/bin/*
 glob:protobuf-net/bin/*
 glob:HandyCollections/HandyCollections/bin/*
+glob:DistributedServiceProvider/DistributedServiceProvider/obj/*
+glob:DistributedServiceProvider/DistributedServiceProviderBase/obj/*
+glob:protobuf-net/obj/*
+glob:HandyCollections/HandyCollections/obj/*
