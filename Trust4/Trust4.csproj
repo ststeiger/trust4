@@ -95,7 +95,6 @@
     <Compile Include="DnsSerializer.cs" />
     <Compile Include="DataStorage\MultiRecordStore.cs" />
     <Compile Include="Authentication\Pseudonym.cs" />
-    <Compile Include="UdpContact.cs" />
     <Compile Include="ByteString.cs" />
   </ItemGroup>
   <ItemGroup>
