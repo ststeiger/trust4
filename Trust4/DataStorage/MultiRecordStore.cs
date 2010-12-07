@@ -79,7 +79,7 @@ namespace Trust4.DataStorage
                 if (value != null)
                 {
                     Console.WriteLine("================ STORE ===================");
-                    Console.WriteLine(ByteString.GetString(value));
+                Console.WriteLine(value == null ? "Null" : ByteString.GetString(value));
                     Console.WriteLine("============ END STORE ===================");
                 }
             }
