@@ -3,6 +3,7 @@ glob:*.pidb
 glob:*.suo
 glob:Testcase/*
 glob:Trust4/bin/*
+glob:*.csproj.user
 glob:DistributedServiceProvider/DistributedServiceProvider/bin/*
 glob:DistributedServiceProvider/DistributedServiceProviderBase/bin/*
 glob:Base32Encoder/bin/*
