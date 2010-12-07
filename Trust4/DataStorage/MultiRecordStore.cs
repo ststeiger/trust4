@@ -77,7 +77,7 @@ namespace Trust4.DataStorage
                 base.Put(key, value);
 
                 Console.WriteLine("================ STORE ===================");
-                Console.WriteLine(ByteString.GetString(value));
+                Console.WriteLine(value == null ? "Null" : ByteString.GetString(value));
                 Console.WriteLine("============ END STORE ===================");
             }
             catch (KeyCollisionException)
