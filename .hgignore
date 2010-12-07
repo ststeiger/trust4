@@ -5,3 +5,4 @@ glob:Testcase/*
 glob:Trust4/bin/*
 glob:Daylight/bin/*
 glob:Daylight/obj/*
+glob:Base32Encoder/bin/*
