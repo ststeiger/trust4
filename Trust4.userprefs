@@ -3,13 +3,12 @@
   <MonoDevelop.Ide.DebuggingService>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService>
-  <MonoDevelop.Ide.Workbench ActiveDocument="Trust4/DnsProcess.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Trust4/Mappings.cs">
     <Files>
       <File FileName="Trust4/Program.cs" Line="26" Column="13" />
       <File FileName="Trust4/Mappings.cs" Line="305" Column="1" />
       <File FileName="Trust4/DnsProcess.cs" Line="223" Column="26" />
-      <File FileName="Trust4/settings.txt" Line="15" Column="1" />
-      <File FileName="Trust4/DataStorage/MultiRecordStore.cs" Line="30" Column="48" />
+      <File FileName="Trust4/settings.txt" Line="14" Column="1" />
       <File FileName="Trust4/mappings.txt" Line="1" Column="1" />
       <File FileName="Trust4/peers.txt" Line="1" Column="1" />
     </Files>
@@ -21,9 +20,7 @@
           </Node>
           <Node name="Trust4" expanded="True">
             <Node name="References" expanded="True" />
-            <Node name="Authentication" expanded="True" />
-            <Node name="DataStorage" expanded="True" />
-            <Node name="DnsProcess.cs" selected="True" />
+            <Node name="Mappings.cs" selected="True" />
           </Node>
         </State>
       </Pad>

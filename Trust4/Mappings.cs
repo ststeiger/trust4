@@ -326,32 +326,18 @@ namespace Trust4
                 answer = newanswer;
             }
 
-            Console.WriteLine(keydomain);
-
             // Add that CNAME record to the DHT.
             ID questionid = ID.Hash(DnsSerializer.ToStore(question));
-            this.m_Manager.KademliaDHT.Put(questionid.ToString(), DnsSerializer.ToStore(keyanswer));
+            this.m_Manager.KademliaNode.Put(questionid, DnsSerializer.ToStore(keyanswer));
             
             // Now create a CNAME question that will be asked after looking up the original domain.
             DnsQuestion keyquestion = new DnsQuestion(keydomain, RecordType.CName, RecordClass.INet);
             
             // Add the original answer to the DHT, but encrypt it using our private key.
             ID keyquestionid = ID.Hash(DnsSerializer.ToStore(keyquestion));
-            this.m_Manager.KademliaDHT.Put(
-                keyquestionid.ToString(),
+            this.m_Manager.KademliaNode.Put(
+                keyquestionid,
                 ByteString.GetString(
-                    Mappings.Sign(
-                        new EncryptorPair(guids),
-                        ByteString.GetBytes(
-                            DnsSerializer.ToStore(
-                                answer
-                                )
-                            )
-                        )
-                    )
-                );
-            Console.WriteLine(
-                ByteString.GetBase32String(
                     Mappings.Sign(
                         new EncryptorPair(guids),
                         ByteString.GetBytes(
@@ -378,7 +364,7 @@ namespace Trust4
         {
             // Add the record to the DHT.
             ID questionid = ID.Hash(DnsSerializer.ToStore(question));
-            this.m_Manager.KademliaDHT.Put(questionid.ToString(), DnsSerializer.ToStore(answer));
+            this.m_Manager.KademliaNode.Put(questionid, DnsSerializer.ToStore(answer));
             
             // Add the domain to our cache.
             this.p_Domains.Add(new DomainMap(question, answer));
@@ -452,57 +438,85 @@ namespace Trust4
                                 target = s[2].Trim();
                                 publicguid = s[3].Trim();
                                 privateguid = s[4].Trim();
-                                Console.Write("Mapping (" + type.ToUpperInvariant() + ") " + domain + " to " + target + "... ");
-                                IPAddress o = IPAddress.None;
-                                IPAddress.TryParse(target, out o);
-                                this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new ARecord(domain, 3600, o), new EncryptionGuids(publicguid, privateguid));
-                                Console.WriteLine("done.");
+                                try
+                                {
+                                    IPAddress o = IPAddress.None;
+                                    IPAddress.TryParse(target, out o);
+                                    this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new ARecord(domain, 3600, o), new EncryptionGuids(publicguid, privateguid));
+                                    Console.WriteLine("MAPPING SUCCESS: (" + type.ToUpperInvariant() + ") " + domain + " -> " + target + ".");
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine("MAPPING FAILURE: (" + type.ToUpperInvariant() + ") " + domain + " -> " + target + ".");
+                                    Console.WriteLine(e.ToString());
+                                }
                                 break;
                             case "CNAME":
                                 domain = s[1].Trim();
                                 target = s[2].Trim();
                                 publicguid = s[3].Trim();
                                 privateguid = s[4].Trim();
-                                Console.Write("Mapping (" + type.ToUpperInvariant() + ") " + domain + " to " + target + "... ");
-                                this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new CNameRecord(domain, 3600, target), new EncryptionGuids(publicguid, privateguid));
-                                Console.WriteLine("done.");
+                                try
+                                {
+                                    this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new CNameRecord(domain, 3600, target), new EncryptionGuids(publicguid, privateguid));
+                                    Console.WriteLine("MAPPING SUCCESS: (" + type.ToUpperInvariant() + ") " + domain + " -> " + target + ".");
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine("MAPPING FAILURE: (" + type.ToUpperInvariant() + ") " + domain + " -> " + target + ".");
+                                    Console.WriteLine(e.ToString());
+                                }
                                 break;
                             case "MX":
                                 priority = s[1].Trim();
                                 domain = s[2].Trim();
                                 target = s[3].Trim();
-                                Console.Write("Mapping (" + type.ToUpperInvariant() + ") " + domain + " to " + target + " with priority " + priority + "... ");
-                                
-                                // Get the target domain.
-                                tdomain = this.GetPublicCNAME(target);
-                                if (tdomain == null)
+                                try
                                 {
-                                    Console.WriteLine("failed.");
-                                    Console.WriteLine("A record must exist for domain target when MX record reached.  " + "Place the A record earlier in your mappings file or add it if needed.  " + "The MX record will be ignored.");
-                                    break;
+                                    // Get the target domain.
+                                    tdomain = this.GetPublicCNAME(target);
+                                    if (tdomain == null)
+                                    {
+                                        Console.WriteLine("MAPPING FAILURE: (" + type.ToUpperInvariant() + ") " + domain + " -> " + target + " with priority " + priority + ".");
+                                        Console.WriteLine("MAPPING FAILURE: A record must exist for domain target when MX record reached.  " + "Place the A record earlier in your mappings file or add it if needed.  " + "The MX record will be ignored.");
+                                        break;
+                                    }
+                                    this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new MxRecord(domain, 3600, Convert.ToUInt16(priority), tdomain));
+                                    Console.WriteLine("MAPPING SUCCESS: (" + type.ToUpperInvariant() + ") " + domain + " -> " + target + " with priority " + priority + ".");
                                 }
-
-                                
-                                this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new MxRecord(domain, 3600, Convert.ToUInt16(priority), tdomain));
-                                Console.WriteLine("done.");
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine("MAPPING FAILURE: (" + type.ToUpperInvariant() + ") " + domain + " -> " + target + " with priority " + priority + ".");
+                                    Console.WriteLine(e.ToString());
+                                }
                                 break;
                             case "NS":
                                 domain = s[1].Trim();
                                 target = s[2].Trim();
                                 publicguid = s[3].Trim();
                                 privateguid = s[4].Trim();
-                                Console.Write("Mapping (" + type.ToUpperInvariant() + ") " + domain + " to " + target + "... ");
+
+                                try
+                                {
+                                    this.Add(new DnsQuestion(domain, RecordType.A, RecordClass.INet), new CNameRecord(domain, 3600, target), new EncryptionGuids(publicguid, privateguid));
+                                    Console.WriteLine("MAPPING SUCCESS: (" + type.ToUpperInvariant() + ") " + domain + " -> " + target + ".");
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine("MAPPING FAILURE: (" + type.ToUpperInvariant() + ") " + domain + " -> " + target + ".");
+                                    Console.WriteLine(e.ToString());
+                                }
+
                                 this.Add(new DnsQuestion(domain, RecordType.Ns, RecordClass.INet), new NsRecord(domain, 3600, target), new EncryptionGuids(publicguid, privateguid), true);
-                                Console.WriteLine("done.");
                                 break;
                             default:
-                                Console.WriteLine("failed.");
+                                Console.WriteLine("MAPPING FAILURE: Unknown record type " + type.ToUpperInvariant() + ".");
                                 break;
                         }
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("failed.");
+                        Console.WriteLine("MAPPING FAILURE: Failed to parse mappings.txt file.");
                         Console.WriteLine(e.ToString());
                     }
                 }
