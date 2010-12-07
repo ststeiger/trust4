@@ -1,0 +1,44 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService>
+  <MonoDevelop.Ide.Workbench ActiveDocument="Trust4/DnsProcess.cs">
+    <Files>
+      <File FileName="Trust4/Program.cs" Line="26" Column="13" />
+      <File FileName="Trust4/Mappings.cs" Line="305" Column="1" />
+      <File FileName="Trust4/DnsProcess.cs" Line="223" Column="26" />
+      <File FileName="Trust4/settings.txt" Line="15" Column="1" />
+      <File FileName="Trust4/DataStorage/MultiRecordStore.cs" Line="30" Column="48" />
+      <File FileName="Trust4/mappings.txt" Line="1" Column="1" />
+      <File FileName="Trust4/peers.txt" Line="1" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State expanded="True">
+          <Node name="ARSoft.Tools.Net" expanded="True">
+            <Node name="Dns" expanded="True" />
+          </Node>
+          <Node name="Trust4" expanded="True">
+            <Node name="References" expanded="True" />
+            <Node name="Authentication" expanded="True" />
+            <Node name="DataStorage" expanded="True" />
+            <Node name="DnsProcess.cs" selected="True" />
+          </Node>
+        </State>
+      </Pad>
+      <Pad Id="ClassPad">
+        <State expanded="True" selected="True" />
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches>
+    <Watch file="ARSoft.Tools.Net/Dns/DnsServer.cs" line="166" offsetX="867" offsetY="1952" expression="query" liveUpdate="False" />
+    <Watch file="ARSoft.Tools.Net/Dns/DnsServer.cs" line="154" offsetX="643" offsetY="1760" expression="ar" liveUpdate="False" />
+    <Watch file="ARSoft.Tools.Net/Dns/DnsServer.cs" line="152" offsetX="699" offsetY="1728" expression="endpoint" liveUpdate="False" />
+    <Watch file="Trust4/DnsProcess.cs" line="63" offsetX="843" offsetY="848" expression="results" liveUpdate="False" />
+  </MonoDevelop.Ide.DebuggingService.PinnedWatches>
+</Properties>
