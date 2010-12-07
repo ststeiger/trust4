@@ -19,6 +19,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using DistributedServiceProvider.Base;
+using System.Collections.Generic;
 
 namespace Trust4
 {
@@ -106,10 +107,7 @@ namespace Trust4
                         break;
                     case "localip":
                         if (line[1].Equals("dynamic", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            WebClient c = new WebClient();
-                            this.p_LocalIP = IPAddress.Parse(c.DownloadString("http://www.whatismyip.com/automation/n09230945.asp"));
-                        }
+                            this.p_LocalIP = LoadDynamicIp();
                         else
                             this.p_LocalIP = IPAddress.Parse(line[1]);
                         Console.Title = this.p_LocalIP.ToString();
@@ -144,6 +142,37 @@ namespace Trust4
             {
                 Console.WriteLine("Warning!  You didn't set the 'uid' and 'gid' options in settings.txt.  This is probably not going to work as you expect!");
             }
+        }
+
+        readonly static Random r = new Random();
+        readonly static KeyValuePair<string, Func<string, IPAddress>>[] dynamicIpSources = new KeyValuePair<string, Func<string, IPAddress>>[]
+            {
+                new KeyValuePair<string, Func<string, IPAddress>>("http://www.whatismyip.com/automation/n09230945.asp", (s) => IPAddress.Parse(s)),
+                new KeyValuePair<string, Func<string, IPAddress>>("http://www.lusion.co.za/ip", (s) => IPAddress.Parse(s)),
+            };
+
+        private IPAddress LoadDynamicIp()
+        {
+            int start;
+            lock (r) { start = r.Next(dynamicIpSources.Length);}
+
+            WebClient c = new WebClient();
+            for (int i = 0; i < dynamicIpSources.Length; i++)
+            {
+                try
+                {
+                    int index = (i + start) % dynamicIpSources.Length;
+
+                    var source = dynamicIpSources[index];
+
+                    var downloadedString = c.DownloadString(source.Key);
+
+                    return source.Value(downloadedString);
+                }
+                catch (Exception e) { Console.WriteLine("Error establishing external IP: " + e.Message); }
+            }
+
+            throw new InvalidOperationException("No sites successfully established an external IP");
         }
 
         private RSACryptoServiceProvider LoadRsaKey(int keySize, bool forceNewKey)

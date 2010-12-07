@@ -200,6 +200,7 @@ namespace DistributedServiceProvider.Contacts
                                         break;
                                     case PacketFlag.Data:
                                         ParseData(r);
+                                        break;
                                 }
                             }
                         }
@@ -312,7 +313,7 @@ namespace DistributedServiceProvider.Contacts
             localTable.DeliverPing(c);
             
             var callback = localTable.GetConsumer<Callback>(Callback.CONSUMER_ID);
-            callback.SendResponse(localTable.LocalContact, c, tokenId, new byte[] {
+            callback.SendResponse(localTable.LocalContact, c, tokenId, new byte[] { 1, 3, 3, 7 });
         }
 
         private static void ParseData(BinaryReader reader)
