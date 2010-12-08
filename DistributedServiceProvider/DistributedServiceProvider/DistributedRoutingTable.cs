@@ -7,7 +7,7 @@ using DistributedServiceProvider.Base;
 using DistributedServiceProvider.Base.Extensions;
 using HandyCollections.Heap;
 using DistributedServiceProvider.MessageConsumers;
-using LoggerMessages;
+//using LoggerMessages;
 using DistributedServiceProvider.Contacts;
 using System.Reflection;
 

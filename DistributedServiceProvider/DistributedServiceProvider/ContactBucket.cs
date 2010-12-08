@@ -106,7 +106,7 @@ namespace DistributedServiceProvider
                 contactsLock.EnterWriteLock();
 
                 //remove least recently used nodes which do not respond to ping
-                ISet<Contact> dead = new HashSet<Contact>(
+                HashSet<Contact> dead = new HashSet<Contact>(
                     contactsQueue                               //enumeration from least->most recently used
                     .Where(a => a.Ping(LocalContact, Configuration.PingTimeout) == TimeSpan.MaxValue)  //select dead nodes
                     .Take(-RemainingSpace));                    //take only as many as we need
