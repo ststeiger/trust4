@@ -211,6 +211,7 @@ namespace DistributedServiceProvider.Contacts
                     catch (SocketException)
                     {
                         // This can fail, I think it's safe to ignore however.
+                        Console.WriteLine("Swallowing a socket exception in UdpContact");
                     }
                 }
             });
