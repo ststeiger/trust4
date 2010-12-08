@@ -80,12 +80,10 @@ namespace Data4
         public IList<Entry> Get(ID key)
         {
             ConcurrentBag<Entry> entries = new ConcurrentBag<Entry>();
-            ConcurrentDictionary<Contact, bool> done = new ConcurrentDictionary<Contact, bool>();
             List<Thread> threads = new List<Thread>();
             foreach (Contact c in this.p_Contacts)
             {
-                Thread t;
-                ThreadStart ts = delegate()
+                Thread t = new Thread(delegate()
                 {
                     try
                     {
@@ -113,27 +111,24 @@ namespace Data4
                         }
                         else
                             Console.WriteLine("The node did not return in time.");
-
-                        Thread.MemoryBarrier();
-                        done[c] = true;
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e);
                     }
-                };
-                t = new Thread(ts);
-                done[c] = false;
-                t.IsBackground = true;
+                }
+                );
+                threads.Add(t);
+                t.IsBackground = false;
                 t.Start();
             }
 
             while (true)
             {
                 bool stopped = true;
-                foreach (Contact c in this.p_Contacts)
+                foreach (Thread t in threads)
                 {
-                    if (!done[c])
+                    if (t.ThreadState != ThreadState.Stopped)
                         stopped = false;
                 }
                 if (stopped)
