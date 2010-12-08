@@ -16,6 +16,8 @@ namespace DistributedServiceProvider.Contacts
     public abstract class Contact
         :Extensible
     {
+        protected const int NEXT_PROTO_TAG = 3;
+
         /// <summary>
         /// The identifier of the remote routing table
         /// </summary>
