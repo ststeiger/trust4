@@ -79,10 +79,6 @@ namespace DistributedServiceProvider
             //Register internal consumers
             RegisterConsumer(MessageCallback = new Callback());
             RegisterConsumer(getClosest = new GetClosestNodes(contacts, MessageCallback));
-
-#if DEBUG
-            new DRTConstructed(localIdentifier, networkId, configuration).Send();
-#endif
         }
         #endregion
 

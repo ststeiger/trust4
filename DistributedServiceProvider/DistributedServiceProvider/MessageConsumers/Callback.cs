@@ -16,7 +16,7 @@ namespace DistributedServiceProvider.MessageConsumers
     /// Manages collecting responses to messages
     /// </summary>
     public class Callback
-        :MessageConsumer
+        : MessageConsumer
     {
         public const string GUID_STRING = "96de743d-8ec0-451e-a2a3-bb915af1095e";
         public static readonly Guid CONSUMER_ID = new Guid(GUID_STRING);
@@ -34,7 +34,7 @@ namespace DistributedServiceProvider.MessageConsumers
         /// </summary>
         /// <param name="networkId">The network id.</param>
         public Callback()
-            :base(CONSUMER_ID)
+            : base(CONSUMER_ID)
         {
             Serializer.PrepareSerializer<Response>();
         }
@@ -53,6 +53,7 @@ namespace DistributedServiceProvider.MessageConsumers
                 WaitToken token;
                 if (tokens.TryRemove(r.CallbackId, out token))
                 {
+                    token.Source = source;
                     token.Response = r.ResponseBytes;
                 }
                 else if (r.CallbackId > nextId)
@@ -133,7 +134,15 @@ namespace DistributedServiceProvider.MessageConsumers
             private bool responseSet = false;
             private byte[] response = null;
 
-
+            /// <summary>
+            /// Gets or sets the source of the reply to this token
+            /// </summary>
+            /// <value>The source.</value>
+            public Contact Source
+            {
+                get;
+                internal set;
+            }
 
             /// <summary>
             /// Gets or sets the response.

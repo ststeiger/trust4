@@ -194,7 +194,7 @@ namespace DistributedServiceProvider.Base
             if (b.Length * 8 < BIT_LENGTH)
                 throw new Exception("Length of array should be " + BIT_LENGTH  + " bits or more");
 
-            return new Identifier512(b.Take(BIT_LENGTH));
+            return new Identifier512(b.Take(BIT_LENGTH / 8));
         }
 
         private static readonly Random random = new Random();
@@ -448,6 +448,17 @@ namespace DistributedServiceProvider.Base
             bytes.CopyTo(b, 0);
 
             return new Identifier512(b);
+        }
+
+        public static Identifier512 CreateKey(RSACryptoServiceProvider CryptoProvider)
+        {
+            byte[] bytes = CryptoProvider.ExportParameters(false).Modulus;
+
+            List<byte> keyBytes = new List<byte>();
+            while (keyBytes.Count * 8 < BIT_LENGTH)
+                keyBytes.AddRange(bytes);
+
+            return new Identifier512(keyBytes.Take(BIT_LENGTH / 8));
         }
     }
 }

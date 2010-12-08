@@ -6,7 +6,6 @@ using DistributedServiceProvider.Base;
 using ProtoBuf;
 using System.IO;
 using DistributedServiceProvider.Contacts;
-using LoggerMessages;
 using HandyCollections.Heap;
 
 namespace DistributedServiceProvider.MessageConsumers
@@ -66,19 +65,10 @@ namespace DistributedServiceProvider.MessageConsumers
         /// <returns>an IEnumerable&lt;contact&gt; in order of distance from the target. Can be cast into a GetClosestNodes.ClosestResults</contact></returns>
         public IEnumerable<Contact> GetClosestContacts(Identifier512 target, Func<Contact, bool> terminate = null)
         {
-#if DEBUG
-            Guid lookupId = Guid.NewGuid();
-            new IterativeLookupRequest(lookupId, RoutingTable.LocalIdentifier, RoutingTable.NetworkId, RoutingTable.Configuration, target, RoutingTable.Configuration.LookupConcurrency).Send();
-#endif
-
             MinMaxHeap<Contact> heap = new MinMaxHeap<Contact>(new ContactComparer(target), contacts.ClosestNodes(target).Take(RoutingTable.Configuration.LookupConcurrency));
 
             HashSet<Identifier512> contacted = new HashSet<Identifier512>();
             contacted.Add(RoutingTable.LocalIdentifier);
-
-#if DEBUG
-            new IterativeLookupStep(lookupId, heap.Select(a => a.Identifier), contacted).Send();
-#endif
 
             int iterations = 0;
             HashSet<Contact> uniqueDiscoveries;
@@ -106,10 +96,6 @@ namespace DistributedServiceProvider.MessageConsumers
 
                 //add the new results
                 heap.AddMany(uniqueDiscoveries);
-
-#if DEBUG
-                new IterativeLookupStep(lookupId, heap.Select(a => a.Identifier), contacted).Send();
-#endif
 
                 while (heap.Count > RoutingTable.Configuration.LookupConcurrency)
                     heap.RemoveMax();
