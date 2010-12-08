@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ARSoft.Tools.Net", "ARSoft.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Base32Encoder", "Base32Encoder\Base32Encoder.csproj", "{510EC060-479F-4A49-86E8-A06A4D7B7AFC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daylight", "Daylight\Daylight.csproj", "{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,16 +18,6 @@ Global
 		Silverlight2|Any CPU = Silverlight2|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Net20|Any CPU.ActiveCfg = Debug|Any CPU
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Net20|Any CPU.Build.0 = Debug|Any CPU
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Profile|Any CPU.ActiveCfg = Debug|Any CPU
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Profile|Any CPU.Build.0 = Debug|Any CPU
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Silverlight2|Any CPU.ActiveCfg = Debug|Any CPU
-		{07C0CD14-D301-44B4-8B1A-7FD5D68F03CB}.Silverlight2|Any CPU.Build.0 = Debug|Any CPU
 		{23FAC2A4-FC90-4C01-B8C0-613D99D74E52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{23FAC2A4-FC90-4C01-B8C0-613D99D74E52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23FAC2A4-FC90-4C01-B8C0-613D99D74E52}.Net20|Any CPU.ActiveCfg = Release|Any CPU
