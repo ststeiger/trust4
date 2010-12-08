@@ -7,6 +7,7 @@ using DistributedServiceProvider.Base;
 using DistributedServiceProvider.Base.Extensions;
 using HandyCollections.Heap;
 using DistributedServiceProvider.MessageConsumers;
+//using LoggerMessages;
 using DistributedServiceProvider.Contacts;
 using System.Reflection;
 
@@ -78,6 +79,10 @@ namespace DistributedServiceProvider
             //Register internal consumers
             RegisterConsumer(MessageCallback = new Callback());
             RegisterConsumer(getClosest = new GetClosestNodes(contacts, MessageCallback));
+
+#if DEBUG
+            new DRTConstructed(localIdentifier, networkId, configuration).Send();
+#endif
         }
         #endregion
 
@@ -105,7 +110,7 @@ namespace DistributedServiceProvider
             }
 
             //Lookup selfto populate local buckets
-            GetConsumer<GetClosestNodes>(GetClosestNodes.GUID).GetClosestContacts(LocalIdentifier, null).ForEach((c) => { contacts.Update(c); });
+            GetConsumer<GetClosestNodes>(GetClosestNodes.GUID).GetClosestContacts(LocalIdentifier).ForEach((c) => { contacts.Update(c); });
 
             contacts.RefreshFarBuckets(true);
         }
@@ -138,11 +143,10 @@ namespace DistributedServiceProvider
 
         private void AutoLink(MessageConsumer consumer)
         {
-            var type = consumer.GetType();
-            var fields = type.GetFields();
-
-            foreach (var field in
-                fields
+            foreach (var field in 
+                consumer
+                .GetType()
+                .GetFields()
                 .Where(a => a.GetCustomAttributes(true).Any(b => b.GetType().IsAssignableFrom(typeof(LinkedConsumerAttribute))))
                 .Select(a => new KeyValuePair<LinkedConsumerAttribute, FieldInfo>((a.GetCustomAttributes(true).Where(b => b.GetType() == typeof(LinkedConsumerAttribute)).First() as LinkedConsumerAttribute), a)))
             {
@@ -242,8 +246,6 @@ namespace DistributedServiceProvider
         {
             if (c == null)
                 return;
-
-            Console.WriteLine("Ping from " + c);
 
             contacts.Update(c);
         }

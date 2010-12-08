@@ -48,21 +48,17 @@ namespace DistributedServiceProvider.MessageConsumers
         {
             using (MemoryStream m = new MemoryStream(message))
             {
-                Response r = Serializer.DeserializeWithLengthPrefix<Response>(m);
+                Response r = Serializer.DeserializeWithLengthPrefix<Response>(m, PrefixStyle.Base128);
 
                 WaitToken token;
-                //if (tokens.TryGetValue(r.CallbackId, out token))
                 if (tokens.TryRemove(r.CallbackId, out token))
                 {
                     token.Response = r.ResponseBytes;
-                    token.Source = source;
                 }
                 else if (r.CallbackId > nextId)
                 {
-                    throw new Exception("Token not found, no such token has ever existed");
+                    throw new Exception("Token not found");
                 }
-                else
-                    throw new Exception("Token not found, token has been freed");
             }
         }
 
@@ -77,7 +73,7 @@ namespace DistributedServiceProvider.MessageConsumers
         {
             using (MemoryStream m = new MemoryStream())
             {
-                Serializer.SerializeWithLengthPrefix<Response>(m, new Response(callbackId, responseBytes));
+                Serializer.SerializeWithLengthPrefix<Response>(m, new Response(callbackId, responseBytes), PrefixStyle.Base128);
                 target.Send(local, ConsumerId, m.ToArray());
             }
         }
@@ -136,40 +132,8 @@ namespace DistributedServiceProvider.MessageConsumers
             private ReaderWriterLockSlim responseLock = new ReaderWriterLockSlim();
             private bool responseSet = false;
             private byte[] response = null;
-            private Contact source;
 
-            public Contact Source
-            {
-                get
-                {
-                    try
-                    {
-                        responseLock.EnterReadLock();
 
-                        if (responseSet)
-                            return source;
-                        else
-                            throw new InvalidOperationException("Cannot get response before it has arrived");
-                    }
-                    finally
-                    {
-                        responseLock.ExitReadLock();
-                    }
-                }
-                set
-                {
-                    try
-                    {
-                        responseLock.EnterWriteLock();
-
-                        source = value;
-                    }
-                    finally
-                    {
-                        responseLock.ExitWriteLock();
-                    }
-                }
-            }
 
             /// <summary>
             /// Gets or sets the response.

@@ -5,9 +5,9 @@ using System.Text;
 using DistributedServiceProvider.Base;
 using System.Diagnostics;
 using ProtoBuf;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 
 namespace DistributedServiceProvider.Contacts
 {
@@ -40,7 +40,7 @@ namespace DistributedServiceProvider.Contacts
         }
 
 
-        public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel)
+        public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable = true, bool ordered = true, int channel = 1)
         {
             table.Deliver(source, consumerId, message);
         }
