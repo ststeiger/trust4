@@ -14,15 +14,28 @@
 //    limitations under the License.
 
 using System;
-using Data4;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
+using Data4;
 
 namespace Data4.Tests
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
+        {
+            bool result = true;
+
+            if (result)
+                result = Program.DoMessageTest();
+            if (result)
+                result = Program.DoStorageTest();
+
+            return (result == true) ? 0 : 1;
+        }
+
+        public static bool DoMessageTest()
         {
             ID guid1 = ID.NewRandom();
             ID guid2 = ID.NewRandom();
@@ -77,17 +90,65 @@ namespace Data4.Tests
                 wait += 100;
                 Thread.Sleep(100);
             }
-
-            if (all1 && all2)
-                Console.WriteLine("PASS: All messages were delivered successfully.");
-            else
-            {
-                Console.WriteLine("FAIL: " + count1 + " / 5 messages delivered for the first DHT.");
-                Console.WriteLine("    : " + count2 + " / 5 messages delivered for the second DHT.");
-            }
-
+            
             dht1.Close();
             dht2.Close();
+
+            if (all1 && all2)
+            {
+                Console.WriteLine("PASS: All messages were delivered successfully.");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("FAIL: " + count1 + " / 5 messages delivered for the first node.");
+                Console.WriteLine("    : " + count2 + " / 5 messages delivered for the second node.");
+                return false;
+            }
+        }
+
+        public static bool DoStorageTest()
+        {
+            ID guid1 = ID.NewRandom();
+            ID guid2 = ID.NewRandom();
+            Dht dht1 = new Dht(guid1, new IPEndPoint(IPAddress.Loopback, 12000));
+            Dht dht2 = new Dht(guid2, new IPEndPoint(IPAddress.Loopback, 13000));
+            //dht1.Debug = true;
+            //dht2.Debug = true;
+
+            dht1.Contacts.Add(dht2.Self);
+            dht2.Contacts.Add(dht1.Self);
+
+            // Add some data to node 1.
+            ID id = ID.NewRandom();
+            dht1.Put(id, "storage test 1");
+            dht1.Put(id, "storage test 2");
+
+            // Retrieve the data via node 2.
+            int count1 = 0;
+            int count2 = 0;
+            IList<Entry> entries = dht2.Get(id);
+            foreach (Entry e in entries)
+            {
+                if (e.Value == "storage test 1")
+                    count1 += 1;
+                if (e.Value == "storage test 2")
+                    count2 += 2;
+                Console.WriteLine(e.Owner + " gave '" + e.Value + "'.");
+            }
+
+            if (count1 == 1 && count2 == 1)
+            {
+                Console.WriteLine("PASS: All storage tests were stored and retrieved successfully.");
+                return true;
+            }
+
+            else
+            {
+                Console.WriteLine("FAIL: Storage test 1 exists " + count1 + " times in the DHT.");
+                Console.WriteLine("    : Storage test 2 exists " + count2 + " times in the DHT.");
+                return false;
+            }
         }
     }
 }

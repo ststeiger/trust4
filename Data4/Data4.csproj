@@ -32,6 +32,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Threading, Version=1.0.2787.102, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Assemblies\System.Threading.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
@@ -44,6 +48,8 @@
     <Compile Include="Messages\ConfirmationMessage.cs" />
     <Compile Include="Entry.cs" />
     <Compile Include="ID.cs" />
+    <Compile Include="Messages\FetchMessage.cs" />
+    <Compile Include="Messages\FetchConfirmationMessage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

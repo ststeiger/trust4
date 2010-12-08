@@ -48,6 +48,56 @@ namespace Data4
             return new ID(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
         }
 
+        public static bool operator ==(ID a, ID b)
+        {
+            if (object.ReferenceEquals(a, b))
+                return true;
+            if (object.ReferenceEquals(a, null))
+                return false;
+            if (object.ReferenceEquals(b, null))
+                return false;
+
+            if (a.m_Bytes.Length != b.m_Bytes.Length)
+                return false;
+
+            bool same = true;
+            for (int i = 0; i < a.m_Bytes.Length; i += 1)
+            {
+                if (a.m_Bytes[i] != b.m_Bytes[i])
+                {
+                    same = false;
+                    break;
+                }
+            }
+
+            return same;
+        }
+
+        public static bool operator !=(ID a, ID b)
+        {
+            if (object.ReferenceEquals(a, b))
+                return false;
+            if (object.ReferenceEquals(a, null))
+                return true;
+            if (object.ReferenceEquals(b, null))
+                return true;
+
+            if (a.m_Bytes.Length != b.m_Bytes.Length)
+                return true;
+
+            bool same = true;
+            for (int i = 0; i < a.m_Bytes.Length; i += 1)
+            {
+                if (a.m_Bytes[i] != b.m_Bytes[i])
+                {
+                    same = false;
+                    break;
+                }
+            }
+
+            return !same;
+        }
+
         public override string ToString()
         {
             if (this.m_Bytes == null)
