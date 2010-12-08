@@ -25,6 +25,8 @@ namespace DistributedServiceProvider
         private RecentlyUsedQueue<Contact> contactsQueue = new RecentlyUsedQueue<Contact>();
         private LinkedList<Contact> contactsStack = new LinkedList<Contact>();
 
+        private HashSet<Contact> untrustedNodes = new HashSet<Contact>();
+
         public int Count
         {
             get
@@ -170,7 +172,7 @@ namespace DistributedServiceProvider
                 lastRefresh = DateTime.Now;
 
                 GetClosestNodes getClosest = DistributedRoutingTable.GetConsumer<GetClosestNodes>(GetClosestNodes.GUID);
-                foreach (var item in getClosest.GetClosestContacts(CreateRefreshId(), null))
+                foreach (var item in getClosest.GetClosestContacts(CreateRefreshId()))
                     item.Ping(LocalContact, Configuration.PingTimeout);
             }
         }

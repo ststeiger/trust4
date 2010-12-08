@@ -191,10 +191,10 @@ namespace DistributedServiceProvider.Base
                 .Append(hasher.ComputeHash(unhashedKey2.GetBytes().ToArray()))
                 .Append(hasher.ComputeHash(unhashedKey3.GetBytes().ToArray())).ToArray();
 
-            if (b.Length * 8 < 512)
-                throw new Exception("Length of array should be 512 bits");
+            if (b.Length * 8 < BIT_LENGTH)
+                throw new Exception("Length of array should be " + BIT_LENGTH  + " bits or more");
 
-            return new Identifier512(b.Take(BIT_LENGTH / 8));
+            return new Identifier512(b.Take(BIT_LENGTH));
         }
 
         private static readonly Random random = new Random();
@@ -313,7 +313,7 @@ namespace DistributedServiceProvider.Base
 
         public static Identifier512 operator ^(Identifier512 a, Identifier512 b)
         {
-            return new Identifier512(a.GetBytes().Zip(b.GetBytes(), (x, y) => (byte)(x ^ y)));
+            return new Identifier512(a.GetBytes().Zip(b.GetBytes(), ( x, y ) => (byte) ( x ^ y )));
         }
 
         public static bool operator <(Identifier512 a, Identifier512 b)
@@ -440,17 +440,6 @@ namespace DistributedServiceProvider.Base
                 throw new Exception("Length of array should be 512 bits");
 
             return new Identifier512(b).GetHashedKey();
-        }
-
-        public static Identifier512 CreateKey(RSACryptoServiceProvider CryptoProvider)
-        {
-            var pKey = CryptoProvider.ExportParameters(false).Modulus;
-
-            var bytes = new List<byte>();
-            while (bytes.Count * 8 < BIT_LENGTH)
-                bytes.AddRange(pKey);
-
-            return new Identifier512(bytes.Take(BIT_LENGTH / 8)).GetHashedKey();
         }
 
         public object Clone()

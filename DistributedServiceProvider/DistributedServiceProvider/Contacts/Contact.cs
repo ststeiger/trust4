@@ -12,12 +12,10 @@ namespace DistributedServiceProvider.Contacts
     /// <summary>
     /// A contact point for a remote routing table
     /// </summary>
-    [ProtoContract, ProtoInclude(3, typeof(UdpContact))]
+    [ProtoContract, ProtoInclude(3, typeof(LocalContact))]
     public abstract class Contact
         :Extensible
     {
-        public const int NEXT_PROTO_TAG = 3;
-
         /// <summary>
         /// The identifier of the remote routing table
         /// </summary>
@@ -38,6 +36,17 @@ namespace DistributedServiceProvider.Contacts
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="Contact"/> is trusted.
+        /// If set to false, this contact will be removed from contact buckets and will never be returned in queries
+        /// </summary>
+        /// <value><c>true</c> if trusted; otherwise, <c>false</c>.</value>
+        public bool Trusted
+        {
+            get;
+            protected set;
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Contact"/> class.
         /// </summary>
         /// <param name="identifier">The identifier of the DistributedRoutingTable this contact represents</param>
@@ -46,6 +55,8 @@ namespace DistributedServiceProvider.Contacts
         {
             Identifier = identifier;
             networkIdBytes = networkId.ToByteArray();
+
+            Trusted = true; //default to true
         }
 
         protected Contact()
@@ -56,22 +67,10 @@ namespace DistributedServiceProvider.Contacts
         /// <summary>
         /// Sends a message to the consumer with the given Id
         /// </summary>
-        /// <param name="source">The source of this messages</param>
         /// <param name="consumerId">The consumer id.</param>
         /// <param name="message">The message.</param>
         /// <returns>The response fromthe remote consumer, or null if there was no response</returns>
-        public void Send(Contact source, Guid consumerId, byte[] message)
-        {
-            Send(source, consumerId, message, true, true, 1);
-        }
-
-        /// <summary>
-        /// Sends a message to the consumer with the given Id
-        /// </summary>
-        /// <param name="consumerId">The consumer id.</param>
-        /// <param name="message">The message.</param>
-        /// <returns>The response fromthe remote consumer, or null if there was no response</returns>
-        public abstract void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel);
+        public abstract void Send(Contact source, Guid consumerId, byte[] message, bool reliable = true, bool ordered = true, int channel = 1);
 
         /// <summary>
         /// Pings this instance.

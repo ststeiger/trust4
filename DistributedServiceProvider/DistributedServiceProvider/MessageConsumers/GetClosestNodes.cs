@@ -6,6 +6,7 @@ using DistributedServiceProvider.Base;
 using ProtoBuf;
 using System.IO;
 using DistributedServiceProvider.Contacts;
+using LoggerMessages;
 using HandyCollections.Heap;
 
 namespace DistributedServiceProvider.MessageConsumers
@@ -25,6 +26,7 @@ namespace DistributedServiceProvider.MessageConsumers
             this.contacts = contacts;
             this.callback = callback;
 
+            Serializer.PrepareSerializer<LocalContact>();
             Serializer.PrepareSerializer<RequestMessage>();
             Serializer.PrepareSerializer<ResponseMessage>();
         }
@@ -45,7 +47,7 @@ namespace DistributedServiceProvider.MessageConsumers
 
             using (MemoryStream mStream = new MemoryStream())
             {
-                Serializer.SerializeWithLengthPrefix<RequestMessage>(mStream, request);
+                Serializer.SerializeWithLengthPrefix<RequestMessage>(mStream, request, PrefixStyle.Base128);
                 remote.Send(local, ConsumerId, mStream.ToArray());
             }
 
@@ -62,12 +64,21 @@ namespace DistributedServiceProvider.MessageConsumers
         /// </summary>
         /// <param name="target">The target.</param>
         /// <returns>an IEnumerable&lt;contact&gt; in order of distance from the target. Can be cast into a GetClosestNodes.ClosestResults</contact></returns>
-        public IEnumerable<Contact> GetClosestContacts(Identifier512 target, Func<Contact, bool> terminate)
+        public IEnumerable<Contact> GetClosestContacts(Identifier512 target, Func<Contact, bool> terminate = null)
         {
+#if DEBUG
+            Guid lookupId = Guid.NewGuid();
+            new IterativeLookupRequest(lookupId, RoutingTable.LocalIdentifier, RoutingTable.NetworkId, RoutingTable.Configuration, target, RoutingTable.Configuration.LookupConcurrency).Send();
+#endif
+
             MinMaxHeap<Contact> heap = new MinMaxHeap<Contact>(new ContactComparer(target), contacts.ClosestNodes(target).Take(RoutingTable.Configuration.LookupConcurrency));
 
             HashSet<Identifier512> contacted = new HashSet<Identifier512>();
             contacted.Add(RoutingTable.LocalIdentifier);
+
+#if DEBUG
+            new IterativeLookupStep(lookupId, heap.Select(a => a.Identifier), contacted).Send();
+#endif
 
             int iterations = 0;
             HashSet<Contact> uniqueDiscoveries;
@@ -81,7 +92,7 @@ namespace DistributedServiceProvider.MessageConsumers
                     .SelectMany(c =>
                     {
                         try { return RemoteGetClosest(RoutingTable.LocalContact, c, target, RoutingTable.Configuration.LookupConcurrency, RoutingTable.Configuration.LookupTimeout); }
-                        catch (TimeoutException) { return new List<Contact>(); }
+                        catch (TimeoutException) { return NoContacts(); }
                     })                                                                                      //select the closest ones they know about
                     .Where(n => n != null)
                     .Where(r => !heap.Contains(r)));                                                            //remove the results we already know about
@@ -95,6 +106,10 @@ namespace DistributedServiceProvider.MessageConsumers
 
                 //add the new results
                 heap.AddMany(uniqueDiscoveries);
+
+#if DEBUG
+                new IterativeLookupStep(lookupId, heap.Select(a => a.Identifier), contacted).Send();
+#endif
 
                 while (heap.Count > RoutingTable.Configuration.LookupConcurrency)
                     heap.RemoveMax();
@@ -110,17 +125,22 @@ namespace DistributedServiceProvider.MessageConsumers
             //    yield return heap.RemoveMin();
         }
 
+        private IEnumerable<Contact> NoContacts()
+        {
+            return new List<Contact>();
+        }
+
         public override void Deliver(Contact source, byte[] message)
         {
             RequestMessage m;
             using (MemoryStream mStream = new MemoryStream(message))
-                m = Serializer.DeserializeWithLengthPrefix<RequestMessage>(mStream);
+                m = Serializer.DeserializeWithLengthPrefix<RequestMessage>(mStream, PrefixStyle.Base128);
 
             byte[] responseBytes;
             using (MemoryStream mStream = new MemoryStream())
             {
                 ResponseMessage response = new ResponseMessage().AddRange(contacts.ClosestNodes(m.Target).Take(m.Limit));
-                Serializer.SerializeWithLengthPrefix<ResponseMessage>(mStream, response);
+                Serializer.SerializeWithLengthPrefix<ResponseMessage>(mStream, response, PrefixStyle.Base128);
 
                 responseBytes = mStream.ToArray();
             }
@@ -161,7 +181,7 @@ namespace DistributedServiceProvider.MessageConsumers
         {
             using (MemoryStream mStream = new MemoryStream(response))
             {
-                return Serializer.DeserializeWithLengthPrefix<ResponseMessage>(mStream);
+                return Serializer.DeserializeWithLengthPrefix<ResponseMessage>(mStream, PrefixStyle.Base128);
             }
         }
 

@@ -55,8 +55,6 @@ namespace DistributedServiceProvider
 
             for (int i = 0; i < buckets.Length; i++)
                 buckets[i] = new ContactBucket(drt, i);
-
-            buckets[buckets.Length - 1].Update(LocalContact);
         }
         #endregion
 
@@ -74,8 +72,6 @@ namespace DistributedServiceProvider
                     return;
                 if (source.NetworkId != NetworkId)
                     throw new ArgumentException("Network Id of contact and ContactCollection must be the same");
-                if (source.Equals(LocalContact))
-                    return;
 
                 buckets[Identifier512.CommonPrefixLength(source.Identifier, LocalIdentifier)].Update(source);
             }
@@ -97,20 +93,15 @@ namespace DistributedServiceProvider
         /// <param name="force">if set to <c>true</c> force the bucket to refresh no matter if it has been used recently.</param>
         public void RefreshFarBuckets(bool force)
         {
-            int refreshIndex = -1;
+            bool refresh = false;
             for (int i = buckets.Length - 1; i >= 0; i--)
             {
                 if (buckets[i].Count > 0)
-                {
-                    refreshIndex = i;
-                    break;
-                }
-            }
+                    refresh = refresh || buckets[i].Count > 0;
 
-            System.Threading.Tasks.Parallel.For(refreshIndex, 0, (i) =>
-            {
-                buckets[i].Refresh(force);
-            });
+                if (refresh)
+                    buckets[i].Refresh(force);
+            }
         }
 
         /// <summary>
