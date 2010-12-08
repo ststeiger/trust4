@@ -31,30 +31,35 @@ namespace Data4
         private IFormatter p_Formatter = null;
         private UdpClient m_UdpClient = null;
         private Thread m_UdpThread = null;
+        private bool p_ShowDebug = false;
+        private List<Entry> p_OwnedEntries = new List<Entry>();
+        private List<Entry> p_CachedEntries = new List<Entry>();
 
         public event EventHandler<MessageEventArgs> OnReceived;
 
-        public Dht(Guid identifier, IPEndPoint endpoint)
+        public Dht(ID identifier, IPEndPoint endpoint)
         {
             this.m_Self = new Contact(identifier, endpoint);
             this.p_Formatter = new BinaryFormatter();
 
             // Start listening for events.
+            IPEndPoint from = null;
+            this.m_UdpClient = new UdpClient(endpoint.Port);
             this.m_UdpThread = new Thread(delegate()
             {
                 try
                 {
-                    IPEndPoint from = null;
-                    this.m_UdpClient = new UdpClient(endpoint.Port, AddressFamily.InterNetwork);
                     while (true)
                     {
                         byte[] result = this.m_UdpClient.Receive(ref from);
-                        this.Log(LogType.INFO, "Received a message from " + from.ToString());
+                        this.Log(LogType.DEBUG, "Received a message from " + from.ToString());
                         this.OnReceive(endpoint, result);
                     }
                 }
                 catch (Exception e)
                 {
+                    if (e is ThreadAbortException)
+                        return;
                     Console.WriteLine(e.ToString());
                 }
             }
@@ -78,7 +83,7 @@ namespace Data4
                 if (this.OnReceived != null)
                     this.OnReceived(this, e);
 
-                if (e.SendConfirmation && !(e.Message is ConfirmationMessage))
+                if (e.SendConfirmation && !( e.Message is ConfirmationMessage ))
                 {
                     ConfirmationMessage cm = new ConfirmationMessage(this, message.Source, "");
                     cm.Send();
@@ -87,6 +92,12 @@ namespace Data4
                     //       implement confirmation of confirmations in ConformationMessage class itself.
                 }
             }
+        }
+
+        public bool Debug
+        {
+            get { return this.p_ShowDebug; }
+            set { this.p_ShowDebug = value; }
         }
 
         public void Close()
@@ -113,7 +124,8 @@ namespace Data4
         {
             ERROR,
             WARNING,
-            INFO
+            INFO,
+            DEBUG
         }
 
         public void Log(LogType type, string msg)
@@ -128,6 +140,10 @@ namespace Data4
                     break;
                 case LogType.INFO:
                     Console.WriteLine("INFO   : " + this.m_Self.Identifier.ToString() + " : " + msg);
+                    break;
+                case LogType.DEBUG:
+                    if (this.p_ShowDebug)
+                        Console.WriteLine("DEBUG  : " + this.m_Self.Identifier.ToString() + " : " + msg);
                     break;
                 default:
                     Console.WriteLine("UNKNOWN: " + this.m_Self.Identifier.ToString() + " : " + msg);
