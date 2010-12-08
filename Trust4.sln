@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "protobuf-net", "protobuf-ne
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Admin4", "Admin4\Admin4.csproj", "{D25AFBC9-915E-40AD-9CF3-6BB7868025DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data4", "Data4\Data4.csproj", "{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data4.Tests", "Data4.Tests\Data4.Tests.csproj", "{D00313AB-D612-4104-973E-004521E65D46}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +72,16 @@ Global
 		{65BFA748-C640-49B0-B506-34BBB165233A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{65BFA748-C640-49B0-B506-34BBB165233A}.Silverlight2|Any CPU.ActiveCfg = Release|Any CPU
 		{65BFA748-C640-49B0-B506-34BBB165233A}.Silverlight2|Any CPU.Build.0 = Release|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Net20|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Net20|Any CPU.Build.0 = Debug|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Profile|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Profile|Any CPU.Build.0 = Debug|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Silverlight2|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BDEAA15-729F-4A97-97E4-4C66A8A135B7}.Silverlight2|Any CPU.Build.0 = Debug|Any CPU
 		{8374E4D7-2A91-48F1-9360-09B09CF27C3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8374E4D7-2A91-48F1-9360-09B09CF27C3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8374E4D7-2A91-48F1-9360-09B09CF27C3F}.Net20|Any CPU.ActiveCfg = Net20|Any CPU
@@ -98,6 +112,16 @@ Global
 		{C18B7765-C1F8-4769-A114-291D0BDB5865}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C18B7765-C1F8-4769-A114-291D0BDB5865}.Silverlight2|Any CPU.ActiveCfg = Release|Any CPU
 		{C18B7765-C1F8-4769-A114-291D0BDB5865}.Silverlight2|Any CPU.Build.0 = Release|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Net20|Any CPU.ActiveCfg = Debug|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Net20|Any CPU.Build.0 = Debug|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Profile|Any CPU.ActiveCfg = Debug|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Profile|Any CPU.Build.0 = Debug|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Silverlight2|Any CPU.ActiveCfg = Debug|Any CPU
+		{D00313AB-D612-4104-973E-004521E65D46}.Silverlight2|Any CPU.Build.0 = Debug|Any CPU
 		{D25AFBC9-915E-40AD-9CF3-6BB7868025DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D25AFBC9-915E-40AD-9CF3-6BB7868025DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D25AFBC9-915E-40AD-9CF3-6BB7868025DB}.Net20|Any CPU.ActiveCfg = Debug|Any CPU
@@ -112,7 +136,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Trust4\Trust4.csproj
+		StartupItem = Data4.Tests\Data4.Tests.csproj
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

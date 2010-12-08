@@ -17,3 +17,6 @@ glob:Base32Encoder/obj/*
 glob:ARSoft.Tools.Net/obj/*
 glob:protobuf-net/obj/*
 glob:HandyCollections/HandyCollections/obj/*
+glob:Admin4/bin/*
+glob:Data4.Tests/bin/*
+glob:Data4/bin/*
