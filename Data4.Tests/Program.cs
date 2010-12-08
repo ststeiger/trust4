@@ -24,8 +24,8 @@ namespace Data4.Tests
     {
         public static void Main(string[] args)
         {
-            Guid guid1 = Guid.NewGuid();
-            Guid guid2 = Guid.NewGuid();
+            ID guid1 = ID.NewRandom();
+            ID guid2 = ID.NewRandom();
             Dht dht1 = new Dht(guid1, new IPEndPoint(IPAddress.Loopback, 12000));
             Dht dht2 = new Dht(guid2, new IPEndPoint(IPAddress.Loopback, 13000));
             int count1 = 0;
@@ -35,13 +35,19 @@ namespace Data4.Tests
 
             dht1.OnReceived += delegate(object sender, MessageEventArgs e)
             {
-                Console.WriteLine("First node received: " + e.Message);
+                if (e.Message is ConfirmationMessage)
+                    return;
+
+                Console.WriteLine("DHT1 received: " + e.Message);
                 count1 += 1;
                 all1 = ( count1 == 5 );
             };
             dht2.OnReceived += delegate(object sender, MessageEventArgs e)
             {
-                Console.WriteLine("Second node received: " + e.Message.ToString());
+                if (e.Message is ConfirmationMessage)
+                    return;
+                
+                Console.WriteLine("DHT2 received: " + e.Message.ToString());
                 count2 += 1;
                 all2 = ( count2 == 5 );
             };
@@ -52,11 +58,13 @@ namespace Data4.Tests
             for (int i = 0; i < 5; i += 1)
             {
                 DirectMessage dm = new DirectMessage(dht1, dht2.Self, "This is a message to the second node [" + i + "] !");
+                Console.WriteLine("DHT1 sent: " + dm);
                 dm.Send();
             }
             for (int i = 0; i < 5; i += 1)
             {
                 DirectMessage dm = new DirectMessage(dht2, dht1.Self, "This is a message to the first node [" + i + "] !");
+                Console.WriteLine("DHT2 sent: " + dm);
                 dm.Send();
             }
 
@@ -64,6 +72,8 @@ namespace Data4.Tests
             int wait = 0;
             while (wait < 10000)
             {
+                if (all1 && all2)
+                    break;
                 wait += 100;
                 Thread.Sleep(100);
             }

@@ -3,19 +3,32 @@
   <MonoDevelop.Ide.DebuggingService>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService>
-  <MonoDevelop.Ide.Workbench ActiveDocument="Data4/Dht.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Data4/ID.cs">
     <Files>
-      <File FileName="Data4/Dht.cs" Line="46" Column="56" />
+      <File FileName="Data4/Dht.cs" Line="40" Column="22" />
       <File FileName="ARSoft.Tools.Net/Dns/DnsServer.cs" Line="1" Column="1" />
-      <File FileName="Data4/Message.cs" Line="59" Column="42" />
-      <File FileName="Data4/Contact.cs" Line="60" Column="1" />
-      <File FileName="Data4.Tests/Program.cs" Line="35" Column="104" />
+      <File FileName="Data4/Message.cs" Line="44" Column="23" />
+      <File FileName="Data4/Contact.cs" Line="85" Column="69" />
+      <File FileName="Data4.Tests/Program.cs" Line="50" Column="77" />
+      <File FileName="Data4/ID.cs" Line="51" Column="38" />
+      <File FileName="Data4/MessageEventArgs.cs" Line="38" Column="50" />
+      <File FileName="Data4/Messages/BroadcastMessage.cs" Line="64" Column="27" />
+      <File FileName="Data4/Messages/DirectMessage.cs" Line="43" Column="23" />
+      <File FileName="Data4/Messages/ConfirmationMessage.cs" Line="30" Column="10" />
+      <File FileName="Data4/Entry.cs" Line="22" Column="19" />
+      <File FileName="DistributedServiceProvider/DistributedServiceProviderBase/Identifier512.cs" Line="245" Column="22" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
-          <Node name="Data4" expanded="True" />
-          <Node name="Data4.Tests" expanded="True" selected="True">
+          <Node name="ARSoft.Tools.Net" expanded="True">
+            <Node name="Dns" expanded="True" />
+          </Node>
+          <Node name="Data4" expanded="True" selected="True">
+            <Node name="References" expanded="True" />
+          </Node>
+          <Node name="Data4.Tests" expanded="True" />
+          <Node name="DistributedServiceProvider.Base" expanded="True">
             <Node name="References" expanded="True" />
           </Node>
         </State>

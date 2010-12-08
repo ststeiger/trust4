@@ -81,12 +81,12 @@ namespace Data4
             UdpClient udp = new UdpClient();
             using (MemoryStream writer = new MemoryStream())
             {
-                this.Dht.Log(Dht.LogType.INFO, "Sending -");
-                this.Dht.Log(Dht.LogType.INFO, "          Message - " + this.ToString());
-                this.Dht.Log(Dht.LogType.INFO, "          Target - " + target.ToString());
+                this.Dht.Log(Dht.LogType.DEBUG, "Sending -");
+                this.Dht.Log(Dht.LogType.DEBUG, "          Message - " + this.ToString());
+                this.Dht.Log(Dht.LogType.DEBUG, "          Target - " + target.ToString());
                 this.Dht.Formatter.Serialize(writer, this);
                 int bytes = udp.Send(writer.GetBuffer(), writer.GetBuffer().Length, target.EndPoint);
-                this.Dht.Log(Dht.LogType.INFO, bytes + " total bytes sent.");
+                this.Dht.Log(Dht.LogType.DEBUG, bytes + " total bytes sent.");
             }
 
             return duplicate;

@@ -23,9 +23,9 @@ namespace Data4
     public class Contact : ISerializable, IEquatable<Contact>
     {
         private IPEndPoint p_EndPoint = null;
-        private Guid p_Identifier = Guid.Empty;
+        private ID p_Identifier = null;
 
-        public Contact(Guid identifier, IPEndPoint endpoint)
+        public Contact(ID identifier, IPEndPoint endpoint)
         {
             this.p_Identifier = identifier;
             this.p_EndPoint = endpoint;
@@ -33,7 +33,7 @@ namespace Data4
 
         public Contact(SerializationInfo info, StreamingContext context)
         {
-            this.p_Identifier = new Guid(info.GetString("identifier"));
+            this.p_Identifier = info.GetValue("identifier", typeof(ID)) as ID;
             string endpoint = info.GetString("endpoint");
             this.p_EndPoint = new IPEndPoint(IPAddress.Parse(endpoint.Split(':')[0]), Convert.ToUInt16(endpoint.Split(':')[1]));
         }
@@ -43,7 +43,7 @@ namespace Data4
             get { return this.p_EndPoint; }
         }
 
-        public Guid Identifier
+        public ID Identifier
         {
             get { return this.p_Identifier; }
         }
@@ -79,10 +79,10 @@ namespace Data4
         #region ISerializable implementation
         void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            if (this.p_Identifier == Guid.Empty || this.p_EndPoint == null)
+            if (this.p_Identifier == null || this.p_EndPoint == null)
                 throw new SerializationException("The contact's unique identifier or endpoint is invalid.");
 
-            info.AddValue("identifier", this.p_Identifier.ToString());
+            info.AddValue("identifier", this.p_Identifier, typeof(ID));
             info.AddValue("endpoint", this.p_EndPoint.ToString());
         }
         #endregion
