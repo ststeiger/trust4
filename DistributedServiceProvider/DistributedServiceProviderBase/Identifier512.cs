@@ -313,7 +313,7 @@ namespace DistributedServiceProvider.Base
 
         public static Identifier512 operator ^(Identifier512 a, Identifier512 b)
         {
-            return new Identifier512(a.GetBytes().Zip(b.GetBytes(), (x, y) => (byte)(x ^ y)));
+            return new Identifier512(a.GetBytes().Zip(b.GetBytes(), ( x, y ) => (byte) ( x ^ y )));
         }
 
         public static bool operator <(Identifier512 a, Identifier512 b)
