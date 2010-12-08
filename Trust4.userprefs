@@ -3,35 +3,20 @@
   <MonoDevelop.Ide.DebuggingService>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService>
-  <MonoDevelop.Ide.Workbench ActiveDocument="Trust4/DataStorage/MultiRecordStore.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Data4/Dht.cs">
     <Files>
-      <File FileName="Trust4/Program.cs" Line="26" Column="12" />
-      <File FileName="Trust4/Mappings.cs" Line="305" Column="1" />
-      <File FileName="Trust4/DnsProcess.cs" Line="58" Column="46" />
-      <File FileName="Trust4/settings.txt" Line="7" Column="20" />
-      <File FileName="Trust4/DataStorage/MultiRecordStore.cs" Line="1" Column="1" />
-      <File FileName="Trust4/mappings.txt" Line="27" Column="109" />
-      <File FileName="Trust4/peers.txt" Line="7" Column="42" />
-      <File FileName="Trust4/DataStorage/Advanced/AdvancedStore.cs" Line="1" Column="1" />
-      <File FileName="Trust4/DataStorage/Advanced/AdvancedStoreDelete.cs" Line="1" Column="1" />
-      <File FileName="Trust4/DataStorage/Advanced/AdvancedStoreDeliver.cs" Line="1" Column="1" />
-      <File FileName="Trust4/DataStorage/Advanced/AdvancedStoreGet.cs" Line="1" Column="1" />
-      <File FileName="Trust4/DataStorage/Advanced/AdvancedStorePut.cs" Line="1" Column="1" />
-      <File FileName="Trust4/DataStorage/BasicStore.cs" Line="134" Column="35" />
+      <File FileName="Data4/Dht.cs" Line="46" Column="56" />
+      <File FileName="ARSoft.Tools.Net/Dns/DnsServer.cs" Line="1" Column="1" />
+      <File FileName="Data4/Message.cs" Line="59" Column="42" />
+      <File FileName="Data4/Contact.cs" Line="60" Column="1" />
+      <File FileName="Data4.Tests/Program.cs" Line="35" Column="104" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
-          <Node name="ARSoft.Tools.Net" expanded="True">
-            <Node name="Dns" expanded="True" />
-          </Node>
-          <Node name="Trust4" expanded="True">
+          <Node name="Data4" expanded="True" />
+          <Node name="Data4.Tests" expanded="True" selected="True">
             <Node name="References" expanded="True" />
-            <Node name="Authentication" expanded="True" />
-            <Node name="DataStorage" expanded="True">
-              <Node name="Advanced" expanded="True" />
-              <Node name="MultiRecordStore.cs" selected="True" />
-            </Node>
           </Node>
         </State>
       </Pad>
