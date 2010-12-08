@@ -25,6 +25,7 @@ using DistributedServiceProvider.Contacts;
 using Trust4.DataStorage;
 using Trust4.Authentication;
 using System.Security.AccessControl;
+using System.Net.Sockets;
 
 namespace Trust4
 {
@@ -56,7 +57,8 @@ namespace Trust4
                 return;
             // Couldn't lower permissions from root; exit immediately.
             // Initalize the DHT service.
-            this.InitalizeDHT();
+            if (!this.InitalizeDHT())
+                return;
             
             // Load the mappings.
             this.p_Mappings = new Mappings(this, "mappings.txt");
@@ -114,7 +116,24 @@ namespace Trust4
             // Start the DNS server.
             this.m_DNSServer = new DnsServer(IPAddress.Any, this.p_Settings.DNSPort, 10, 10, this.m_DNSProcess.ProcessQuery);
             this.m_DNSServer.ExceptionThrown += new EventHandler<ExceptionEventArgs>(this.m_DNSProcess.ExceptionThrown);
-            this.m_DNSServer.Start();
+            try
+            {
+                this.m_DNSServer.Start();
+            }
+            catch (SocketException ex)
+            {
+                if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse) // Can't bind to port
+                {
+                    Console.WriteLine("Error!  Can't bind to DNS port, check that you have permissions for this port, and that no other program is currently using it.");
+                }
+                else
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                return false;
+            }
+
             
             int p = (int) Environment.OSVersion.Platform;
             if (( p == 4 ) || ( p == 6 ) || ( p == 128 ))
@@ -162,7 +181,7 @@ namespace Trust4
         /// <summary>
         /// Initalizes the Distributed Hash Table component.
         /// </summary>
-        public void InitalizeDHT()
+        public bool InitalizeDHT()
         {
             // Start the Distributed Hash Table.
             this.p_RoutingTable = new DistributedRoutingTable(this.p_Settings.RoutingIdentifier, a => new UdpContact(a.LocalIdentifier, this.p_Settings.NetworkID, this.p_Settings.LocalIP, this.p_Settings.P2PPort), this.p_Settings.NetworkID, new Configuration {
@@ -174,7 +193,23 @@ namespace Trust4
                 UpdateRoutingTable = true
             });
             
-            UdpContact.InitialiseUdp(this.p_RoutingTable, this.p_Settings.P2PPort);
+            try
+            {
+                UdpContact.InitialiseUdp(this.p_RoutingTable, this.p_Settings.P2PPort);
+            }
+            catch (SocketException ex)
+            {
+                if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse) // Can't bind to port
+                {
+                    Console.WriteLine("Error!  Can't bind to PEER port, check that you have permissions for this port, and that no other program is currently using it.");
+                }
+                else
+                {
+                    Console.WriteLine(ex.Message);
+                }
+
+                return false;
+            }
             
             AttachDhtServices();
 
@@ -183,6 +218,8 @@ namespace Trust4
             
             Console.WriteLine("Bootstrap finished");
             Console.WriteLine("There are " + this.p_RoutingTable.ContactCount + " Contacts");
+
+            return true;
         }
 
         private void AttachDhtServices()
