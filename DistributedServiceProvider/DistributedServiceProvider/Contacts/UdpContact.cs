@@ -180,31 +180,38 @@ namespace DistributedServiceProvider.Contacts
                         Thread.Sleep(10);
                     
                     IPEndPoint groupEP = default(IPEndPoint);
-                    byte[] b = client.EndReceive(async, ref groupEP);
-                    
-                    if (!listen)
-                        break;
-                    
-                    ThreadPool.QueueUserWorkItem(a =>
+                    try
                     {
-                        using (MemoryStream m = new MemoryStream(b))
+                        byte[] b = client.EndReceive(async, ref groupEP);
+
+                        if (!listen)
+                            break;
+
+                        ThreadPool.QueueUserWorkItem(a =>
                         {
-                            using (BinaryReader r = new BinaryReader(m))
+                            using (MemoryStream m = new MemoryStream(b))
                             {
-                                PacketFlag f = (PacketFlag) r.ReadByte();
-                                
-                                switch (f)
+                                using (BinaryReader r = new BinaryReader(m))
                                 {
-                                    case PacketFlag.Ping:
-                                        ParsePing(r);
-                                        break;
-                                    case PacketFlag.Data:
-                                        ParseData(r);
-                                        break;
+                                    PacketFlag f = (PacketFlag)r.ReadByte();
+
+                                    switch (f)
+                                    {
+                                        case PacketFlag.Ping:
+                                            ParsePing(r);
+                                            break;
+                                        case PacketFlag.Data:
+                                            ParseData(r);
+                                            break;
+                                    }
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
+                    catch (SocketException)
+                    {
+                        // This can fail, I think it's safe to ignore however.
+                    }
                 }
             });
             listenThread.IsBackground = true;

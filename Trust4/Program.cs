@@ -36,6 +36,11 @@ namespace Trust4
                 Console.ReadLine();
             }
 #endif
+
+#if !Release
+            Console.WriteLine("\nPress any key to quit.");
+            Console.ReadKey(true);
+#endif
         }
 
         public static Manager Manager
