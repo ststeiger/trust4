@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -26,7 +27,7 @@ namespace Data4
 {
     public class Dht
     {
-        private Contact m_Self = null;
+        private Contact p_Self = null;
         private List<Contact> p_Contacts = new List<Contact>();
         private IFormatter p_Formatter = null;
         private UdpClient m_UdpClient = null;
@@ -39,7 +40,7 @@ namespace Data4
 
         public Dht(ID identifier, IPEndPoint endpoint)
         {
-            this.m_Self = new Contact(identifier, endpoint);
+            this.p_Self = new Contact(identifier, endpoint);
             this.p_Formatter = new BinaryFormatter();
 
             // Start listening for events.
@@ -69,6 +70,81 @@ namespace Data4
         }
 
         /// <summary>
+        /// Adds a key-value entry to the DHT, storing the key-value pair on this node.
+        /// </summary>
+        public void Put(ID key, string value)
+        {
+            this.p_OwnedEntries.Add(new Entry(this.p_Self, key, value));
+        }
+
+        public IList<Entry> Get(ID key)
+        {
+            ConcurrentBag<Entry> entries = new ConcurrentBag<Entry>();
+            ConcurrentDictionary<Contact, bool> done = new ConcurrentDictionary<Contact, bool>();
+            List<Thread> threads = new List<Thread>();
+            foreach (Contact c in this.p_Contacts)
+            {
+                Thread t;
+                ThreadStart ts = delegate()
+                {
+                    try
+                    {
+                        FetchMessage fm = new FetchMessage(this, c, key);
+                        fm.Send();
+                        int ticks = 0;
+
+                        // Wait until we receive data, or timeout.
+                        while (!fm.Received && ticks < 1500)
+                        {
+                            Thread.Sleep(100);
+                            ticks += 100;
+                        }
+
+                        if (fm.Received)
+                        {
+                            foreach (Entry e in fm.Values)
+                            {
+                                Console.WriteLine("Added " + e.Value + " to the entries.");
+                                entries.Add(e);
+                            }
+
+                            if (entries.Count == 0)
+                                Console.WriteLine("There were no entries to add.");
+                        }
+                        else
+                            Console.WriteLine("The node did not return in time.");
+
+                        Thread.MemoryBarrier();
+                        done[c] = true;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                };
+                t = new Thread(ts);
+                done[c] = false;
+                t.IsBackground = true;
+                t.Start();
+            }
+
+            while (true)
+            {
+                bool stopped = true;
+                foreach (Contact c in this.p_Contacts)
+                {
+                    if (!done[c])
+                        stopped = false;
+                }
+                if (stopped)
+                    break;
+                Thread.Sleep(100);
+            }
+
+            return new List<Entry>(entries.ToArray());
+        }
+
+        /// <summary>
         /// Handles receiving data through the UdpClient.
         /// </summary>
         /// <param name="endpoint">The endpoint from which the message was received.</param>
@@ -83,15 +159,39 @@ namespace Data4
                 if (this.OnReceived != null)
                     this.OnReceived(this, e);
 
-                if (e.SendConfirmation && !( e.Message is ConfirmationMessage ))
+                // TODO: Is there a better way to do this?
+                if (e.Message is FetchMessage)
                 {
-                    ConfirmationMessage cm = new ConfirmationMessage(this, message.Source, "");
+                    // Handle the fetch request.
+                    FetchConfirmationMessage fcm = new FetchConfirmationMessage(this, message, this.OnFetch(e.Message as FetchMessage));
+                    fcm.Send();
+
+                    // TODO: Make sure that the confirmation message is received.
+                }
+                else if (e.SendConfirmation && !( e.Message is ConfirmationMessage ))
+                {
+                    ConfirmationMessage cm = new ConfirmationMessage(this, message, "");
                     cm.Send();
 
                     // TODO: Make sure that the confirmation message is received.  Probably should
                     //       implement confirmation of confirmations in ConformationMessage class itself.
                 }
             }
+        }
+
+        /// <summary>
+        /// Handle a fetch request.  This function should probably be moved elsewhere, but where?
+        /// </summary>
+        public List<Entry> OnFetch(FetchMessage request)
+        {
+            List<Entry> entries = new List<Entry>();
+            foreach (Entry e in this.p_OwnedEntries)
+                if (e.Key == request.Key)
+                    entries.Add(e);
+            foreach (Entry e in this.p_CachedEntries)
+                if (e.Key == request.Key)
+                    entries.Add(e);
+            return entries;
         }
 
         public bool Debug
@@ -112,7 +212,7 @@ namespace Data4
 
         public Contact Self
         {
-            get { return this.m_Self; }
+            get { return this.p_Self; }
         }
 
         public List<Contact> Contacts
@@ -133,20 +233,20 @@ namespace Data4
             switch (type)
             {
                 case LogType.ERROR:
-                    Console.WriteLine("ERROR  : " + this.m_Self.Identifier.ToString() + " : " + msg);
+                    Console.WriteLine("ERROR  : " + this.p_Self.Identifier.ToString() + " : " + msg);
                     break;
                 case LogType.WARNING:
-                    Console.WriteLine("WARNING: " + this.m_Self.Identifier.ToString() + " : " + msg);
+                    Console.WriteLine("WARNING: " + this.p_Self.Identifier.ToString() + " : " + msg);
                     break;
                 case LogType.INFO:
-                    Console.WriteLine("INFO   : " + this.m_Self.Identifier.ToString() + " : " + msg);
+                    Console.WriteLine("INFO   : " + this.p_Self.Identifier.ToString() + " : " + msg);
                     break;
                 case LogType.DEBUG:
                     if (this.p_ShowDebug)
-                        Console.WriteLine("DEBUG  : " + this.m_Self.Identifier.ToString() + " : " + msg);
+                        Console.WriteLine("DEBUG  : " + this.p_Self.Identifier.ToString() + " : " + msg);
                     break;
                 default:
-                    Console.WriteLine("UNKNOWN: " + this.m_Self.Identifier.ToString() + " : " + msg);
+                    Console.WriteLine("UNKNOWN: " + this.p_Self.Identifier.ToString() + " : " + msg);
                     break;
             }
         }

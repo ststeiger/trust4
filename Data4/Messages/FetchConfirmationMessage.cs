@@ -20,44 +20,38 @@ using System.Runtime.Serialization;
 namespace Data4
 {
     [Serializable()]
-    public class DirectMessage : Message, ISerializable
+    public class FetchConfirmationMessage : ConfirmationMessage, ISerializable
     {
-        private Contact p_Target = null;
+        public List<Entry> p_Values = null;
 
-        public DirectMessage(Dht dht, Contact target, string data) : base(dht, data)
+        public FetchConfirmationMessage(Dht dht, Message original, List<Entry> values) : base(dht, original, "")
         {
-            this.p_Target = target;
+            this.p_Values = values;
         }
 
-        public DirectMessage(SerializationInfo info, StreamingContext context) : base(info, context)
+        public FetchConfirmationMessage(SerializationInfo info, StreamingContext context) : base(info, context)
         {
+            this.p_Values = new List<Entry>();
+            int count = info.GetInt32("fetch.count");
+            for (int i = 0; i < count; i += 1)
+                this.p_Values.Add(info.GetValue("fetch.entry." + i, typeof(Entry)) as Entry);
         }
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
+
+            info.AddValue("fetch.count", this.p_Values.Count);
+            for (int i = 0; i < this.p_Values.Count; i += 1)
+                info.AddValue("fetch.entry." + i, this.p_Values[i], typeof(Entry));
         }
 
         /// <summary>
-        /// Sends the direct message to it's recipient.
+        /// The value values associated with the specified key.
         /// </summary>
-        public DirectMessage Send()
+        public List<Entry> Values
         {
-            return base.Send(this.p_Target) as DirectMessage;
-        }
-
-        /// <summary>
-        /// Clones the direct message.
-        /// </summary>
-        protected override Message Clone()
-        {
-            DirectMessage dm = new DirectMessage(Dht, this.p_Target, this.Data);
-            return dm;
-        }
-
-        protected Contact Target
-        {
-            get { return this.p_Target; }
+            get { return this.p_Values; }
         }
     }
 }

@@ -30,9 +30,9 @@ namespace Data4
         private List<Contact> p_Seen = new List<Contact>();
         private string p_Data = null;
 
-        private Guid m_Identifier = Guid.Empty;
-        private bool m_Sent = false;
-        private bool m_Recieved = false;
+        private ID m_Identifier = null;
+        private bool p_Sent = false;
+        private bool p_Received = false;
 
         public Message(Dht dht, string data)
         {
@@ -43,14 +43,16 @@ namespace Data4
 
         public Message(SerializationInfo info, StreamingContext context)
         {
+            this.m_Identifier = info.GetValue("message.id", typeof(ID)) as ID;
             this.p_Source = info.GetValue("message.source", typeof(Contact)) as Contact;
             this.p_Seen = info.GetValue("message.seen", typeof(List<Contact>)) as List<Contact>;
             this.p_Data = info.GetString("message.data");
         }
 
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue("message.source", this.p_Source, this.p_Source.GetType());
+            info.AddValue("message.id", this.m_Identifier, typeof(ID));
+            info.AddValue("message.source", this.p_Source, typeof(Contact));
             info.AddValue("message.seen", this.p_Seen, typeof(List<Contact>));
             info.AddValue("message.data", this.p_Data);
         }
@@ -68,14 +70,15 @@ namespace Data4
             if (this.p_Dht == null)
                 throw new InvalidOperationException("The message could not be sent because there is no DHT associated with the message.");
 
-            if (this.m_Sent)
+            if (this.p_Sent)
                 throw new InvalidOperationException("Messages can not be resent with Sent().  Use the duplicated message object from Sent() to resend a message.");
-            this.m_Sent = true;
+            this.p_Sent = true;
 
             Message duplicate = this.Clone();
 
             // TODO: Give this more randomization to ensure a higher degree of uniqueness.
-            this.m_Identifier = Guid.NewGuid();
+            if (this.m_Identifier == null)
+                this.m_Identifier = ID.NewRandom();
 
             // Send the message to the target.
             UdpClient udp = new UdpClient();
@@ -101,14 +104,14 @@ namespace Data4
         /// This event is raised when the Dht receives a message.  It is used by the
         /// Message class to detect confirmation replies.
         /// </summary>
-        public void OnReceive(object sender, MessageEventArgs e)
+        protected virtual void OnConfirm(object sender, MessageEventArgs e)
         {
-            if (!this.m_Sent)
+            if (!this.p_Sent)
                 return;
 
             if (e.Message is ConfirmationMessage && e.Message.m_Identifier == this.m_Identifier)
             {
-                this.m_Recieved = true;
+                this.p_Received = true;
             }
         }
 
@@ -132,10 +135,10 @@ namespace Data4
             set
             {
                 if (this.p_Dht != null)
-                    this.p_Dht.OnReceived -= this.OnReceive;
+                    this.p_Dht.OnReceived -= this.OnConfirm;
                 this.p_Dht = value;
                 if (this.p_Dht != null)
-                    this.p_Dht.OnReceived += this.OnReceive;
+                    this.p_Dht.OnReceived += this.OnConfirm;
             }
         }
 
@@ -144,7 +147,7 @@ namespace Data4
         /// </summary>
         public bool Sent
         {
-            get { return this.m_Sent; }
+            get { return this.p_Sent; }
         }
 
         /// <summary>
@@ -153,7 +156,8 @@ namespace Data4
         /// </summary>
         public bool Received
         {
-            get { return this.m_Recieved; }
+            get { return this.p_Received; }
+            protected set { this.p_Received = value; }
         }
 
         /// <summary>
@@ -179,6 +183,15 @@ namespace Data4
         public string Data
         {
             get { return this.p_Data; }
+        }
+
+        /// <summary>
+        /// The identifier used to pair up confirmation requests with the original message.
+        /// </summary>
+        public ID Identifier
+        {
+            get { return this.m_Identifier; }
+            protected set { this.m_Identifier = value; }
         }
 
         public override string ToString()
