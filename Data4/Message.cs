@@ -27,6 +27,7 @@ namespace Data4
     {
         private Dht p_Dht = null;
         private Contact p_Source = null;
+        private Contact p_Sender = null;
         private List<Contact> p_Seen = new List<Contact>();
         private string p_Data = null;
 
@@ -166,6 +167,21 @@ namespace Data4
         public Contact Source
         {
             get { return this.p_Source; }
+        }
+
+        /// <summary>
+        /// The sender of this message (i.e. the node that is was directly received from).
+        /// </summary>
+        public Contact Sender
+        {
+            get { return this.p_Sender; }
+            set
+            {
+                if (this.p_Sender == null)
+                    this.p_Sender = value;
+                else
+                    throw new ArgumentException("Can not change sender of Message once assigned.");
+            }
         }
 
         /// <summary>

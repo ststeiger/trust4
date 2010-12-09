@@ -42,6 +42,13 @@ namespace Data4
         public Contact Owner
         {
             get { return this.p_Owner; }
+            set
+            {
+                if (this.p_Owner == null)
+                    this.p_Owner = value;
+                else
+                    throw new ArgumentException("Can not change owner of Entry once assigned.");
+            }
         }
 
         public ID Key

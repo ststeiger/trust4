@@ -54,7 +54,7 @@ namespace Data4
                     {
                         byte[] result = this.m_UdpClient.Receive(ref from);
                         this.Log(LogType.DEBUG, "Received a message from " + from.ToString());
-                        this.OnReceive(endpoint, result);
+                        this.OnReceive(from, result);
                     }
                 }
                 catch (Exception e)
@@ -151,6 +151,8 @@ namespace Data4
                 Message message = this.p_Formatter.Deserialize(stream) as Message;
                 MessageEventArgs e = new MessageEventArgs(message);
                 message.Dht = this;
+                message.Sender = this.FindContactByEndPoint(endpoint);
+
                 if (this.OnReceived != null)
                     this.OnReceived(this, e);
 
@@ -244,6 +246,21 @@ namespace Data4
                     Console.WriteLine("UNKNOWN: " + this.p_Self.Identifier.ToString() + " : " + msg);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Returns the contact in the Contacts list that has the specified endpoint, or
+        /// null if there was no contact.
+        /// </summary>
+        public Contact FindContactByEndPoint(IPEndPoint endpoint)
+        {
+            foreach (Contact c in this.p_Contacts)
+            {
+                if (c.EndPoint.Address.ToString() == endpoint.Address.ToString())
+                    return c;
+            }
+
+            return null;
         }
     }
 }
