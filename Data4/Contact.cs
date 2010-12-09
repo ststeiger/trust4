@@ -50,11 +50,25 @@ namespace Data4
 
         public static bool operator ==(Contact a, Contact b)
         {
+            if (object.ReferenceEquals(a, null) && object.ReferenceEquals(b, null))
+                return true;
+            if (object.ReferenceEquals(a, null))
+                return false;
+            if (object.ReferenceEquals(b, null))
+                return false;
+
             return ( a.EndPoint == b.EndPoint && a.Identifier == b.Identifier );
         }
 
         public static bool operator !=(Contact a, Contact b)
         {
+            if (object.ReferenceEquals(a, null) && object.ReferenceEquals(b, null))
+                return false;
+            if (object.ReferenceEquals(a, null))
+                return true;
+            if (object.ReferenceEquals(b, null))
+                return true;
+
             return ( a.EndPoint != b.EndPoint || a.Identifier != b.Identifier );
         }
 

@@ -19,13 +19,9 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using ARSoft.Tools.Net.Dns;
-using DistributedServiceProvider;
-using DistributedServiceProvider.Base;
-using DistributedServiceProvider.Contacts;
-using Trust4.DataStorage;
-using Trust4.Authentication;
 using System.Security.AccessControl;
 using System.Net.Sockets;
+using Data4;
 
 namespace Trust4
 {
@@ -36,7 +32,7 @@ namespace Trust4
 
         private DnsServer m_DNSServer = null;
         private DnsProcess m_DNSProcess = null;
-        private DistributedRoutingTable p_RoutingTable = null;
+        private Dht p_Dht = null;
 
         private static readonly Guid m_P2PRootStore = new Guid("94e9bd40-2547-4232-9266-4f93310bf906");
         private static readonly Guid m_KeyRootStore = new Guid("09a2cbb4-ef12-431c-9419-5a655075039e");
@@ -92,17 +88,9 @@ namespace Trust4
         /// <summary>
         /// Returns the distributed routing table.
         /// </summary>
-        public DistributedRoutingTable RoutingTable
+        public Dht Dht
         {
-            get { return this.p_RoutingTable; }
-        }
-
-        /// <summary>
-        /// The data store for the distributed routing table.
-        /// </summary>
-        public IDataStore DataStore
-        {
-            get { return this.p_RoutingTable.GetConsumer<MultiRecordStore>(Manager.m_P2PRootStore, (  ) => new MultiRecordStore(Manager.m_P2PRootStore)); }
+            get { return this.p_Dht; }
         }
 
         /// <summary>
@@ -183,64 +171,40 @@ namespace Trust4
         /// </summary>
         public bool InitalizeDHT()
         {
-            // Start the Distributed Hash Table.
-            this.p_RoutingTable = new DistributedRoutingTable(this.p_Settings.RoutingIdentifier, a => new UdpContact(a.LocalIdentifier, this.p_Settings.NetworkID, this.p_Settings.LocalIP, this.p_Settings.P2PPort), this.p_Settings.NetworkID, new Configuration {
-                BucketRefreshPeriod = TimeSpan.FromMinutes(10),
-                BucketSize = 10,
-                LookupConcurrency = 5,
-                LookupTimeout = 5000,
-                PingTimeout = TimeSpan.FromSeconds(1),
-                UpdateRoutingTable = true
-            });
-            
             try
             {
-                UdpContact.InitialiseUdp(this.p_RoutingTable, this.p_Settings.P2PPort);
+                // Start the Distributed Hash Table.
+                this.p_Dht = new Dht(this.p_Settings.RoutingIdentifier, new IPEndPoint(this.p_Settings.LocalIP, this.p_Settings.P2PPort));
             }
             catch (SocketException ex)
             {
-                if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse) // Can't bind to port
-                {
-                    Console.WriteLine("Error!  Can't bind to PEER port, check that you have permissions for this port, and that no other program is currently using it.");
-                }
+                if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
+                    // Can't bind to port
+                    this.p_Dht.Log(Dht.LogType.ERROR, "Unable to bind to the peer-to-peer to port.  Ensure you have permissions and that no other application is currently using.");
                 else
-                {
                     Console.WriteLine(ex.Message);
-                }
 
                 return false;
             }
-            
-            AttachDhtServices();
 
-            Console.WriteLine("Bootstrapping DHT\r\n { " + this.p_RoutingTable.LocalIdentifier + " }");
-            this.p_RoutingTable.Bootstrap(this.BootstrapPeers());
-            
-            Console.WriteLine("Bootstrap finished");
-            Console.WriteLine("There are " + this.p_RoutingTable.ContactCount + " Contacts");
+            this.p_Dht.Debug = true;
+            this.p_Dht.Log(Dht.LogType.INFO, "Your routing identifier is " + this.p_Dht.Self.Identifier);
+            this.p_Dht.Log(Dht.LogType.INFO, "Adding contacts...");
+            this.BootstrapPeers();
+            this.p_Dht.Log(Dht.LogType.INFO, "Contacts have been added.");
 
             return true;
-        }
-
-        private void AttachDhtServices()
-        {
-            p_RoutingTable.RegisterConsumer(new MultiRecordStore(Manager.m_P2PRootStore));
-
-            //register the root pseudonym for this peer
-            //this is the nym that proves that this peer picked this routing identifier through cryptographic means
-            p_RoutingTable.RegisterConsumer(new Pseudonym(m_RootPseudonym, p_Settings.CryptoProvider));
         }
 
         /// <summary>
         /// Yeilds a list of peers as they are read from the peers.txt file.
         /// </summary>
         /// <returns>The next peer.</returns>
-        public IEnumerable<Contact> BootstrapPeers()
+        public void BootstrapPeers()
         {
             foreach (var line in File.ReadAllLines("peers.txt").OmitComments("#", "//"))
             {
-                Identifier512 id = null;
-                TrustedContact udp = null;
+                ID id = null;
                 
                 try
                 {
@@ -253,7 +217,7 @@ namespace Trust4
                     
                     IPAddress ip = IPAddress.Parse(split[1]);
                     int port = Int32.Parse(split[2]);
-                    
+
                     if (split.Length == 7)
                     {
                         Guid a = new Guid(split[3]);
@@ -261,34 +225,24 @@ namespace Trust4
                         Guid c = new Guid(split[5]);
                         Guid d = new Guid(split[6]);
                         
-                        id = new Identifier512(a, b, c, d);
+                        id = new ID(a, b, c, d);
                     }
                     else
                     {
-                        try
-                        {
-                            id = UdpContact.DiscoverIdentifier(ip, port, TimeSpan.FromSeconds(5));
-                            Console.WriteLine("Discovered ID " + id + " for " + ip);
-                        }
-                        catch (TimeoutException)
-                        {
-                            Console.WriteLine("Timeout trying to discover an id for " + ip + ":" + port);
-                        }
+                        this.p_Dht.Log(Dht.LogType.ERROR, "Autodiscovery of peer IDs is not yet supported.");
+                        continue;
                     }
 
                     if (id != null)
                     {
-                        udp = new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port);
-                        Console.WriteLine("Loaded bootstrap contact " + udp);
+                        this.p_Dht.Contacts.Add(new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port));
+                        Console.WriteLine("Loaded bootstrap contact " + id);
                     }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine("Exception parsing bootstrap file: " + e);
                 }
-                
-                if (udp != null)
-                    yield return udp;
             }
         }
     }

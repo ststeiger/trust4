@@ -17,6 +17,8 @@ using System;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Data4
 {
@@ -24,6 +26,21 @@ namespace Data4
     public class ID : ISerializable
     {
         private byte[] m_Bytes;
+
+        public ID(IEnumerable<byte> bytes)
+        {
+            int i = 0;
+            this.m_Bytes = new byte[64];
+            foreach (byte b in bytes)
+            {
+                this.m_Bytes[i] = b;
+                i += 1;
+
+                // Take only the first 64 bytes.
+                if (i >= 64)
+                    break;
+            }
+        }
 
         public ID(Guid a, Guid b, Guid c, Guid d)
         {
@@ -113,6 +130,82 @@ namespace Data4
         {
             for (int i = 0; i < 64; i += 1)
                 info.AddValue("k" + i.ToString(), this.m_Bytes[i]);
+        }
+
+        /*
+         * Functions below here are adapted from Identifier512 by Martin Devans
+         */
+        public static ID NewHash(string s)
+        {
+            MD5 hasher = MD5.Create();
+            byte[] s1 = hasher.ComputeHash(Encoding.ASCII.GetBytes(s));
+            byte[] b = s1.Append(s1).Append(s1).Append(s1).ToArray();
+            if (b.Length * 8 != 512)
+                throw new Exception("Length of array should be 512 bits");
+
+            return new ID(b).GetHashedKey();
+        }
+
+        public ID GetHashedKey()
+        {
+            ID unhashedKey1 = this + 1;
+            ID unhashedKey2 = unhashedKey1 + 1;
+            ID unhashedKey3 = unhashedKey2 + 1;
+            SHA512 hasher = SHA512.Create();
+            byte[] b = hasher.ComputeHash(
+                    this
+                    .GetBytes()
+                    .ToArray()
+                    )
+                .Append(hasher.ComputeHash(unhashedKey1.GetBytes().ToArray()))
+                .Append(hasher.ComputeHash(unhashedKey2.GetBytes().ToArray()))
+                .Append(hasher.ComputeHash(unhashedKey3.GetBytes().ToArray()))
+                .ToArray();
+
+            if (b.Length * 8 < 512)
+                throw new Exception("Length of array should be " + 512 + " bits or more");
+
+            return new ID(b.Take(512));
+        }
+
+        public static ID operator +(ID a, int value)
+        {
+            byte[] b = new byte[a.m_Bytes.Length];
+            a.m_Bytes.CopyTo(b, 0);
+
+            for (int i = b.Length - 1; i >= 0; i--)
+            {
+                int v = b[i] + value;
+                if (v > byte.MaxValue)
+                {
+                    b[i] = (byte) ( value % byte.MaxValue );
+                    value -= byte.MaxValue * b[i];
+                }
+                else
+                    b[i] = (byte) v;
+            }
+
+            return new ID(b);
+        }
+
+        /// <summary>
+        /// Gets the bytes which make up this identifier
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<byte> GetBytes()
+        {
+            return this.m_Bytes;
+        }
+    }
+
+    public static class EnumerableExtensions
+    {
+        public static IEnumerable<T> Append<T>(this IEnumerable<T> before, IEnumerable<T> after)
+        {
+            foreach (var item in before)
+                yield return item;
+            foreach (var item in after)
+                yield return item;
         }
     }
 }

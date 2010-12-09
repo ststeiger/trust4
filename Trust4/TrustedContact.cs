@@ -15,12 +15,11 @@
 
 using System;
 using System.Net;
-using DistributedServiceProvider.Base;
-using DistributedServiceProvider.Contacts;
+using Data4;
 
 namespace Trust4
 {
-    public class TrustedContact : DistributedServiceProvider.Contacts.UdpContact
+    public class TrustedContact : Data4.Contact
     {
         private decimal p_TrustAmount = 0;
         public decimal TrustAmount
@@ -28,15 +27,9 @@ namespace Trust4
             get { return this.p_TrustAmount; }
         }
 
-        public TrustedContact(decimal trust, Identifier512 id, Guid network, IPAddress ip, int port)
-            :base(id, network, ip, port)
+        public TrustedContact(decimal trust, ID id, Guid network, IPAddress ip, int port) : base(id, new IPEndPoint(ip, port))
         {
             this.p_TrustAmount = trust;
-        }
-
-        public override void Send(Contact source, Guid consumerId, byte[] message, bool reliable, bool ordered, int channel)
-        {
-            base.Send(source, consumerId, message, reliable, ordered, channel);
         }
     }
 }

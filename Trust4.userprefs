@@ -3,20 +3,17 @@
   <MonoDevelop.Ide.DebuggingService>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService>
-  <MonoDevelop.Ide.Workbench ActiveDocument="Data4/ID.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Trust4/DnsProcess.cs">
     <Files>
-      <File FileName="Data4/Dht.cs" Line="40" Column="22" />
-      <File FileName="ARSoft.Tools.Net/Dns/DnsServer.cs" Line="1" Column="1" />
-      <File FileName="Data4/Message.cs" Line="44" Column="23" />
-      <File FileName="Data4/Contact.cs" Line="85" Column="69" />
-      <File FileName="Data4.Tests/Program.cs" Line="50" Column="77" />
-      <File FileName="Data4/ID.cs" Line="51" Column="38" />
-      <File FileName="Data4/MessageEventArgs.cs" Line="38" Column="50" />
-      <File FileName="Data4/Messages/BroadcastMessage.cs" Line="64" Column="27" />
-      <File FileName="Data4/Messages/DirectMessage.cs" Line="43" Column="23" />
-      <File FileName="Data4/Messages/ConfirmationMessage.cs" Line="30" Column="10" />
-      <File FileName="Data4/Entry.cs" Line="22" Column="19" />
-      <File FileName="DistributedServiceProvider/DistributedServiceProviderBase/Identifier512.cs" Line="245" Column="22" />
+      <File FileName="Trust4/TrustedContact.cs" Line="20" Column="17" />
+      <File FileName="Trust4/DnsProcess.cs" Line="209" Column="52" />
+      <File FileName="Trust4/Manager.cs" Line="244" Column="59" />
+      <File FileName="Trust4/Mappings.cs" Line="380" Column="35" />
+      <File FileName="Trust4/Settings.cs" Line="140" Column="143" />
+      <File FileName="Data4/ID.cs" Line="48" Column="32" />
+      <File FileName="Trust4/settings.txt" Line="17" Column="1" />
+      <File FileName="Data4/Contact.cs" Line="50" Column="1" />
+      <File FileName="Data4/Dht.cs" Line="155" Column="46" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -24,12 +21,11 @@
           <Node name="ARSoft.Tools.Net" expanded="True">
             <Node name="Dns" expanded="True" />
           </Node>
-          <Node name="Data4" expanded="True" selected="True">
-            <Node name="References" expanded="True" />
-          </Node>
+          <Node name="Data4" expanded="True" />
           <Node name="Data4.Tests" expanded="True" />
-          <Node name="DistributedServiceProvider.Base" expanded="True">
+          <Node name="Trust4" expanded="True">
             <Node name="References" expanded="True" />
+            <Node name="DnsProcess.cs" selected="True" />
           </Node>
         </State>
       </Pad>
@@ -39,7 +35,9 @@
     </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Catchpoint exceptionName="System.NullReferenceException" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches>
     <Watch file="ARSoft.Tools.Net/Dns/DnsServer.cs" line="166" offsetX="867" offsetY="1952" expression="query" liveUpdate="False" />

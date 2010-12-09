@@ -22,7 +22,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using ARSoft.Tools.Net.Dns;
-using DistributedServiceProvider.Base;
+using Data4;
 
 namespace Trust4
 {
@@ -329,21 +329,23 @@ namespace Trust4
             Console.WriteLine(keydomain);
 
             // Add that CNAME record to the DHT.
-            Identifier512 questionid = Identifier512.CreateKey(DnsSerializer.ToStore(question));
-            this.m_Manager.DataStore.Put(questionid, ByteString.GetBytes(DnsSerializer.ToStore(keyanswer)));
+            ID questionid = ID.NewHash(DnsSerializer.ToStore(question));
+            this.m_Manager.Dht.Put(questionid, DnsSerializer.ToStore(keyanswer));
             
             // Now create a CNAME question that will be asked after looking up the original domain.
             DnsQuestion keyquestion = new DnsQuestion(keydomain, RecordType.CName, RecordClass.INet);
             
             // Add the original answer to the DHT, but encrypt it using our private key.
-            Identifier512 keyquestionid = Identifier512.CreateKey(DnsSerializer.ToStore(keyquestion));
-            this.m_Manager.DataStore.Put(
+            ID keyquestionid = ID.NewHash(DnsSerializer.ToStore(keyquestion));
+            this.m_Manager.Dht.Put(
                 keyquestionid,
-                Mappings.Sign(
-                    new EncryptorPair(guids),
-                    ByteString.GetBytes(
-                        DnsSerializer.ToStore(
-                            answer
+                ByteString.GetString(
+                    Mappings.Sign(
+                        new EncryptorPair(guids),
+                        ByteString.GetBytes(
+                            DnsSerializer.ToStore(
+                                answer
+                                )
                             )
                         )
                     )
@@ -375,8 +377,8 @@ namespace Trust4
         public void Add(DnsQuestion question, DnsRecordBase answer)
         {
             // Add the record to the DHT.
-            Identifier512 questionid = Identifier512.CreateKey(DnsSerializer.ToStore(question));
-            this.m_Manager.DataStore.Put(questionid, ByteString.GetBytes(DnsSerializer.ToStore(answer)));
+            ID questionid = ID.NewHash(DnsSerializer.ToStore(question));
+            this.m_Manager.Dht.Put(questionid, DnsSerializer.ToStore(answer));
             
             // Add the domain to our cache.
             this.p_Domains.Add(new DomainMap(question, answer));
