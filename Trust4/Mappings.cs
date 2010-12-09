@@ -144,7 +144,6 @@ namespace Trust4
                 Console.WriteLine("CRYPTOGRAPHY ERROR: The generated signature could not be verified using the public key.");
                 return new byte[] {};
             }
-            Console.WriteLine("CRYPTOGRAPHY SUCCESS: The generated signature is valid.");
 
             // Combine it.
             tmp.Clear();
@@ -205,7 +204,7 @@ namespace Trust4
             signature = ByteString.GetBase32Bytes(ByteString.GetString(signature.ToArray())).ToList();
 
             // Verify that the public hash matches the hash of the public key.
-            SHA256Cng sha = new SHA256Cng();
+            SHA256Managed sha = new SHA256Managed();
             if (!sha.ComputeHash(publickey.ToArray()).SequenceEqual(publichash))
             {
                 Console.WriteLine("CRYPTOGRAPHY ERROR: The public key has been modified in this request.");
@@ -221,7 +220,6 @@ namespace Trust4
             {
                 Console.WriteLine("CRYPTOGRAPHY ERROR: The signature for this request is invalid.");
             }
-            Console.WriteLine("CRYPTOGRAPHY INFORMATION: The signature for this request is valid.");
 
             // We're all good.
             return recorddata.ToArray();
@@ -300,7 +298,7 @@ namespace Trust4
         {
             // Calculate the public key hash.
             EncryptorPair pair = new EncryptorPair(guids);
-            SHA256Cng sha = new SHA256Cng();
+            SHA256Managed sha = new SHA256Managed();
             string publichash = ByteString.GetBase32String(sha.ComputeHash(ByteString.GetBytes(pair.ToXmlString(false))));
 
             // First automatically create a DnsRecordBase based on the question.
@@ -326,8 +324,6 @@ namespace Trust4
                 answer = newanswer;
             }
 
-            Console.WriteLine(keydomain);
-
             // Add that CNAME record to the DHT.
             ID questionid = ID.NewHash(DnsSerializer.ToStore(question));
             this.m_Manager.Dht.Put(questionid, DnsSerializer.ToStore(keyanswer));
@@ -340,18 +336,6 @@ namespace Trust4
             this.m_Manager.Dht.Put(
                 keyquestionid,
                 ByteString.GetString(
-                    Mappings.Sign(
-                        new EncryptorPair(guids),
-                        ByteString.GetBytes(
-                            DnsSerializer.ToStore(
-                                answer
-                                )
-                            )
-                        )
-                    )
-                );
-            Console.WriteLine(
-                ByteString.GetBase32String(
                     Mappings.Sign(
                         new EncryptorPair(guids),
                         ByteString.GetBytes(

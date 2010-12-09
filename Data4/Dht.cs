@@ -227,23 +227,24 @@ namespace Data4
 
         public void Log(LogType type, string msg)
         {
+            string id = (this.p_Self.EndPoint != null) ? this.p_Self.EndPoint.ToString() + " :" : "";
             switch (type)
             {
                 case LogType.ERROR:
-                    Console.WriteLine("ERROR  : " + this.p_Self.Identifier.ToString() + " : " + msg);
+                    Console.WriteLine("ERROR  : " + id + " " + msg);
                     break;
                 case LogType.WARNING:
-                    Console.WriteLine("WARNING: " + this.p_Self.Identifier.ToString() + " : " + msg);
+                    Console.WriteLine("WARNING: " + id + " " + msg);
                     break;
                 case LogType.INFO:
-                    Console.WriteLine("INFO   : " + this.p_Self.Identifier.ToString() + " : " + msg);
+                    Console.WriteLine("INFO   : " + id + " " + msg);
                     break;
                 case LogType.DEBUG:
                     if (this.p_ShowDebug)
-                        Console.WriteLine("DEBUG  : " + this.p_Self.Identifier.ToString() + " : " + msg);
+                        Console.WriteLine("DEBUG  : " + id + " " + msg);
                     break;
                 default:
-                    Console.WriteLine("UNKNOWN: " + this.p_Self.Identifier.ToString() + " : " + msg);
+                    Console.WriteLine("UNKNOWN: " + id + " " + msg);
                     break;
             }
         }
