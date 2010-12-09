@@ -133,7 +133,7 @@ namespace Data4.Tests
                 if (e.Value == "storage test 1")
                     count1 += 1;
                 if (e.Value == "storage test 2")
-                    count2 += 2;
+                    count2 += 1;
                 Console.WriteLine(e.Owner + " gave '" + e.Value + "'.");
             }
 

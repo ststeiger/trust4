@@ -18,10 +18,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using ARSoft.Tools.Net.Dns;
-using DistributedServiceProvider.Base;
-using DistributedServiceProvider.Contacts;
-using Trust4.DataStorage;
 using System.Text;
+using Data4;
 
 namespace Trust4
 {
@@ -76,18 +74,18 @@ namespace Trust4
                             // We haven't found it in our local cache.  Query our
                             // peers to see if they've got any idea where this site is.
                             Console.WriteLine("DNS LOOKUP - Create identifier on " + q.Name);
-                            Identifier512 domainid = Identifier512.CreateKey(DnsSerializer.ToStore(q));
+                            ID domainid = ID.NewHash(DnsSerializer.ToStore(q));
                             Console.WriteLine("DNS LOOKUP - Retrieve results on " + q.Name);
-                            IEnumerable<DataResult> results = this.m_Manager.DataStore.Get(domainid);
+                            IEnumerable<Entry> results = this.m_Manager.Dht.Get(domainid);
     
                             // Find out the most trusted results.
                             Console.WriteLine("DNS LOOKUP - Find trusted result on " + q.Name);
                             Contact trustedcontact = null;
                             decimal trustedamount = 0;
-                            foreach (DataResult r in results)
+                            foreach (Entry r in results)
                             {
-                                Contact source = r.Source;
-                                DnsRecordBase result = DnsSerializer.FromStore(q.Name.ToLowerInvariant(), r.Data);
+                                Contact source = r.Owner;
+                                DnsRecordBase result = DnsSerializer.FromStore(q.Name.ToLowerInvariant(), ByteString.GetBytes(r.Value));
     
                                 // Assign if this result is trusted higher than the current result.
                                 decimal trust = 0;
@@ -107,20 +105,20 @@ namespace Trust4
                             else
                                 Console.WriteLine("DNS LOOKUP - Trusted results comes from " + trustedcontact.Identifier.ToString());
     
-                            foreach (DataResult r in results)
+                            foreach (Entry r in results)
                             {
-                                if (r.Source == trustedcontact)
+                                if (r.Owner == trustedcontact)
                                 {
                                     Console.WriteLine("DNS LOOKUP - Retrieving result from store " + q.Name);
-                                    DnsRecordBase result = DnsSerializer.FromStore(q.Name.ToLowerInvariant(), r.Data);
+                                    DnsRecordBase result = DnsSerializer.FromStore(q.Name.ToLowerInvariant(), ByteString.GetBytes(r.Value));
     
                                     // Cache the result.
                                     Console.WriteLine("DNS LOOKUP - Adding to cache " + q.Name);
                                     this.m_Manager.Mappings.AddCached(q, result);
         
-                                    string sip = "<unknown>";
-                                    if (trustedcontact is UdpContact)
-                                        sip = ( trustedcontact as UdpContact ).Ip.ToString();
+                                    string sip = "<unknown";
+                                    if (trustedcontact != null)
+                                        sip = trustedcontact.EndPoint.ToString();
                                     Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + result.RecordType.ToString() + ")");
     
                                     // Add the result.
@@ -168,8 +166,8 @@ namespace Trust4
                         {
                             // We haven't found it in our local cache.  Query our
                             // peers to see if they've got any idea where this site is.
-                            Identifier512 domainid = Identifier512.CreateKey(DnsSerializer.ToStore(q));
-                            IEnumerable<DataResult> results = this.m_Manager.DataStore.Get(domainid);
+                            ID domainid = ID.NewHash(DnsSerializer.ToStore(q));
+                            IEnumerable<Entry> results = this.m_Manager.Dht.Get(domainid);
                         
                             // We need to fetch the public key from the domain request so
                             // that we can decrypt / verify the results.
@@ -184,11 +182,11 @@ namespace Trust4
                                 // because we have the public hash to verify the data.  If verification
                                 // results in something the Serializer can get a record from, then
                                 // we know that it's valid.
-                                foreach (DataResult r in results)
+                                foreach (Entry r in results)
                                 {
                                     byte[] v = Mappings.Verify(
                                         publichash,
-                                        r.Data
+                                        ByteString.GetBytes(r.Value)
                                         );
                                     if (v == null)
                                     {
@@ -207,9 +205,9 @@ namespace Trust4
                                         Console.WriteLine("DNS LOOKUP - Adding to cache " + q.Name);
                                         this.m_Manager.Mappings.AddCached(q, record);
     
-                                        string sip = "<unknown>";
-                                        if (r.Source is UdpContact)
-                                            sip = ( r.Source as UdpContact ).Ip.ToString();
+                                        string sip = "<unknown";
+                                        if (r.Owner != null)
+                                            sip = r.Owner.EndPoint.ToString();
                                         Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + record.RecordType.ToString() + ")");
                                         
                                         // Add the result.

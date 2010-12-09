@@ -18,30 +18,21 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
-using DistributedServiceProvider.Base;
 using System.Collections.Generic;
+using Data4;
 
 namespace Trust4
 {
     public class Settings
     {
-        private const string PRIVATE_KEY_FILE_PATH = "private_key.xml";
-        private const string PUBLIC_KEY_FILE_PATH = "public_key.xml";
-
         private string m_Path = null;
         private int p_P2PPort = 12000;
         private int p_DNSPort = 53;
         private IPAddress p_LocalIP = IPAddress.None;
         private Guid p_NetworkID = Guid.Empty;
-        private Identifier512 p_RoutingIdentifier = null;
+        private ID p_RoutingIdentifier = null;
         private uint p_UnixUID = 1000;
         private uint p_UnixGID = 1000;
-
-        public RSACryptoServiceProvider CryptoProvider
-        {
-            get;
-            private set;
-        }
 
         public Settings(string path)
         {
@@ -68,7 +59,7 @@ namespace Trust4
             get { return this.p_NetworkID; }
         }
 
-        public Identifier512 RoutingIdentifier
+        public ID RoutingIdentifier
         {
             get { return this.p_RoutingIdentifier; }
         }
@@ -85,11 +76,9 @@ namespace Trust4
 
         public void Load()
         {
-            int keySize = 2048;
-            
             bool setuid = false;
             bool setgid = false;
-            foreach (var line in File.ReadAllLines(this.m_Path).OmitComments("#", "//").Select(a => a.ToLowerInvariant().Replace(" ", "").Replace("\t", "").Split('=')))
+            foreach (var line in File.ReadAllLines(this.m_Path).OmitComments("#", "//").Select(a => a.ToLowerInvariant().Split(new char[] { '=' }, 2)))
             {
                 string setting = line[0].Trim();
                 string value = line[1].Trim();
@@ -109,17 +98,23 @@ namespace Trust4
                         if (line[1].Equals("dynamic", StringComparison.InvariantCultureIgnoreCase))
                             this.p_LocalIP = LoadDynamicIp();
                         else
-                            this.p_LocalIP = IPAddress.Parse(line[1]);
+                            this.p_LocalIP = IPAddress.Parse(value);
                         Console.Title = this.p_LocalIP.ToString();
                         break;
                     case "networkid":
-                        this.p_NetworkID = new Guid(line[1]);
-                        break;
-                    case "keysize":
-                        keySize = Int32.Parse(line[1]);
+                        this.p_NetworkID = new Guid(value);
                         break;
                     case "routingidentifier":
-                        Console.WriteLine("routingidentifier setting is deprecated and ignored");
+                        string[] gs = value.Split(new char[] {
+                            ' ',
+                            ',',
+                            '\t'
+                        }, StringSplitOptions.RemoveEmptyEntries);
+                        Guid a = new Guid(gs[0]);
+                        Guid b = new Guid(gs[1]);
+                        Guid c = new Guid(gs[2]);
+                        Guid d = new Guid(gs[3]);
+                        this.p_RoutingIdentifier = new ID(a, b, c, d);
                         break;
                     case "uid":
                         this.p_UnixUID = Convert.ToUInt32(value);
@@ -130,13 +125,10 @@ namespace Trust4
                         setgid = true;
                         break;
                     default:
-                        Console.WriteLine("Unknown setting " + line[0]);
+                        Console.WriteLine("Unknown setting " + setting);
                         break;
                 }
             }
-            
-            CryptoProvider = LoadRsaKey(keySize, false);
-            p_RoutingIdentifier = Identifier512.CreateKey(CryptoProvider);
             
             if (Environment.OSVersion.Platform == PlatformID.Unix && ( !setuid || !setgid ))
             {
@@ -173,41 +165,6 @@ namespace Trust4
             }
 
             throw new InvalidOperationException("No sites successfully established an external IP");
-        }
-
-        private RSACryptoServiceProvider LoadRsaKey(int keySize, bool forceNewKey)
-        {
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(keySize);
-            
-            if (File.Exists(PRIVATE_KEY_FILE_PATH) && File.Exists(PUBLIC_KEY_FILE_PATH) && !forceNewKey)
-            {
-                string xml = File.ReadAllText(PRIVATE_KEY_FILE_PATH);
-                
-                rsa.FromXmlString(xml);
-            }
-
-            else
-            {
-                Console.WriteLine("No keys found, generating new " + keySize + "bit keys");
-                
-                if (File.Exists(PRIVATE_KEY_FILE_PATH))
-                    File.Delete(PRIVATE_KEY_FILE_PATH);
-                
-                if (File.Exists(PUBLIC_KEY_FILE_PATH))
-                    File.Delete(PUBLIC_KEY_FILE_PATH);
-                
-                using (var w = File.CreateText(PRIVATE_KEY_FILE_PATH))
-                {
-                    w.WriteLine(rsa.ToXmlString(true));
-                }
-                
-                using (var w = File.CreateText(PUBLIC_KEY_FILE_PATH))
-                {
-                    w.WriteLine(rsa.ToXmlString(false));
-                }
-            }
-            
-            return rsa;
         }
     }
 }
