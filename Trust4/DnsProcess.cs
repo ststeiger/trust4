@@ -116,7 +116,7 @@ namespace Trust4
                                     Console.WriteLine("DNS LOOKUP - Adding to cache " + q.Name);
                                     this.m_Manager.Mappings.AddCached(q, result);
         
-                                    string sip = "<unknown";
+                                    string sip = "<unknown>";
                                     if (trustedcontact != null)
                                         sip = trustedcontact.EndPoint.ToString();
                                     Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + result.RecordType.ToString() + ")");
@@ -205,7 +205,7 @@ namespace Trust4
                                         Console.WriteLine("DNS LOOKUP - Adding to cache " + q.Name);
                                         this.m_Manager.Mappings.AddCached(q, record);
     
-                                        string sip = "<unknown";
+                                        string sip = "<unknown>";
                                         if (r.Owner != null)
                                             sip = r.Owner.EndPoint.ToString();
                                         Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + record.RecordType.ToString() + ")");

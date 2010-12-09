@@ -65,6 +65,11 @@ namespace Data4
             {
                 this.Received = true;
                 this.p_Values = ( e.Message as FetchConfirmationMessage ).Values;
+
+                // Now assign the owner of the values as the owner of the message.  We do this to
+                // prevent people faking ownership by a more trusted user.
+                foreach (Entry t in this.p_Values)
+                    t.Owner = e.Message.Sender;
             }
         }
 
