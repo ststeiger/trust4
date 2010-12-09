@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ "$UID" == "0" ]; then
+	cd /srv/trust4
+	echo "$$" > /var/run/trust4.pid
+	XDG_CONFIG_HOME=. mono Trust4.exe
+	rm /var/run/trust4.pid
+else
+	sudo XDG_CONFIG_HOME=. mono Trust4.exe
+fi
