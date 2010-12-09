@@ -36,12 +36,24 @@ namespace Trust4
 
         public IPAddress ATarget
         {
-            get { return ( this.p_Answer as ARecord ).Address; }
+            get
+            {
+                if (this.p_Answer is ARecord)
+                    return (this.p_Answer as ARecord).Address;
+                else
+                    return IPAddress.None;
+            }
         }
 
         public string CNAMETarget
         {
-            get { return ( this.p_Answer as CNameRecord ).CanonicalName; }
+            get
+            {
+                if (this.p_Answer is CNameRecord)
+                    return (this.p_Answer as CNameRecord).CanonicalName;
+                else
+                    return null;
+            }
         }
 
         public RecordType Type
@@ -52,6 +64,11 @@ namespace Trust4
         public DnsRecordBase Answer
         {
             get { return this.p_Answer; }
+        }
+
+        public DnsQuestion Question
+        {
+            get { return this.p_Question; }
         }
     }
 }

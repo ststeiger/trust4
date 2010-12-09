@@ -95,7 +95,7 @@ namespace Trust4
                         this.p_DNSPort = Convert.ToInt32(value);
                         break;
                     case "localip":
-                        if (line[1].Equals("dynamic", StringComparison.InvariantCultureIgnoreCase))
+                        if (value.Equals("dynamic", StringComparison.InvariantCultureIgnoreCase))
                             this.p_LocalIP = LoadDynamicIp();
                         else
                             this.p_LocalIP = IPAddress.Parse(value);

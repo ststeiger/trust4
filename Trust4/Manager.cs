@@ -30,6 +30,7 @@ namespace Trust4
         private Settings p_Settings = null;
         private Mappings p_Mappings = null;
 
+        private Admin4.WebServer m_WebServer = null;
         private DnsServer m_DNSServer = null;
         private DnsProcess m_DNSProcess = null;
         private Dht p_Dht = null;
@@ -51,9 +52,14 @@ namespace Trust4
             // Initalize the DNS service.
             if (!this.InitalizeDNS())
                 return;
+
             // Couldn't lower permissions from root; exit immediately.
             // Initalize the DHT service.
             if (!this.InitalizeDHT())
+                return;
+
+            // Initalize the web admin interface.
+            if (!this.InitalizeAdmin())
                 return;
             
             // Load the mappings.
@@ -192,6 +198,25 @@ namespace Trust4
             this.p_Dht.Log(Dht.LogType.INFO, "Adding contacts...");
             this.BootstrapPeers();
             this.p_Dht.Log(Dht.LogType.INFO, "Contacts have been added.");
+
+            return true;
+        }
+
+        /// <summary>
+        /// Initalizes the administration interface.
+        /// </summary>
+        /// <returns></returns>
+        private bool InitalizeAdmin()
+        {
+ 	        this.m_WebServer = new Admin4.WebServer(this.p_Dht);
+            this.m_WebServer.Add(new Admin4.Pages.OverviewPage(this));
+            HttpServer.HttpModules.FileModule s = new HttpServer.HttpModules.FileModule("/static/", "./static/");
+            s.AddDefaultMimeTypes();
+            this.m_WebServer.Add(s);
+            this.m_WebServer.Start(IPAddress.Loopback, 84);
+
+            // TODO: Catch SocketExceptions and other Exceptions from
+            //       starting the web server and return false.
 
             return true;
         }

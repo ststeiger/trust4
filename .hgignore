@@ -20,3 +20,6 @@ glob:HandyCollections/HandyCollections/obj/*
 glob:Admin4/bin/*
 glob:Data4.Tests/bin/*
 glob:Data4/bin/*
+glob:Data4.Tests/obj/*
+glob:Data4/obj/*
+glob:Thumbs.db
