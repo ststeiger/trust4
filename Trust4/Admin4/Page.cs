@@ -17,25 +17,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using Trust4;
 
 namespace Admin4
 {
     public abstract class Page : HttpServer.HttpModules.HttpModule
     {
+        private Manager p_Manager = null;
         private List<string> m_Names = new List<string>();
         private Dictionary<int, string> p_Params = null;
         private HttpServer.IHttpRequest p_Request = null;
         private HttpServer.IHttpResponse p_Response = null;
-
-        internal Page(string name)
-        {
-            this.m_Names.Add(name);
-        }
-
-        internal Page(List<string> names)
-        {
-            this.m_Names = names;
-        }
 
         private static readonly byte[] m_PreHead = Encoding.ASCII.GetBytes(
 "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" + "\n" +
@@ -48,6 +40,23 @@ namespace Admin4
         private static readonly byte[] m_PostBody = Encoding.ASCII.GetBytes(
 "</body>" + "\n" +
 "</html>" + "\n");
+
+        internal Page(Manager manager, string name)
+        {
+            this.p_Manager = manager;
+            this.m_Names.Add(name);
+        }
+
+        internal Page(Manager manager, List<string> names)
+        {
+            this.p_Manager = manager;
+            this.m_Names = names;
+        }
+
+        protected Manager Manager
+        {
+            get { return this.p_Manager; }
+        }
 
         public override bool Process(HttpServer.IHttpRequest request, HttpServer.IHttpResponse response, HttpServer.Sessions.IHttpSession session)
         {
@@ -84,31 +93,40 @@ namespace Admin4
             this.p_Response = response;
 
             // Fire the events and add data as needed.
-            this.OnPageInit();
-            this.p_Response.Body.Write(Page.m_PreHead, 0, Page.m_PreHead.Length);
-            this.OnPageHead();
-            this.p_Response.Body.Write(Page.m_PostHead, 0, Page.m_PostHead.Length);
-            this.Output("<h1>&nbsp;</h1>");
-            this.Output("<div id='status'>");
-            this.Output("You are online.<br/>");
-            this.Output("Your node is not public.<br/>");
-            this.Output("You have 6 peers and 2 domains.<br/>");
-            this.Output("The direct peer state is healthy.<br/>");
-            this.Output("</div>");
-            this.Output("<div id='menubar'>&nbsp;</div>");
-            this.Output("<div id='content'>");
             try
             {
+                if (this.OnPageInit())
+                    return true;
+                this.p_Response.Body.Write(Page.m_PreHead, 0, Page.m_PreHead.Length);
+                this.OnPageHead();
+                this.p_Response.Body.Write(Page.m_PostHead, 0, Page.m_PostHead.Length);
+                this.Output("<h1>&nbsp;</h1>");
+                this.Output("<div id='status'>");
+                if (this.p_Manager.Online)
+                    this.Output("You are <strong style='color: #060;'>online</strong>.<br/>");
+                else
+                    this.Output("You are <strong style='color: #F00;'>offline</strong>.<br/>");
+                if (this.p_Manager.Online)
+                {
+                    this.Output("Your node is <strong>not public</strong>.<br/>");
+                    this.Output("You have <strong>6 peers</strong> and <strong>2 domains</strong>.<br/>");
+                    this.Output("The direct peer state is <strong>healthy</strong>.<br/>");
+                }
+                else if (!this.p_Manager.Settings.Configured)
+                    this.Output("Your node is <strong>not configured</strong>.<br/>");
+                this.Output("</div>");
+                this.Output("<div id='menubar'>&nbsp;</div>");
+                this.Output("<div id='content'>");
                 this.OnPageBody();
+                this.Output("</div>");
+                this.Output("<div id='footer'>Trust4 is licensed under the Apache License, Version 2.0.  See <a href='http://code.google.com/p/trust4/'>http://code.google.com/p/trust4/</a> for more information and source code.</div>");
+                this.p_Response.Body.Write(Page.m_PostBody, 0, Page.m_PostBody.Length);
+                this.OnPageExit();
             }
             catch (Exception e)
             {
                 this.Output(e.ToString());
             }
-            this.Output("</div>");
-            this.Output("<div id='footer'>Trust4 is licensed under the Apache License, Version 2.0.  See <a href='http://code.google.com/p/trust4/'>http://code.google.com/p/trust4/</a> for more information and source code.</div>");
-            this.p_Response.Body.Write(Page.m_PostBody, 0, Page.m_PostBody.Length);
-            this.OnPageExit();
 
             return true;
         }
@@ -134,7 +152,7 @@ namespace Admin4
             this.p_Response.Body.Write(r, 0, r.Length);
         }
 
-        protected abstract void OnPageInit();
+        protected abstract bool OnPageInit();
         protected abstract void OnPageHead();
         protected abstract void OnPageBody();
         protected abstract void OnPageExit();

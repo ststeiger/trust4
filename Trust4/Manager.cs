@@ -22,6 +22,7 @@ using ARSoft.Tools.Net.Dns;
 using System.Security.AccessControl;
 using System.Net.Sockets;
 using Data4;
+using Admin4;
 
 namespace Trust4
 {
@@ -30,7 +31,7 @@ namespace Trust4
         private Settings p_Settings = null;
         private Mappings p_Mappings = null;
 
-        private Admin4.WebServer m_WebServer = null;
+        private WebServer m_WebServer = null;
         private DnsServer m_DNSServer = null;
         private DnsProcess m_DNSProcess = null;
         private Dht p_Dht = null;
@@ -61,11 +62,21 @@ namespace Trust4
             // Initalize the web admin interface.
             if (!this.InitalizeAdmin())
                 return;
-            
-            // Load the mappings.
-            this.p_Mappings = new Mappings(this, "mappings.txt");
-            this.p_Mappings.Load();
-            
+
+            if (this.p_Settings.Configured)
+            {
+                // Load the mappings.
+                this.p_Mappings = new Mappings(this, "mappings.txt");
+                this.p_Mappings.Load();
+
+                // Go online.
+                this.p_Settings.Online = true;
+            }
+            else
+            {
+                Console.WriteLine("Your node is not yet configured.  You can configure it by accessing http://localhost:84/ while the server is running.");
+            }
+
             // .. the Trust4 server is now running ..
             Thread.Sleep(Timeout.Infinite);
             //Console.WriteLine("Press any key to stop server.");
@@ -100,35 +111,48 @@ namespace Trust4
         }
 
         /// <summary>
+        /// Whether the Trust4 server responds to incoming peer-to-peer requests as well
+        /// as request records from peers.  The Trust4 server will still resolve cached
+        /// domains when in offline mode.
+        /// </summary>
+        public bool Online
+        {
+            get { return this.p_Settings.Online; }
+        }
+
+        /// <summary>
         /// Initalizes the DNS server component.
         /// </summary>
         public bool InitalizeDNS()
         {
-            // Create the DNS processing instance.
-            this.m_DNSProcess = new DnsProcess(this);
-            
-            // Start the DNS server.
-            this.m_DNSServer = new DnsServer(IPAddress.Any, this.p_Settings.DNSPort, 10, 10, this.m_DNSProcess.ProcessQuery);
-            this.m_DNSServer.ExceptionThrown += new EventHandler<ExceptionEventArgs>(this.m_DNSProcess.ExceptionThrown);
-            try
+            if (this.p_Settings.Configured)
             {
-                this.m_DNSServer.Start();
-            }
-            catch (SocketException ex)
-            {
-                if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse) // Can't bind to port
-                {
-                    Console.WriteLine("Error!  Can't bind to DNS port, check that you have permissions for this port, and that no other program is currently using it.");
-                }
-                else
-                {
-                    Console.WriteLine(ex.Message);
-                }
+                // Create the DNS processing instance.
+                this.m_DNSProcess = new DnsProcess(this);
 
-                return false;
+                // Start the DNS server.
+                this.m_DNSServer = new DnsServer(IPAddress.Any, this.p_Settings.DNSPort, 10, 10, this.m_DNSProcess.ProcessQuery);
+                this.m_DNSServer.ExceptionThrown += new EventHandler<ExceptionEventArgs>(this.m_DNSProcess.ExceptionThrown);
+                try
+                {
+                    this.m_DNSServer.Start();
+                }
+                catch (SocketException ex)
+                {
+                    if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse) // Can't bind to port
+                    {
+                        Console.WriteLine("Error!  Can't bind to DNS port, check that you have permissions for this port, and that no other program is currently using it.");
+                    }
+                    else
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
+                    return false;
+                }
             }
 
-            
+            // Lower the permissions even if the DNS server didn't start.
             int p = (int) Environment.OSVersion.Platform;
             if (( p == 4 ) || ( p == 6 ) || ( p == 128 ))
             {
@@ -177,6 +201,9 @@ namespace Trust4
         /// </summary>
         public bool InitalizeDHT()
         {
+            if (!this.p_Settings.Configured)
+                return true;
+
             try
             {
                 // Start the Distributed Hash Table.
@@ -208,8 +235,9 @@ namespace Trust4
         /// <returns></returns>
         private bool InitalizeAdmin()
         {
- 	        this.m_WebServer = new Admin4.WebServer(this.p_Dht);
+            this.m_WebServer = new Admin4.WebServer(this.p_Dht);
             this.m_WebServer.Add(new Admin4.Pages.OverviewPage(this));
+            this.m_WebServer.Add(new Admin4.Pages.AutomaticConfigurationPage(this));
             HttpServer.HttpModules.FileModule s = new HttpServer.HttpModules.FileModule("/static/", "./static/");
             s.AddDefaultMimeTypes();
             this.m_WebServer.Add(s);
@@ -260,7 +288,7 @@ namespace Trust4
 
                     if (id != null)
                     {
-                        this.p_Dht.Contacts.Add(new TrustedContact(trust, id, this.p_Settings.NetworkID, ip, port));
+                        this.p_Dht.Contacts.Add(new TrustedContact(trust, id, Guid.Empty, ip, port));
                         Console.WriteLine("Loaded bootstrap contact " + id);
                     }
                 }

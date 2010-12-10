@@ -29,10 +29,12 @@ namespace Trust4
         private int p_P2PPort = 12000;
         private int p_DNSPort = 53;
         private IPAddress p_LocalIP = IPAddress.None;
-        private Guid p_NetworkID = Guid.Empty;
         private ID p_RoutingIdentifier = null;
         private uint p_UnixUID = 1000;
         private uint p_UnixGID = 1000;
+        private bool p_Configured = false;
+        private bool p_Online = false;
+        private bool p_Public = false;
 
         public Settings(string path)
         {
@@ -42,26 +44,25 @@ namespace Trust4
         public int P2PPort
         {
             get { return this.p_P2PPort; }
+            set { this.p_P2PPort = value; }
         }
 
         public int DNSPort
         {
             get { return this.p_DNSPort; }
+            set { this.p_DNSPort = value; }
         }
 
         public IPAddress LocalIP
         {
             get { return this.p_LocalIP; }
-        }
-
-        public Guid NetworkID
-        {
-            get { return this.p_NetworkID; }
+            set { this.p_LocalIP = value; }
         }
 
         public ID RoutingIdentifier
         {
             get { return this.p_RoutingIdentifier; }
+            set { this.p_RoutingIdentifier = value; }
         }
 
         public uint UnixUID
@@ -72,6 +73,23 @@ namespace Trust4
         public uint UnixGID
         {
             get { return this.p_UnixGID; }
+        }
+
+        public bool Configured
+        {
+            get { return this.p_Configured; }
+            set { this.p_Configured = value; }
+        }
+
+        public bool Online
+        {
+            get { return this.p_Online; }
+            set { this.p_Online = value; }
+        }
+
+        public bool Public
+        {
+            get { return this.p_Public; }
         }
 
         public void Load()
@@ -85,26 +103,23 @@ namespace Trust4
                 
                 switch (setting)
                 {
-                    case "peerport":
+                    case "configured":
+                        this.p_Configured = Convert.ToBoolean(value);
+                        break;
+                    case "ip.port.p2p":
                         this.p_P2PPort = Convert.ToInt32(value);
                         break;
-                    case "port":
-                        this.p_P2PPort = Convert.ToInt32(value);
-                        break;
-                    case "dnsport":
+                    case "ip.port.dns":
                         this.p_DNSPort = Convert.ToInt32(value);
                         break;
-                    case "localip":
+                    case "ip.address":
                         if (value.Equals("dynamic", StringComparison.InvariantCultureIgnoreCase))
                             this.p_LocalIP = LoadDynamicIp();
                         else
                             this.p_LocalIP = IPAddress.Parse(value);
                         Console.Title = this.p_LocalIP.ToString();
                         break;
-                    case "networkid":
-                        this.p_NetworkID = new Guid(value);
-                        break;
-                    case "routingidentifier":
+                    case "id.routing":
                         string[] gs = value.Split(new char[] {
                             ' ',
                             ',',
@@ -116,13 +131,16 @@ namespace Trust4
                         Guid d = new Guid(gs[3]);
                         this.p_RoutingIdentifier = new ID(a, b, c, d);
                         break;
-                    case "uid":
+                    case "unix.uid":
                         this.p_UnixUID = Convert.ToUInt32(value);
                         setuid = true;
                         break;
-                    case "gid":
+                    case "unix.gid":
                         this.p_UnixGID = Convert.ToUInt32(value);
                         setgid = true;
+                        break;
+                    case "info.public":
+                        this.p_Public = Convert.ToBoolean(value);
                         break;
                     default:
                         Console.WriteLine("Unknown setting " + setting);
@@ -132,7 +150,7 @@ namespace Trust4
             
             if (Environment.OSVersion.Platform == PlatformID.Unix && ( !setuid || !setgid ))
             {
-                Console.WriteLine("Warning!  You didn't set the 'uid' and 'gid' options in settings.txt.  This is probably not going to work as you expect!");
+                Console.WriteLine("Warning!  You didn't set the 'unix.uid' and 'unix.gid' options in settings.txt.  This is probably not going to work as you expect!");
             }
         }
 
@@ -143,7 +161,7 @@ namespace Trust4
                 new KeyValuePair<string, Func<string, IPAddress>>("http://www.lusion.co.za/ip", (s) => IPAddress.Parse(s)),
             };
 
-        private IPAddress LoadDynamicIp()
+        public IPAddress LoadDynamicIp()
         {
             int start;
             lock (r) { start = r.Next(dynamicIpSources.Length);}

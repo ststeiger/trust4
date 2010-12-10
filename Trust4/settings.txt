@@ -1,15 +1,18 @@
-﻿peerport = 12000
-dnsport = 53
+﻿configured = false
+
+// You still need to set these if running on Linux before using the administration
+// panel for configuration.
+unix.uid = 1000
+unix.gid = 100
+
+//ip.port.p2p = 12000
+//ip.port.dns = 53
 
 //if you have a static IP, specify it here, otherwise specify dynamic
-//localip = 59.167.198.201
-localip = dynamic
+//ip.address = 59.167.198.201
+//ip.address = dynamic
 
-routingidentifier = 4dad18df-536b-425f-96d5-388393ce4ab4 c4f579c0-5853-463f-90ee-7ff698b9c37a 94e3a4a6-b09b-4774-89a7-4c215fc4c1ec 13331b7d-35dd-4062-a34e-ccd87eaba201
-
-// don't change this, or you won't be able to connect to anyone!
-networkid = f35303bc-f334-4e68-b949-28943ff96955
+//id.routing = 4dad18df-536b-425f-96d5-388393ce4ab4 c4f579c0-5853-463f-90ee-7ff698b9c37a 94e3a4a6-b09b-4774-89a7-4c215fc4c1ec 13331b7d-35dd-4062-a34e-ccd87eaba201
 
 // change this if you're running on linux
-uid = 1000
-gid = 100
+
