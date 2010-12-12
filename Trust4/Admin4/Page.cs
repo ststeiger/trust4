@@ -108,14 +108,25 @@ namespace Admin4
                     this.Output("You are <strong style='color: #F00;'>offline</strong>.<br/>");
                 if (this.p_Manager.Online)
                 {
-                    this.Output("Your node is <strong>not public</strong>.<br/>");
-                    this.Output("You have <strong>6 peers</strong> and <strong>2 domains</strong>.<br/>");
-                    this.Output("The direct peer state is <strong>healthy</strong>.<br/>");
+                    if (this.p_Manager.Settings.Public)
+                        this.Output("Your node is <strong>public</strong>.<br/>");
+                    else
+                        this.Output("Your node is <strong>not public</strong>.<br/>");
+                    if (this.Manager.Dht != null)
+                    {
+                        this.Output("You have <strong>" + this.Manager.Dht.Contacts.Count +
+                            " peer" + ((this.Manager.Dht.Contacts.Count == 1) ? "" : "s") + "</strong> and <strong>" + this.Manager.Mappings.Domains.Count +
+                            " domain " + ((this.Manager.Mappings.Domains.Count == 1) ? "entry" : "entries") + "</strong>.<br/>");
+                    }
                 }
                 else if (!this.p_Manager.Settings.Configured)
                     this.Output("Your node is <strong>not configured</strong>.<br/>");
                 this.Output("</div>");
-                this.Output("<div id='menubar'>&nbsp;</div>");
+                this.Output("<div id='menubar'>");
+                this.Output("   <a href='/' class='selected'>OVERVIEW</a>");
+                this.Output("   <a href='/peers'>PEERS</a>");
+                this.Output("   <a href='/domains'>DOMAINS</a>");
+                this.Output("</div>");
                 this.Output("<div id='content'>");
                 this.OnPageBody();
                 this.Output("</div>");

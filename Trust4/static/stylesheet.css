@@ -47,7 +47,7 @@ div#status
 	position: absolute;
 	top: 16px;
 	right: 18px;
-	width: 200px;
+	width: 250px;
 	height: 64px;
 	font-size: 11px;
 	text-align: right;
@@ -56,12 +56,37 @@ div#status
 
 div#menubar
 {
-	width: 100%;
+	width: auto;
 	padding: 0px;
 	margin: 0px;
 	margin-top: 74px;
 	height: 23px;
 	border-bottom: 2px solid #3293CB;
+	padding-left: 250px;
+}
+
+div#menubar a
+{
+	display: block;
+	float: left;
+	width: 100px;
+	height: 23px;
+	line-height: 24px;
+	overflow: hidden;
+	background-color: #CCCCCC;
+	color: #000000;
+	font-family: Verdana;
+	font-weight: bold;
+	font-size: 10px;
+	text-align: center;
+	margin-left: 10px;
+	text-decoration: none;
+}
+
+div#menubar a.selected
+{
+	background-color: #3293CB;
+	color: #FFFFFF;
 }
 
 div#content
@@ -79,7 +104,7 @@ div#footer
 	margin-bottom: 30px;
 }
 
-div#content h2:first-child
+div#content h2:first-child, h2.nomargin
 {
 	margin: 0.83em 0px !important;
 }

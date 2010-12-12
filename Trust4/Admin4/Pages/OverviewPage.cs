@@ -42,12 +42,11 @@ namespace Admin4.Pages
         protected override void OnPageBody()
         {
             // Overview, links to configuration etc.
-            this.Output("<h2>Overview</h2>");
-            this.Output("<p>Welcome to the .P2P DNS network.  You are connected via the Trust4 0.3.0 demonstration server.</p>");
-
             if (!this.Manager.Settings.Configured)
             {
                 // Prompt for configuration.
+                this.Output("<h2>Server Not Configured</h2>");
+                this.Output("<p>Welcome to the .P2P DNS network.  You are running the Trust4 0.3.0 demonstration server.</p>");
                 this.Output("<p>It appears you haven't yet configured your server; select an option below to get started.</p>");
                 this.Output("<div class='buttons'>");
                 this.Output("   <a href='/autoconfig' class='regular noimg'>");
@@ -57,10 +56,10 @@ namespace Admin4.Pages
             }
             else
             {
+                // Basic, peer and domain information.
+                this.Output("<div style='float:right; margin-right: -7px; margin-top: -3px;' class='buttons'>");
                 if (!this.Manager.Settings.Initializing)
                 {
-                    this.Output("<p>You can control whether your node is online or offline using the options below.</p>");
-                    this.Output("<div class='buttons'>");
                     if (this.Manager.Settings.Online)
                     {
                         this.Output("   <a href='/control/offline' class='negative noimg'>");
@@ -73,16 +72,19 @@ namespace Admin4.Pages
                         this.Output("       Switch to Online Mode");
                         this.Output("   </a>");
                     }
-                    this.Output("</div>");
                 }
-                else
-                {
-                    this.Output("<p>The node is currently initalizing.  It will automatically come online.</p>");
-                }
-
-                // Raw information.
-                this.Output("<h2>Basic Information</h2>");
+                this.Output("</div>");
+                this.Output("<h2 class='nomargin'>Basic Information</h2>");
                 this.Output("<table cellpadding='5' border='1' width='100%'>");
+                this.Output("   <tr>");
+                this.Output("       <th width='300'>Status</th>");
+                if (this.Manager.Settings.Initializing)
+                    this.Output("       <td colspan='2'>Initalizing...</td>");
+                else if (this.Manager.Settings.Online)
+                    this.Output("       <td colspan='2'>Online</td>");
+                else
+                    this.Output("       <td colspan='2'>Offline (DNS still running)</td>");
+                this.Output("   </tr>");
                 this.Output("   <tr>");
                 this.Output("       <th rowspan='3' width='300'>IP Address and Ports</th>");
                 this.Output("       <td width='300'><strong>IP Address:</strong></td>");
