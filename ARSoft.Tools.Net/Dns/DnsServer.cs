@@ -153,6 +153,11 @@ namespace ARSoft.Tools.Net.Dns
                             catch (SocketException e)
                             {
                             }
+                            catch (ObjectDisposedException)
+                            {
+                                // We've been closed down.
+                                break;
+                            }
                         }
 					});
 				t.IsBackground = true;
@@ -343,7 +348,8 @@ namespace ARSoft.Tools.Net.Dns
             }
             catch (Exception e)
             {
-                OnExceptionThrown(e);
+                if (!(e is InvalidOperationException))
+                    OnExceptionThrown(e);
             }
         }
 
@@ -381,7 +387,8 @@ namespace ARSoft.Tools.Net.Dns
                 }
                 catch {}
 
-                OnExceptionThrown(e);
+                if (!(e is ObjectDisposedException))
+                    OnExceptionThrown(e);
             }
 
             StartTcpAcceptConnection();

@@ -44,19 +44,42 @@ namespace Admin4.Pages
             // Overview, links to configuration etc.
             this.Output("<h2>Overview</h2>");
             this.Output("<p>Welcome to the .P2P DNS network.  You are connected via the Trust4 0.3.0 demonstration server.</p>");
-            this.Output("<p>It appears you haven't yet configured your server; select an option below to get started.</p>");
-            this.Output("<div class='buttons'>");
-            this.Output("   <a href='/autoconfig' class='positive noimg'>");
-            this.Output("       Automatic Configuration");
-            this.Output("   </a>");
-            this.Output("   ");
-            this.Output("   <a href='/config' class='regular noimg'>");
-            this.Output("       Manual Configuration");
-            this.Output("   </a>");
-            this.Output("</div>");
 
-            if (this.Manager.Settings.Configured)
+            if (!this.Manager.Settings.Configured)
             {
+                // Prompt for configuration.
+                this.Output("<p>It appears you haven't yet configured your server; select an option below to get started.</p>");
+                this.Output("<div class='buttons'>");
+                this.Output("   <a href='/autoconfig' class='regular noimg'>");
+                this.Output("       Automatic Configuration");
+                this.Output("   </a>");
+                this.Output("</div>");
+            }
+            else
+            {
+                if (!this.Manager.Settings.Initializing)
+                {
+                    this.Output("<p>You can control whether your node is online or offline using the options below.</p>");
+                    this.Output("<div class='buttons'>");
+                    if (this.Manager.Settings.Online)
+                    {
+                        this.Output("   <a href='/control/offline' class='negative noimg'>");
+                        this.Output("       Switch to Offline Mode");
+                        this.Output("   </a>");
+                    }
+                    else
+                    {
+                        this.Output("   <a href='/control/online' class='positive noimg'>");
+                        this.Output("       Switch to Online Mode");
+                        this.Output("   </a>");
+                    }
+                    this.Output("</div>");
+                }
+                else
+                {
+                    this.Output("<p>The node is currently initalizing.  It will automatically come online.</p>");
+                }
+
                 // Raw information.
                 this.Output("<h2>Basic Information</h2>");
                 this.Output("<table cellpadding='5' border='1' width='100%'>");
@@ -78,39 +101,52 @@ namespace Admin4.Pages
                 this.Output("       <td colspan='2'>" + this.Manager.Settings.RoutingIdentifier + "</td>");
                 this.Output("   </tr>");
                 this.Output("</table>");
-                this.Output("<h2>Contact and Mapping Information</h2>");
-                this.Output("<table cellpadding='5' border='1' width='100%'>");
-                this.Output("   <tr>");
-                this.Output("       <th width='300' rowspan='" + (1 + this.Manager.Dht.Contacts.Count) + "'>Contacts (Peers)</th>");
-                this.Output("       <td colspan='2'><strong>" + this.Manager.Dht.Contacts.Count + " total</strong></td>");
-                this.Output("   </tr>");
-                foreach (Contact c in this.Manager.Dht.Contacts)
+
+                if (this.Manager.Dht == null)
                 {
+                    this.Output("<h2>Contact and Mapping Information</h2>");
+                    this.Output("<table cellpadding='5' border='1' width='100%'>");
                     this.Output("   <tr>");
-                    this.Output("       <td>" + c.EndPoint + "</td>");
-                    this.Output("       <td>" + c.Identifier + "</td>");
+                    this.Output("       <td>This information can not be shown while in offline mode.</td>");
                     this.Output("   </tr>");
+                    this.Output("</table>");
                 }
-                this.Output("   <tr>");
-                this.Output("       <th width='300' rowspan='" + (1 + this.Manager.Mappings.Domains.Count * 2) + "'>Domains (Mappings)</th>");
-                this.Output("       <td colspan='2'><strong>" + this.Manager.Mappings.Domains.Count + " total</strong></td>");
-                this.Output("   </tr>");
-                foreach (DomainMap dm in this.Manager.Mappings.Domains)
+                else
                 {
-                    string q = dm.Question.ToString();
-                    string a = dm.Answer.ToString();
-                    if (q.Length > 80) q = q.Substring(0, 80) + "...";
-                    if (a.Length > 80) a = a.Substring(0, 80) + "...";
+                    this.Output("<h2>Contact and Mapping Information</h2>");
+                    this.Output("<table cellpadding='5' border='1' width='100%'>");
                     this.Output("   <tr>");
-                    this.Output("       <td>&nbsp;</td>");
-                    this.Output("       <td>" + q + "</td>");
+                    this.Output("       <th width='300' rowspan='" + (1 + this.Manager.Dht.Contacts.Count) + "'>Contacts (Peers)</th>");
+                    this.Output("       <td colspan='2'><strong>" + this.Manager.Dht.Contacts.Count + " total</strong></td>");
                     this.Output("   </tr>");
+                    foreach (Contact c in this.Manager.Dht.Contacts)
+                    {
+                        this.Output("   <tr>");
+                        this.Output("       <td>" + c.EndPoint + "</td>");
+                        this.Output("       <td>" + c.Identifier + "</td>");
+                        this.Output("   </tr>");
+                    }
                     this.Output("   <tr>");
-                    this.Output("       <td> -&gt; </td>");
-                    this.Output("       <td>" + a + "</td>");
+                    this.Output("       <th width='300' rowspan='" + (1 + this.Manager.Mappings.Domains.Count * 2) + "'>Domains (Mappings)</th>");
+                    this.Output("       <td colspan='2'><strong>" + this.Manager.Mappings.Domains.Count + " total</strong></td>");
                     this.Output("   </tr>");
+                    foreach (DomainMap dm in this.Manager.Mappings.Domains)
+                    {
+                        string q = dm.Question.ToString();
+                        string a = dm.Answer.ToString();
+                        if (q.Length > 80) q = q.Substring(0, 80) + "...";
+                        if (a.Length > 80) a = a.Substring(0, 80) + "...";
+                        this.Output("   <tr>");
+                        this.Output("       <td>&nbsp;</td>");
+                        this.Output("       <td>" + q + "</td>");
+                        this.Output("   </tr>");
+                        this.Output("   <tr>");
+                        this.Output("       <td> -&gt; </td>");
+                        this.Output("       <td>" + a + "</td>");
+                        this.Output("   </tr>");
+                    }
+                    this.Output("</table>");
                 }
-                this.Output("</table>");
             }
         }
 

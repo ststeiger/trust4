@@ -25,7 +25,6 @@ function ACNext(stage, next, func)
     DoRequest(next, func);
 }
 
-
 function ACStage1Result(state, text)
 {
     if (state == 4)

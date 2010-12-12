@@ -66,11 +66,11 @@ namespace Trust4
             if (this.p_Settings.Configured)
             {
                 // Load the mappings.
-                this.p_Mappings = new Mappings(this, "mappings.txt");
-                this.p_Mappings.Load();
+                this.InitalizeDomains();
 
                 // Go online.
                 this.p_Settings.Online = true;
+                this.p_Settings.Initializing = false;
             }
             else
             {
@@ -120,12 +120,21 @@ namespace Trust4
             get { return this.p_Settings.Online; }
         }
 
+        public bool InitalizeDomains()
+        {
+            // Load the mappings.
+            this.p_Mappings = new Mappings(this, "mappings.txt");
+            this.p_Mappings.Load();
+
+            return true;
+        }
+
         /// <summary>
         /// Initalizes the DNS server component.
         /// </summary>
         public bool InitalizeDNS()
         {
-            if (this.p_Settings.Configured)
+            if (this.p_Settings.Configured && this.m_DNSProcess == null && this.m_DNSServer == null)
             {
                 // Create the DNS processing instance.
                 this.m_DNSProcess = new DnsProcess(this);
@@ -213,7 +222,7 @@ namespace Trust4
             {
                 if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                     // Can't bind to port
-                    this.p_Dht.Log(Dht.LogType.ERROR, "Unable to bind to the peer-to-peer to port.  Ensure you have permissions and that no other application is currently using.");
+                    Dht.LogS(Dht.LogType.ERROR, "Unable to bind to the peer-to-peer to port.  Ensure you have permissions and that no other application is currently using.");
                 else
                     Console.WriteLine(ex.Message);
 
@@ -221,10 +230,10 @@ namespace Trust4
             }
 
             this.p_Dht.Debug = true;
-            this.p_Dht.Log(Dht.LogType.INFO, "Your routing identifier is " + this.p_Dht.Self.Identifier);
-            this.p_Dht.Log(Dht.LogType.INFO, "Adding contacts...");
+            this.p_Dht.LogI(Dht.LogType.INFO, "Your routing identifier is " + this.p_Dht.Self.Identifier);
+            this.p_Dht.LogI(Dht.LogType.INFO, "Adding contacts...");
             this.BootstrapPeers();
-            this.p_Dht.Log(Dht.LogType.INFO, "Contacts have been added.");
+            this.p_Dht.LogI(Dht.LogType.INFO, "Contacts have been added.");
 
             return true;
         }
@@ -237,6 +246,7 @@ namespace Trust4
         {
             this.m_WebServer = new Admin4.WebServer(this.p_Dht);
             this.m_WebServer.Add(new Admin4.Pages.OverviewPage(this));
+            this.m_WebServer.Add(new Admin4.Pages.ControlPage(this));
             this.m_WebServer.Add(new Admin4.Pages.AutomaticConfigurationPage(this));
             HttpServer.HttpModules.FileModule s = new HttpServer.HttpModules.FileModule("/static/", "./static/");
             s.AddDefaultMimeTypes();
@@ -247,6 +257,14 @@ namespace Trust4
             //       starting the web server and return false.
 
             return true;
+        }
+
+        public void ShutdownDHT()
+        {
+            if (this.p_Dht != null)
+                this.p_Dht.Close();
+            this.p_Dht = null;
+            Dht.LogS(Dht.LogType.INFO, "The DHT node has now shutdown.");
         }
 
         /// <summary>
@@ -282,7 +300,7 @@ namespace Trust4
                     }
                     else
                     {
-                        this.p_Dht.Log(Dht.LogType.ERROR, "Autodiscovery of peer IDs is not yet supported.");
+                        this.p_Dht.LogI(Dht.LogType.ERROR, "Autodiscovery of peer IDs is not yet supported.");
                         continue;
                     }
 

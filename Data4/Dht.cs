@@ -53,7 +53,7 @@ namespace Data4
                     while (true)
                     {
                         byte[] result = this.m_UdpClient.Receive(ref from);
-                        this.Log(LogType.DEBUG, "Received a message from " + from.ToString());
+                        this.LogI(LogType.DEBUG, "Received a message from " + from.ToString());
                         this.OnReceive(from, result);
                     }
                 }
@@ -200,6 +200,7 @@ namespace Data4
         public void Close()
         {
             this.m_UdpThread.Abort();
+            this.m_UdpClient.Close();
         }
 
         public IFormatter Formatter
@@ -225,7 +226,7 @@ namespace Data4
             DEBUG
         }
 
-        public void Log(LogType type, string msg)
+        public void LogI(LogType type, string msg)
         {
             string id = (this.p_Self.EndPoint != null) ? this.p_Self.EndPoint.ToString() + " :" : "";
             switch (type)
@@ -245,6 +246,28 @@ namespace Data4
                     break;
                 default:
                     Console.WriteLine("UNKNOWN: " + id + " " + msg);
+                    break;
+            }
+        }
+
+        public static void LogS(LogType type, string msg)
+        {
+            switch (type)
+            {
+                case LogType.ERROR:
+                    Console.WriteLine("ERROR  : " + msg);
+                    break;
+                case LogType.WARNING:
+                    Console.WriteLine("WARNING: " + msg);
+                    break;
+                case LogType.INFO:
+                    Console.WriteLine("INFO   : " + msg);
+                    break;
+                case LogType.DEBUG:
+                    Console.WriteLine("DEBUG  : " + msg);
+                    break;
+                default:
+                    Console.WriteLine("UNKNOWN: " + msg);
                     break;
             }
         }
