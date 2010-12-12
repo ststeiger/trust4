@@ -32,6 +32,7 @@ namespace Trust4
         private ID p_RoutingIdentifier = null;
         private uint p_UnixUID = 1000;
         private uint p_UnixGID = 1000;
+        private bool p_Initializing = true;
         private bool p_Configured = false;
         private bool p_Online = false;
         private bool p_Public = false;
@@ -73,6 +74,12 @@ namespace Trust4
         public uint UnixGID
         {
             get { return this.p_UnixGID; }
+        }
+
+        public bool Initializing
+        {
+            get { return this.p_Initializing; }
+            set { this.p_Initializing = value; }
         }
 
         public bool Configured
@@ -151,6 +158,46 @@ namespace Trust4
             if (Environment.OSVersion.Platform == PlatformID.Unix && ( !setuid || !setgid ))
             {
                 Console.WriteLine("Warning!  You didn't set the 'unix.uid' and 'unix.gid' options in settings.txt.  This is probably not going to work as you expect!");
+            }
+        }
+
+        public void Save()
+        {
+            using (StreamWriter writer = new StreamWriter(this.m_Path))
+            {
+                writer.WriteLine("// Set to true if you have configured the server.  Set to false");
+                writer.WriteLine("// if you want to reconfigure the server using the admin panel.");
+                writer.WriteLine("configured = {0}", this.p_Configured);
+                writer.WriteLine();
+                writer.WriteLine("// The external IP address (can be found using any whats-my-ip");
+                writer.WriteLine("// type website) and the ports that the different services should");
+                writer.WriteLine("// listen on.  Port 12000 is recommended for peer-to-peer; port");
+                writer.WriteLine("// 53 is required for DNS in essentially all situations except");
+                writer.WriteLine("// developer testing.");
+                writer.WriteLine("ip.port.p2p = {0}", this.p_P2PPort);
+                writer.WriteLine("ip.port.dns = {0}", this.p_DNSPort);
+                writer.WriteLine("ip.address = {0}", this.p_LocalIP);
+                writer.WriteLine();
+                writer.WriteLine("// The routing identifier is your unique identification");
+                writer.WriteLine("// within the peer-to-peer network.  You can generate a");
+                writer.WriteLine("// routing identifier using the administration panel or");
+                writer.WriteLine("// from http://www.guidgenerator.com/.  The format for the");
+                writer.WriteLine("// routing identifier is 4 GUIDs seperated by spaces.");
+                writer.WriteLine("id.routing = {0}", this.p_RoutingIdentifier.ToString());
+                writer.WriteLine();
+                if (Environment.OSVersion.Platform == PlatformID.Unix)
+                {
+                    writer.WriteLine("// You still need to set these if running on Linux before");
+                    writer.WriteLine("// using the administration panel for configuration.");
+                    writer.WriteLine("unix.uid = {0}", this.p_UnixUID);
+                    writer.WriteLine("unix.gid = {0}", this.p_UnixUID);
+                    writer.WriteLine();
+                }
+                writer.WriteLine("// The information that should be publically available");
+                writer.WriteLine("// to other nodes in order for other people to search");
+                writer.WriteLine("// and find you within the network.  Setting the info.public");
+                writer.WriteLine("// option to false will 'hide' your node from all searches.");
+                writer.WriteLine("info.public = {0}", this.p_Public);
             }
         }
 

@@ -54,7 +54,7 @@ namespace Admin4
                     break;
             }
 
-            this.m_Dht.Log(type, message);
+            this.m_Dht.LogI(type, message);
         }
     }
 }

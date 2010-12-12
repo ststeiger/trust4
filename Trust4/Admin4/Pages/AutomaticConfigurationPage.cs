@@ -24,7 +24,7 @@ namespace Admin4.Pages
         };
 
         public AutomaticConfigurationPage(Manager manager)
-            : base(manager, new List<string> { "", "autoconfig" })
+            : base(manager, new List<string> { "autoconfig" })
         {
         }
 
@@ -51,7 +51,7 @@ namespace Admin4.Pages
                         try
                         {
                             this.Manager.Settings.P2PPort = 12000;
-                            this.Manager.Settings.DNSPort = 12000;
+                            this.Manager.Settings.DNSPort = 53;
                             this.Output("success");
                         }
                         catch (Exception e)
@@ -73,14 +73,50 @@ namespace Admin4.Pages
                         }
                         return true;
                     case "start":
-                        this.Output("failed");
+                        try
+                        {
+                            // Set the server to "configured".
+                            this.Manager.Settings.Configured = true;
+
+                            // Initalize the DNS service.
+                            if (!this.Manager.InitalizeDNS())
+                            {
+                                this.Output("failed");
+                                break;
+                            }
+
+                            // Couldn't lower permissions from root; exit immediately.
+                            // Initalize the DHT service.
+                            if (!this.Manager.InitalizeDHT())
+                            {
+                                this.Output("failed");
+                                break;
+                            }
+
+                            // Initalize the contacts.
+                            this.Manager.InitalizeDomains();
+
+                            // Now go online.
+                            this.Manager.Settings.Online = true;
+                            this.Output("success");
+                        }
+                        catch (Exception e)
+                        {
+                            this.Output("failed");
+                            Console.WriteLine(e);
+                        }
                         return true;
                     case "peers":
                         try
                         {
+                            // Configure peers.
                             this.Manager.Dht.Contacts.Clear();
                             foreach (KeyValuePair<ID, IPEndPoint> kv in AutomaticConfigurationPage.m_TrustCaches)
                                 this.Manager.Dht.Contacts.Add(new Contact(kv.Key, kv.Value));
+
+                            // Now save the settings.
+                            this.Manager.Settings.Save();
+
                             this.Output("success");
                         }
                         catch (Exception e)
