@@ -20,6 +20,15 @@ namespace Admin4.Pages
                     new Guid("c12af3be-6110-f143-e0e1-26171ab5535d")
                     ),  
                 new IPEndPoint(IPAddress.Parse("74.207.247.199"), 12000)
+            },
+            {
+                new ID(
+                    new Guid("99743a87-7d31-4407-8cb4-1443fcaa0b97"),
+                    new Guid("0362060b-a64e-483a-b53f-ff9502ca9673"),
+                    new Guid("028e7318-2fce-46d1-af74-5a47c5456042"),
+                    new Guid("21322e40-40e8-4b1a-b0c0-0977fe885501")
+                    ),  
+                new IPEndPoint(IPAddress.Parse("173.193.221.29"), 12000)
             }
         };
 

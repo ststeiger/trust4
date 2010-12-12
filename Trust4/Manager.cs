@@ -247,6 +247,7 @@ namespace Trust4
             this.m_WebServer = new Admin4.WebServer(this.p_Dht);
             this.m_WebServer.Add(new Admin4.Pages.OverviewPage(this));
             this.m_WebServer.Add(new Admin4.Pages.ControlPage(this));
+            this.m_WebServer.Add(new Admin4.Pages.PeersPage(this));
             this.m_WebServer.Add(new Admin4.Pages.AutomaticConfigurationPage(this));
             HttpServer.HttpModules.FileModule s = new HttpServer.HttpModules.FileModule("/static/", "./static/");
             s.AddDefaultMimeTypes();
@@ -313,6 +314,25 @@ namespace Trust4
                 catch (Exception e)
                 {
                     Console.WriteLine("Exception parsing bootstrap file: " + e);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Saves the peer information back to the original peers.txt file.
+        /// </summary>
+        public void SavePeers()
+        {
+            using (StreamWriter writer = new StreamWriter("peers.txt"))
+            {
+                writer.WriteLine("# The format of the peers.txt is:");
+                writer.WriteLine("# TRUST   IP      PORT        ROUTING IDENTIFIER");
+                foreach (Contact c in this.Dht.Contacts)
+                {
+                    decimal trust = 0;
+                    if (c is TrustedContact)
+                        trust = (c as TrustedContact).TrustAmount;
+                    writer.WriteLine(trust + " " + c.EndPoint.Address + " " + c.EndPoint.Port + " " + c.Identifier);
                 }
             }
         }
