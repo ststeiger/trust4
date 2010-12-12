@@ -123,9 +123,8 @@ namespace Admin4
                     this.Output("Your node is <strong>not configured</strong>.<br/>");
                 this.Output("</div>");
                 this.Output("<div id='menubar'>");
-                this.Output("   <a href='/' class='selected'>OVERVIEW</a>");
-                this.Output("   <a href='/peers'>PEERS</a>");
-                this.Output("   <a href='/domains'>DOMAINS</a>");
+                this.Output("   <a href='/'" + ((this is Pages.OverviewPage) ? " class='selected'" : "") + ">OVERVIEW</a>");
+                this.Output("   <a href='/peers'" + ((this is Pages.PeersPage) ? " class='selected'" : "") + ">PEERS</a>");
                 this.Output("</div>");
                 this.Output("<div id='content'>");
                 this.OnPageBody();

@@ -81,6 +81,7 @@
     <Compile Include="Admin4\Page.cs" />
     <Compile Include="Admin4\Pages\AutomaticConfigurationPage.cs" />
     <Compile Include="Admin4\Pages\ControlPage.cs" />
+    <Compile Include="Admin4\Pages\PeersPage.cs" />
     <Compile Include="Admin4\Pages\OverviewPage.cs" />
     <Compile Include="Admin4\WebServer.cs" />
     <Compile Include="DnsProcess.cs" />

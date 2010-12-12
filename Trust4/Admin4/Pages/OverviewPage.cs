@@ -106,7 +106,7 @@ namespace Admin4.Pages
 
                 if (this.Manager.Dht == null)
                 {
-                    this.Output("<h2>Contact and Mapping Information</h2>");
+                    this.Output("<h2>Peer and Mapping Information</h2>");
                     this.Output("<table cellpadding='5' border='1' width='100%'>");
                     this.Output("   <tr>");
                     this.Output("       <td>This information can not be shown while in offline mode.</td>");
