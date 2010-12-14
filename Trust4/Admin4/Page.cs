@@ -125,6 +125,7 @@ namespace Admin4
                 this.Output("<div id='menubar'>");
                 this.Output("   <a href='/'" + ((this is Pages.OverviewPage) ? " class='selected'" : "") + ">OVERVIEW</a>");
                 this.Output("   <a href='/peers'" + ((this is Pages.PeersPage) ? " class='selected'" : "") + ">PEERS</a>");
+                this.Output("   <a href='/domains'" + ((this is Pages.DomainsPage) ? " class='selected'" : "") + ">DOMAINS</a>");
                 this.Output("</div>");
                 this.Output("<div id='content'>");
                 this.OnPageBody();

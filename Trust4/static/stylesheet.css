@@ -152,10 +152,10 @@ ul.progress li.failed
 	background-image: url("/static/failed.png");
 }
 
-input
+input, textarea
 {
 	width: 100%;
-    background-color: #F5F5F5;
+    background-color: #F9F9F9;
 	border: 1px solid #CCC;
     border-top:1px solid #787878;
     border-left:1px solid #787878;
