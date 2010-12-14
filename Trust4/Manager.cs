@@ -248,6 +248,7 @@ namespace Trust4
             this.m_WebServer.Add(new Admin4.Pages.OverviewPage(this));
             this.m_WebServer.Add(new Admin4.Pages.ControlPage(this));
             this.m_WebServer.Add(new Admin4.Pages.PeersPage(this));
+            this.m_WebServer.Add(new Admin4.Pages.DomainsPage(this));
             this.m_WebServer.Add(new Admin4.Pages.AutomaticConfigurationPage(this));
             HttpServer.HttpModules.FileModule s = new HttpServer.HttpModules.FileModule("/static/", "./static/");
             s.AddDefaultMimeTypes();

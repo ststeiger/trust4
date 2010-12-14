@@ -34,7 +34,7 @@ namespace Data4
         private Thread m_UdpThread = null;
         private bool p_ShowDebug = false;
         private List<Entry> p_OwnedEntries = new List<Entry>();
-        private List<Entry> p_CachedEntries = new List<Entry>();
+        private ConcurrentBag<Entry> p_CachedEntries = new ConcurrentBag<Entry>();
 
         public event EventHandler<MessageEventArgs> OnReceived;
 
@@ -77,13 +77,46 @@ namespace Data4
             this.p_OwnedEntries.Add(new Entry(this.p_Self, key, value));
         }
 
+        /// <summary>
+        /// Remove a key-value pair from this node.
+        /// </summary>
+        public void Remove(ID key)
+        {
+            List<Entry> es = new List<Entry>();
+            foreach (Entry e in this.p_OwnedEntries)
+                if (e.Key == key)
+                    es.Add(e);
+            foreach (Entry e in es)
+                this.p_OwnedEntries.Remove(e);
+        }
+
+        /// <summary>
+        /// Retrieves a value from the DHT.
+        /// </summary>
         public IList<Entry> Get(ID key)
         {
             ConcurrentBag<Entry> entries = new ConcurrentBag<Entry>();
+            Dictionary<Thread, bool> done = new Dictionary<Thread, bool>();
             List<Thread> threads = new List<Thread>();
-            foreach (Contact c in this.p_Contacts)
+
+            // Add our own cached and owned values.
+            foreach (Entry e in this.p_CachedEntries)
             {
-                Thread t = new Thread(delegate()
+                if (e.Key == key)
+                    entries.Add(e);
+            }
+            foreach (Entry e in this.p_OwnedEntries)
+            {
+                if (e.Key == key)
+                    entries.Add(e);
+            }
+
+            // Ask contacts
+            foreach (Contact b in this.p_Contacts)
+            {
+                Thread t = null;
+                Contact c = b;
+                t = new Thread(delegate()
                 {
                     try
                     {
@@ -103,14 +136,43 @@ namespace Data4
                             foreach (Entry e in fm.Values)
                             {
                                 Console.WriteLine("Added " + e.Value + " to the entries.");
+                                this.p_CachedEntries.Add(e);
                                 entries.Add(e);
                             }
 
                             if (entries.Count == 0)
                                 Console.WriteLine("There were no entries to add.");
+
+                            done[t] = true;
+
+                            Thread.MemoryBarrier();
                         }
                         else
+                        {
                             Console.WriteLine("The node did not return in time.");
+                            done[t] = true;
+
+                            Thread.MemoryBarrier();
+
+                            // Allow us to still retrieve requests and add them to the cache.
+                            ticks = 0;
+                            while (!fm.Received && ticks < 15000)
+                            {
+                                Thread.Sleep(100);
+                                ticks += 100;
+                            }
+
+                            if (fm.Received)
+                            {
+                                foreach (Entry e in fm.Values)
+                                {
+                                    Console.WriteLine("Added " + e.Value + " to the cached entries.");
+                                    this.p_CachedEntries.Add(e);
+                                }
+                            }
+                            else
+                                Console.WriteLine("The node still didn't reply after 15 seconds.  Is it online?");
+                        }
                     }
                     catch (Exception e)
                     {
@@ -119,6 +181,7 @@ namespace Data4
                 }
                 );
                 threads.Add(t);
+                done[t] = false;
                 t.IsBackground = false;
                 t.Start();
             }
@@ -128,7 +191,7 @@ namespace Data4
                 bool stopped = true;
                 foreach (Thread t in threads)
                 {
-                    if (t.ThreadState != ThreadState.Stopped)
+                    if (done[t] != true)
                         stopped = false;
                 }
                 if (stopped)

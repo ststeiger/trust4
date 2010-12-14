@@ -147,7 +147,7 @@ namespace Admin4.Pages
                 this.Output("           <td style='border: none;'><input name='identifier' value='00000000-0000-0000-0000-000000000000 00000000-0000-0000-0000-000000000000 00000000-0000-0000-0000-000000000000 00000000-0000-0000-0000-000000000000' /></td>");
                 this.Output("       </tr>");
                 this.Output("       <tr>");
-                this.Output("           <td colspan='2' style='padding: 5px;'><div style='width: auto;' align='right' class='buttons'><button style='margin-left: 208px;' type='submit'>Add Peer</button></div></td>");
+                this.Output("           <td colspan='2' style='padding: 5px;'><div style='width: auto;' align='right' class='buttons'><button class='positive' style='margin-left: 208px;' type='submit'>Add Peer</button></div></td>");
                 this.Output("       </tr>");
                 this.Output("   </table>");
                 this.Output("</form>");

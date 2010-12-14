@@ -28,15 +28,20 @@ namespace Trust4
 {
     public class Mappings
     {
-        private string m_Path = null;
+        private string p_Path = null;
         private Manager m_Manager = null;
         private List<DomainMap> p_Domains = new List<DomainMap>();
         private List<string> m_WaitingOn = new List<string>();
 
         public Mappings(Manager manager, string path)
         {
-            this.m_Path = path;
+            this.p_Path = path;
             this.m_Manager = manager;
+        }
+
+        public string Path
+        {
+            get { return this.p_Path; }
         }
 
         public ReadOnlyCollection<DomainMap> Domains
@@ -369,18 +374,6 @@ namespace Trust4
         }
 
         /// <summary>
-        /// Add a question-answer pair to the cache.  This does not add any intermediatary CNAME
-        /// records, so it should only be used for caching original .p2p requests from other peers.
-        /// </summary>
-        /// <param name="question">The original DNS question that will be asked.</param>
-        /// <param name="answer">The original DNS answer that should be returned.</param>
-        public void AddCached(DnsQuestion question, DnsRecordBase answer)
-        {
-            // Add the domain to our cache.
-            this.p_Domains.Add(new DomainMap(question, answer));
-        }
-
-        /// <summary>
         /// Pushes the answer for the specified question if we know the answer.  Returns
         /// true if the answer was pushed onto the return message.
         /// </summary>
@@ -412,9 +405,18 @@ namespace Trust4
         /// </summary>
         public void Load()
         {
-            using (StreamReader reader = new StreamReader(this.m_Path))
+            // Clear any existing data.
+            foreach (DomainMap dm in this.p_Domains)
             {
-                foreach (var s in File.ReadAllLines(this.m_Path).OmitComments("#", "//").Select(a => a.ToLowerInvariant().Split(new char[] {
+                ID questionid = ID.NewHash(DnsSerializer.ToStore(dm.Question));
+                this.m_Manager.Dht.Remove(questionid);
+            }
+            this.p_Domains.Clear();
+
+            // Load the data.
+            using (StreamReader reader = new StreamReader(this.p_Path))
+            {
+                foreach (var s in File.ReadAllLines(this.p_Path).OmitComments("#", "//").Select(a => a.ToLowerInvariant().Split(new char[] {
                     '\t',
                     ' '
                 }, StringSplitOptions.RemoveEmptyEntries)))
