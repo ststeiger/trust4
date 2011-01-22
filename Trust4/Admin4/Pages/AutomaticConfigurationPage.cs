@@ -107,6 +107,7 @@ namespace Admin4.Pages
 
                             // Now go online.
                             this.Manager.Settings.Online = true;
+                            this.Manager.Settings.Initializing = false;
                             this.Output("success");
                         }
                         catch (Exception e)
@@ -123,8 +124,8 @@ namespace Admin4.Pages
                             foreach (KeyValuePair<ID, IPEndPoint> kv in AutomaticConfigurationPage.m_TrustCaches)
                                 this.Manager.Dht.Contacts.Add(new Contact(kv.Key, kv.Value));
 
-                            // Now save the settings.
-                            this.Manager.Settings.Save();
+                            // Now save the peer settings.
+                            this.Manager.SavePeers();
 
                             this.Output("success");
                         }
