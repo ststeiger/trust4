@@ -101,6 +101,13 @@ namespace Trust4
 
         public void Load()
         {
+            if (!File.Exists(this.m_Path))
+            {
+                this.p_Configured = false;
+                this.Save();
+                return;
+            }
+
             bool setuid = false;
             bool setgid = false;
             foreach (var line in File.ReadAllLines(this.m_Path).OmitComments("#", "//").Select(a => a.ToLowerInvariant().Split(new char[] { '=' }, 2)))
@@ -183,7 +190,10 @@ namespace Trust4
                 writer.WriteLine("// routing identifier using the administration panel or");
                 writer.WriteLine("// from http://www.guidgenerator.com/.  The format for the");
                 writer.WriteLine("// routing identifier is 4 GUIDs seperated by spaces.");
-                writer.WriteLine("id.routing = {0}", this.p_RoutingIdentifier.ToString());
+                if (this.p_RoutingIdentifier != null)
+                    writer.WriteLine("id.routing = {0}", this.p_RoutingIdentifier.ToString());
+                else
+                    writer.WriteLine("id.routing = {0} {1} {2} {3}", Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
                 writer.WriteLine();
                 if (Environment.OSVersion.Platform == PlatformID.Unix)
                 {
