@@ -87,11 +87,15 @@ namespace Admin4.Pages
                             // Set the server to "configured".
                             this.Manager.Settings.Configured = true;
 
-                            // Initalize the DNS service.
-                            if (!this.Manager.InitalizeDNS())
+                            // Check to see whether we have permissions to start the DNS service now.
+                            if (UNIX.HasRootPermissions())
                             {
-                                this.Output("failed");
-                                break;
+                                // Initalize the DNS service.
+                                if (!this.Manager.InitalizeDNS())
+                                {
+                                    this.Output("failed");
+                                    break;
+                                }
                             }
 
                             // Couldn't lower permissions from root; exit immediately.
@@ -108,6 +112,7 @@ namespace Admin4.Pages
                             // Now go online.
                             this.Manager.Settings.Online = true;
                             this.Manager.Settings.Initializing = false;
+                            this.Manager.Settings.Save();
                             this.Output("success");
                         }
                         catch (Exception e)

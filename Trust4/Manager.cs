@@ -49,6 +49,23 @@ namespace Trust4
             // Load the settings.
             this.p_Settings = new Settings("settings.txt");
             this.p_Settings.Load();
+            this.p_Settings.Save();
+
+            // Check to see if we require the application to be started as root.
+            if (( this.p_Settings.AdminEnabled && this.p_Settings.AdminPort < 1024 ) ||
+                ( this.p_Settings.DNSPort < 1024 ) ||
+                ( this.p_Settings.P2PPort < 1024 ))
+            {
+                if (!UNIX.HasRootPermissions())
+                {
+                    Console.WriteLine("Error!  One of more of the ports specified in the settings.txt file is lower than 1024, therefore Trust4 must be started as root.");
+                    return;
+                }
+            }
+            
+            // Initalize the web admin interface.
+            if (!this.InitalizeAdmin())
+                return;
             
             // Initalize the DNS service.
             if (!this.InitalizeDNS())
@@ -57,10 +74,6 @@ namespace Trust4
             // Couldn't lower permissions from root; exit immediately.
             // Initalize the DHT service.
             if (!this.InitalizeDHT())
-                return;
-
-            // Initalize the web admin interface.
-            if (!this.InitalizeAdmin())
                 return;
 
             if (this.p_Settings.Configured)
@@ -72,9 +85,13 @@ namespace Trust4
                 this.p_Settings.Online = true;
                 this.p_Settings.Initializing = false;
             }
+            else if (this.p_Settings.AdminEnabled)
+                Console.WriteLine("Your node is not yet configured.  You can configure it by accessing http://localhost:" + this.p_Settings.AdminPort + "/ while the server is running.");
             else
             {
-                Console.WriteLine("Your node is not yet configured.  You can configure it by accessing http://localhost:84/ while the server is running.");
+                Console.WriteLine("Your node is not yet configured.  Before starting Trust4, you must configure it by editing the settings.txt file.");
+                this.m_DNSServer.Stop();
+                return;
             }
 
             // .. the Trust4 server is now running ..
@@ -148,60 +165,36 @@ namespace Trust4
                 }
                 catch (SocketException ex)
                 {
-                    if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse) // Can't bind to port
-                    {
-                        Console.WriteLine("Error!  Can't bind to DNS port, check that you have permissions for this port, and that no other program is currently using it.");
-                    }
+                    if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
+                        // Can't bind to port
+                        Console.WriteLine("Error!  Can't bind to DNS port; it seems another program is currently using it.");
+                    else if (ex.SocketErrorCode == SocketError.AccessDenied)
+                        // Access denied
+                        Console.WriteLine("Error!  Can't bind to DNS port; it seems that you don't have permissions to bind to the port.");
                     else
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
+                        // Other
+                        Console.WriteLine("Error!  Can't bind to DNS port; " + ex.Message);
 
                     return false;
                 }
             }
 
-            // Lower the permissions even if the DNS server didn't start.
+            // Lower the permissions even if the DNS server didn't start (if configured).
             int p = (int) Environment.OSVersion.Platform;
             if (( p == 4 ) || ( p == 6 ) || ( p == 128 ))
             {
-                if (!this.UpdateUnixUIDGID(this.Settings.UnixUID, this.Settings.UnixGID))
+                if (this.p_Settings.Configured)
                 {
-                    Console.WriteLine("Error!  I couldn't not lower the permissions of the current process.  I'm not going to continue for security reasons!");
-                    return false;
+                    if (!UNIX.UpdateUIDGID(this.Settings.UnixUID, this.Settings.UnixGID))
+                    {
+                        Console.WriteLine("Error!  I couldn't not lower the permissions of the current process.  I'm not going to continue for security reasons!");
+                        return false;
+                    }
                 }
+                else if (UNIX.HasRootPermissions())
+                    Console.WriteLine("Warning!  The service will run as root until it is configured through the web interface!");
             }
             
-            return true;
-        }
-
-        public bool UpdateUnixUIDGID(uint uid, uint gid)
-        {
-            if (Mono.Unix.Native.Syscall.getuid() != 0)
-            {
-                // We don't need to lower / change permissions since we aren't root.
-                return true;
-            }
-
-            // Ensure that the environment variable XDG_CONFIG_HOME is set correctly.
-            if (Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") != ".")
-            {
-                Console.WriteLine("Error!  You must set XDG_CONFIG_HOME to \".\" when running this application.  i.e. 'sudo XDG_CONFIG_HOME=. mono Trust4.exe'");
-                return false;
-            }
-
-            int res = Mono.Unix.Native.Syscall.setregid(gid, gid);
-            if (res != 0)
-            {
-                Console.WriteLine("Error!  Unable to lower effective and real group IDs to " + gid + ".  '" + Mono.Unix.Native.Stdlib.GetLastError().ToString() + "'");
-                return false;
-            }
-            res = Mono.Unix.Native.Syscall.setreuid(uid, uid);
-            if (res != 0)
-            {
-                Console.WriteLine("Error!  Unable to lower effective and real user IDs to " + uid + ".  '" + Mono.Unix.Native.Stdlib.GetLastError().ToString() + "'");
-                return false;
-            }
             return true;
         }
 
@@ -244,16 +237,19 @@ namespace Trust4
         /// <returns></returns>
         private bool InitalizeAdmin()
         {
-            this.m_WebServer = new Admin4.WebServer(this.p_Dht);
-            this.m_WebServer.Add(new Admin4.Pages.OverviewPage(this));
-            this.m_WebServer.Add(new Admin4.Pages.ControlPage(this));
-            this.m_WebServer.Add(new Admin4.Pages.PeersPage(this));
-            this.m_WebServer.Add(new Admin4.Pages.DomainsPage(this));
-            this.m_WebServer.Add(new Admin4.Pages.AutomaticConfigurationPage(this));
-            HttpServer.HttpModules.FileModule s = new HttpServer.HttpModules.FileModule("/static/", "./static/");
-            s.AddDefaultMimeTypes();
-            this.m_WebServer.Add(s);
-            this.m_WebServer.Start(IPAddress.Loopback, 84);
+            if (this.p_Settings.AdminEnabled)
+            {
+                this.m_WebServer = new Admin4.WebServer(this.p_Dht);
+                this.m_WebServer.Add(new Admin4.Pages.OverviewPage(this));
+                this.m_WebServer.Add(new Admin4.Pages.ControlPage(this));
+                this.m_WebServer.Add(new Admin4.Pages.PeersPage(this));
+                this.m_WebServer.Add(new Admin4.Pages.DomainsPage(this));
+                this.m_WebServer.Add(new Admin4.Pages.AutomaticConfigurationPage(this));
+                HttpServer.HttpModules.FileModule s = new HttpServer.HttpModules.FileModule("/static/", "./static/");
+                s.AddDefaultMimeTypes();
+                this.m_WebServer.Add(s);
+                this.m_WebServer.Start(IPAddress.Loopback, this.p_Settings.AdminPort);
+            }
 
             // TODO: Catch SocketExceptions and other Exceptions from
             //       starting the web server and return false.
@@ -275,6 +271,11 @@ namespace Trust4
         /// <returns>The next peer.</returns>
         public void BootstrapPeers()
         {
+            // Only read peers.txt if it actually exists :)
+            if (!File.Exists("peers.txt"))
+                return;
+
+            // Read all the peers.
             foreach (var line in File.ReadAllLines("peers.txt").OmitComments("#", "//"))
             {
                 ID id = null;
