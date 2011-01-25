@@ -75,6 +75,8 @@ namespace Admin4.Pages
                 }
                 this.Output("</div>");
                 this.Output("<h2 class='nomargin'>Basic Information</h2>");
+                if (this.Manager.Settings.UnixUID == 0 || this.Manager.Settings.UnixGID == 0)
+                    this.Output("<p><strong style='color: #F00;'>WARNING! You have not set the UID and GID parameters in settings.txt.  <u>TRUST4 IS RUNNING AS ROOT!</u></strong></p>");
                 this.Output("<table cellpadding='5' border='1' width='100%'>");
                 this.Output("   <tr>");
                 this.Output("       <th width='300'>Status</th>");

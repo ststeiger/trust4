@@ -405,6 +405,15 @@ namespace Trust4
         /// </summary>
         public void Load()
         {
+            // Check to ensure the path exists; if it doesn't, automatically create it.
+            if (!File.Exists(this.p_Path))
+            {
+                using (StreamWriter writer = new StreamWriter(this.p_Path))
+                {
+                    writer.Write(Mappings.m_DefaultMappings);
+                }
+            }
+
             // Clear any existing data.
             foreach (DomainMap dm in this.p_Domains)
             {
@@ -541,5 +550,33 @@ namespace Trust4
         {
             return this.m_WaitingOn.Contains(domain);
         }
+
+        private const string m_DefaultMappings = @"# An example of mapping a domain and it's subdomains to a specified IP address.  For A records,
+# the format is:
+#
+# TYPE        DOMAIN               TARGET                   PUBLIC GUID                               PRIVATE GUID
+# A           opensuse.p2p         130.57.5.70              e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa      972ce690-695c-435f-99c2-98cf47d79287
+# A           mx.opensuse.p2p      64.223.4.1               e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa      972ce690-695c-435f-99c2-98cf47d79287
+# A           mx2.opensuse.p2p     121.34.91.43             e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa      972ce690-695c-435f-99c2-98cf47d79287
+# A           mx3.opensuse.p2p     130.57.5.70              e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa      972ce690-695c-435f-99c2-98cf47d79287
+
+# An example of mapping MX records to subdomains of.  For MX records, the format is:
+#
+# TYPE        PRIORITY              DOMAIN                  TARGET
+# MX          10                    opensuse.p2p            mx.opensuse.p2p
+# MX          20                    opensuse.p2p            mx2.opensuse.p2p
+# MX          30                    opensuse.p2p            mx3.opensuse.p2p
+
+# An example of delegating a .p2p domain to a standard non-Trust4 nameserver.  This means that
+# the specified nameserver will handle all of the records (useful for pointing a domain to a webserver
+# and then managing the subdomains on the server itself rather than through P2P). The
+# format of NS records are:
+#
+# TYPE        DOMAIN                NAMESERVER              PUBLIC GUID                               PRIVATE GUID
+# NS          redpoint.p2p          ns1.linode.com          e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa      972ce690-695c-435f-99c2-98cf47d79287
+# NS          redpoint.p2p          ns2.linode.com          e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa      972ce690-695c-435f-99c2-98cf47d79287
+# NS          redpoint.p2p          ns3.linode.com          e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa      972ce690-695c-435f-99c2-98cf47d79287
+# NS          redpoint.p2p          ns4.linode.com          e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa      972ce690-695c-435f-99c2-98cf47d79287
+# NS          redpoint.p2p          ns5.linode.com          e96c5ebc-5f36-46e4-8ea7-a30100e6f8aa      972ce690-695c-435f-99c2-98cf47d79287";
     }
 }

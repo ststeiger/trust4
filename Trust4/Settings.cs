@@ -28,10 +28,12 @@ namespace Trust4
         private string m_Path = null;
         private int p_P2PPort = 12000;
         private int p_DNSPort = 53;
+        private int p_AdminPort = 84;
+        private bool p_AdminEnabled = true;
         private IPAddress p_LocalIP = IPAddress.None;
         private ID p_RoutingIdentifier = null;
-        private uint p_UnixUID = 1000;
-        private uint p_UnixGID = 1000;
+        private uint p_UnixUID = 0;
+        private uint p_UnixGID = 0;
         private bool p_Initializing = true;
         private bool p_Configured = false;
         private bool p_Online = false;
@@ -52,6 +54,18 @@ namespace Trust4
         {
             get { return this.p_DNSPort; }
             set { this.p_DNSPort = value; }
+        }
+
+        public int AdminPort
+        {
+            get { return this.p_AdminPort; }
+            set { this.p_AdminPort = value; }
+        }
+
+        public bool AdminEnabled
+        {
+            get { return this.p_AdminEnabled; }
+            set { this.p_AdminEnabled = value; }
         }
 
         public IPAddress LocalIP
@@ -126,6 +140,18 @@ namespace Trust4
                     case "ip.port.dns":
                         this.p_DNSPort = Convert.ToInt32(value);
                         break;
+                    case "ip.port.admin":
+                        if (value.ToLowerInvariant() == "off")
+                        {
+                            this.p_AdminEnabled = false;
+                            this.p_AdminPort = 84;
+                        }
+                        else
+                        {
+                            this.p_AdminEnabled = true;
+                            this.p_AdminPort = Convert.ToInt32(value);
+                        }
+                        break;
                     case "ip.address":
                         if (value.Equals("dynamic", StringComparison.InvariantCultureIgnoreCase))
                             this.p_LocalIP = LoadDynamicIp();
@@ -180,9 +206,16 @@ namespace Trust4
                 writer.WriteLine("// type website) and the ports that the different services should");
                 writer.WriteLine("// listen on.  Port 12000 is recommended for peer-to-peer; port");
                 writer.WriteLine("// 53 is required for DNS in essentially all situations except");
-                writer.WriteLine("// developer testing.");
+                writer.WriteLine("// developer testing.  Port 84 is the standard port for the web");
+                writer.WriteLine("// server, but you can set this to a higher port if you don't wish");
+                writer.WriteLine("// to run Trust4 as root at all, or you can set it to \"off\" if");
+                writer.WriteLine("// you want to turn off the administration panel completely.");
                 writer.WriteLine("ip.port.p2p = {0}", this.p_P2PPort);
                 writer.WriteLine("ip.port.dns = {0}", this.p_DNSPort);
+                if (this.p_AdminEnabled)
+                    writer.WriteLine("ip.port.admin = {0}", this.p_AdminPort);
+                else
+                    writer.WriteLine("ip.port.admin = off");
                 writer.WriteLine("ip.address = {0}", this.p_LocalIP);
                 writer.WriteLine();
                 writer.WriteLine("// The routing identifier is your unique identification");
