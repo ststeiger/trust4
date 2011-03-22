@@ -136,19 +136,18 @@ namespace Trust4
                         }
                     }
                 }
-
                 else if (q.Name.EndsWith(".key"))
                 {
                     // We are quering a domain mapping with public-private key pair.
                     Console.WriteLine("DNS LOOKUP - User asked for " + q.Name + " (" + q.RecordType.ToString().ToUpperInvariant() + ")");
-                    
+
                     // Search cache.
                     if (this.m_Manager.Mappings.Fetch(ref query, q))
                         Console.WriteLine("DNS LOOKUP - Returned answer from cache.");
                     else if (!this.m_Manager.Mappings.Waiting(q.Name.ToLowerInvariant()))
                     {
                         // Search DHT.
-                        
+
                         // Since we're about to query peers, add this domain to our
                         // "waiting on" list which means that any requests for this
                         // domain from other peers will result in not found.
@@ -160,7 +159,7 @@ namespace Trust4
                             // peers to see if they've got any idea where this site is.
                             ID domainid = ID.NewHash(DnsSerializer.ToStore(q));
                             IEnumerable<Entry> results = this.m_Manager.Dht.Get(domainid);
-                        
+
                             // We need to fetch the public key from the domain request so
                             // that we can decrypt / verify the results.
                             string[] s = q.Name.Split(new char[] { '.' });
@@ -169,7 +168,7 @@ namespace Trust4
                                 // The .key domain is valid.
                                 byte[] publichash = ByteString.GetBase32Bytes(s[s.Length - 2]);
                                 Console.WriteLine(s[s.Length - 2]);
-                                
+
                                 // Loop through the results; trust order doesn't matter here
                                 // because we have the public hash to verify the data.  If verification
                                 // results in something the Serializer can get a record from, then
@@ -185,19 +184,19 @@ namespace Trust4
                                         Console.WriteLine("Unable to verify the result of the DNS query!");
                                         continue;
                                     }
-    
+
                                     DnsRecordBase record = DnsSerializer.FromStore(
                                         q.Name.ToLowerInvariant(),
                                         v
                                         );
-                                    
+
                                     if (record != null)
                                     {
                                         string sip = "<unknown>";
                                         if (r.Owner != null)
                                             sip = r.Owner.EndPoint.ToString();
                                         Console.WriteLine("DNS LOOKUP - Found via peer " + sip + " (" + record.RecordType.ToString() + ")");
-                                        
+
                                         // Add the result.
                                         query.ReturnCode = ReturnCode.NoError;
                                         query.AnswerRecords.Add(record);
@@ -217,6 +216,37 @@ namespace Trust4
                             this.m_Manager.Mappings.EndWait(q.Name.ToLowerInvariant());
                         }
                     }
+                }
+                else
+                {
+                    // We need to do a lookup in the ICANN root servers for this request.
+                    DnsClient client = new DnsClient(
+                        new List<IPAddress>
+                        {
+                            IPAddress.Parse("198.41.0.4"),                          // A.ROOT-SERVERS.NET
+                            IPAddress.Parse("2001:503:BA3E::2:30"),                 // A.ROOT-SERVERS.NET
+                            IPAddress.Parse("192.228.79.201"),                      // B.ROOT-SERVERS.NET
+                            IPAddress.Parse("192.33.4.12"),                         // C.ROOT-SERVERS.NET
+                            IPAddress.Parse("128.8.10.90"),                         // D.ROOT-SERVERS.NET
+                            IPAddress.Parse("192.203.230.10"),                      // E.ROOT-SERVERS.NET
+                            IPAddress.Parse("192.5.5.241"),                         // F.ROOT-SERVERS.NET
+                            IPAddress.Parse("2001:500:2f::f"),                      // F.ROOT-SERVERS.NET
+                            IPAddress.Parse("192.112.36.4"),                        // G.ROOT-SERVERS.NET
+                            IPAddress.Parse("128.63.2.53"),                         // H.ROOT-SERVERS.NET
+                            IPAddress.Parse("2001:500:1::803f:235"),                // H.ROOT-SERVERS.NET
+                            IPAddress.Parse("192.36.148.17"),                       // I.ROOT-SERVERS.NET
+                            IPAddress.Parse("192.58.128.30"),                       // J.ROOT-SERVERS.NET
+                            IPAddress.Parse("2001:503:C27::2:30"),                  // J.ROOT-SERVERS.NET
+                            IPAddress.Parse("193.0.14.129"),                        // K.ROOT-SERVERS.NET
+                            IPAddress.Parse("2001:7fd::1"),                         // K.ROOT-SERVERS.NET
+                            IPAddress.Parse("199.7.83.42"),                         // L.ROOT-SERVERS.NET
+                            IPAddress.Parse("202.12.27.33"),                        // M.ROOT-SERVERS.NET
+                            IPAddress.Parse("2001:dc3::35")                         // M.ROOT-SERVERS.NET
+                        },
+                        1500
+                    );
+                    DnsMessage result = client.Resolve(q.Name, q.RecordType, q.RecordClass);
+                    query.AnswerRecords.AddRange(result.AnswerRecords);
                 }
             }
 
